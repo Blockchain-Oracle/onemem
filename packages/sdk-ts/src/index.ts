@@ -1,6 +1,86 @@
-// @onemem/sdk-ts — entry point (skeleton; implemented in Pillar 2)
+// @onemem/sdk-ts — public API surface.
 //
-// API surface spec: docs/05-our-architecture/02-sdks/shared-api-surface.md
-// Move types codegen: scripts/codegen-move-types.ts → src/types/move-types.ts
+// Quick start:
+//   import { OneMem, NamespaceKind } from "@onemem/sdk-ts";
+//   import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+//
+//   const onemem = await OneMem.create({
+//     network: "testnet",
+//     signer: Ed25519Keypair.fromSecretKey(process.env.PRIVATE_KEY!),
+//   });
+//
+//   const { namespaceId, adminCapId } = await onemem.namespaces.create({
+//     name: "alice-memory",
+//     kind: NamespaceKind.User,
+//     sealPackageId: "0x...",
+//   });
+//
+//   // Mint myself a RW cap (admin holds Admin; openSession needs RW)
+//   const { capId: rwCapId } = await onemem.namespaces.shareReadWrite({
+//     namespaceId, adminCapId, recipient: onemem.senderAddress(),
+//   });
+//
+//   const { sessionId } = await onemem.traces.openSession({
+//     namespaceId, rwCapId,
+//     agentId: "my-agent", environment: "dev", sdkVersion: "0.1.0",
+//   });
+//
+//   await onemem.traces.emitCall({
+//     sessionId, namespaceId, rwCapId,
+//     toolName: "Read", toolNamespace: "claude-code-builtin",
+//     walrusInputBlob: "walrus:abc", inputHash: new Uint8Array([1,2,3]),
+//   });
+//
+//   await onemem.traces.closeSession({
+//     sessionId, rwCapId, status: SessionStatus.Completed,
+//   });
+//
+//   const verify = await onemem.traces.verifySession(sessionId);
+//   // verify.ok === true means the Merkle chain is intact.
+//
+// Network switching: pass `network: "mainnet"` to OneMem.create(). The
+// codegen-emitted manifest at src/generated/addresses.ts resolves all
+// addresses. Until mainnet is deployed, mainnet calls throw a clear
+// "OneMem is not deployed on mainnet" error (per the portability rule).
 
 export const VERSION = "0.1.0";
+
+export { OneMem, type OneMemConfig } from "./client.js";
+export {
+  ACTIVE_NETWORK,
+  ADDRESSES,
+  addressesFor,
+  type OneMemAddresses,
+  type SuiNetwork,
+} from "./generated/addresses.js";
+export {
+  type CreateNamespaceArgs,
+  type CreateNamespaceResult,
+  NamespacesAPI,
+} from "./namespaces.js";
+export {
+  type CloseCallArgs,
+  type CloseSessionArgs,
+  type EmitCallArgs,
+  type OpenSessionArgs,
+  TracesAPI,
+  type VerifyResult,
+} from "./traces.js";
+export {
+  type ActionCall,
+  type ActionCallClosedEvent,
+  type ActionCallEmittedEvent,
+  type CallStatus,
+  CallStatus as CallStatusEnum,
+  type CapKind,
+  type MemoryNamespace,
+  type NamespaceCapability,
+  type NamespaceKind,
+  NamespaceKind as NamespaceKindEnum,
+  type OneMemRegistry,
+  type SessionStatus,
+  SessionStatus as SessionStatusEnum,
+  type TraceSession,
+  type TraceSessionClosedEvent,
+  type TraceSessionOpenedEvent,
+} from "./types/move.js";
