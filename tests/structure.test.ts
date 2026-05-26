@@ -71,6 +71,7 @@ const MOVE_TESTS = [
   "merkle_chain_tests",
   "version_tests",
   "registry_tests",
+  "integration_tests",
 ] as const;
 
 const SCRIPTS = [
