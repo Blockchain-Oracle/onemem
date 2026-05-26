@@ -22,6 +22,10 @@ Verifiable cross-runtime AI agent memory + trace layer (Sui + Walrus + Seal + Me
 | `apps/hosted-dashboard/` | `docs/05-our-architecture/06-dashboard/purpose-local-vs-hosted.md` → then `hosted-deploy.md` |
 | Any other package / app / demo | matching `docs/05-our-architecture/<sub-group>/` + the dir's `README.md` |
 
+## Where we are + what's next
+
+`docs/05-our-architecture/00-overview/BUILD_SEQUENCE.md` is the always-current phase tracker (checkbox list at the top). Re-read it at the start of every session to load position into context. After every completed chunk, flip the checkbox + move the `← CURRENT` arrow + link the commit SHA in the same commit. Never ask "what's next" — read the tracker.
+
 ## Structural integrity
 
 Run `pnpm test:structure` before declaring any monorepo change done. It asserts the canonical layout (workspace globs, manifests, `CLAUDE.md` inventory, `workspace:*` cross-refs, Move modules, hosted-dashboard routes, brand tokens). When you intentionally add or rename a package, update `tests/structure.test.ts` in the same commit — drift must be loud, not silent.

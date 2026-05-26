@@ -6,6 +6,33 @@
 
 ---
 
+## Phase tracker — READ FIRST (the "what's next" source of truth)
+
+After every completed chunk: flip the checkbox + move the `← CURRENT` arrow + link the commit SHA in the same commit. Pause for review only at MAJOR phase transitions (architecture → bootstrap, bootstrap → spec, spec → code, code → ship).
+
+- [x] **Phase 0** — Research (Sui Overflow handbook + 65-doc inspiration audit)
+- [x] **Phase 1** — Architecture (65 design docs across `docs/05-our-architecture/`)
+- [x] **Phase 2** — Build-prep (monorepo bootstrap — commits `658848d` + `b904d54`)
+- [ ] **Phase 3 — Pillar 1: Move contract** ← **CURRENT**
+  - [ ] Spec: `docs/06-specs/pillar-1-protocol/{PRD,architecture,epics}.md` + `stories/*.md`
+  - [ ] Code (TDD): implement modules in `contracts/onemem/sources/{registry,namespace,trace,events,seal_policy,version}.move` + tests
+  - [ ] Deploy testnet via `scripts/deploy-contract.sh testnet`; smoke-test via `scripts/verify-mainnet.sh testnet`
+  - [ ] Deploy mainnet via GH workflow `deploy-contract.yml` (manual approval gate)
+  - [ ] Pillar exit gate: mainnet package IDs captured in `docs/05-our-architecture/01-protocol/MAINNET_DEPLOY.md`; `pnpm test:structure` green
+- [ ] **Phase 4 — Pillar 2: SDKs** (TS + Python)
+- [ ] **Phase 5 — Pillar 3: Per-runtime plugins** (Claude Code + OpenClaw + Hermes) + MCP server
+- [ ] **Phase 6 — Pillar 4: Framework providers** (Vercel AI + OpenAI Agents + CrewAI + LiveKit + ElevenLabs)
+- [ ] **Phase 7 — Pillar 5: CLI** (TS + Python)
+- [ ] **Phase 8 — Pillar 6: Dashboard** (`packages/dashboard` + `apps/hosted-dashboard` + public `/verify/[session_id]`)
+- [ ] **Phase 9 — Pillar 7: Marketing landing + docs site** (`apps/landing` + Mintlify `apps/docs`)
+- [ ] **Phase 10 — Pillar 8: Demos + e2e tests** (4 demo videos)
+- [ ] **Phase 11 — Pillar 9 stretch: Nautilus TEE relayer** (if time)
+- [ ] **Phase 12 — Submission** (DeepSurge by 2026-06-21)
+- [ ] **Phase 13 — Demo Day pitch prep** (Jul 9-19; only if shortlisted Jul 8)
+- [ ] **Phase 14 — Mainnet stability + v0.2 features** (Jul 22 - Aug 26)
+
+---
+
 ## Day-by-day timeline
 
 ### Days 1-2 (May 26-27) — Architecture phase (current)
