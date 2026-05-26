@@ -30,6 +30,7 @@ esac
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONTRACT_DIR="$REPO_ROOT/contracts/onemem"
 DEPLOY_DOC="$REPO_ROOT/docs/05-our-architecture/01-protocol/MAINNET_DEPLOY.md"
+NETWORKS_JSON="$REPO_ROOT/config/networks.json"
 
 GAS_BUDGET="${GAS_BUDGET:-200000000}"   # 0.2 SUI default
 
@@ -39,12 +40,48 @@ sui client switch --env "$NETWORK" >/dev/null
 ACTIVE_ADDRESS="$(sui client active-address)"
 echo "==> Active address: $ACTIVE_ADDRESS"
 
-# Make sure there's at least one gas coin before publish (the next call would fail otherwise).
+# Make sure there's at least one gas coin before publish.
+# Mysten retired the CLI faucet command in late-2025 (it now just opens
+# the web faucet URL). We POST to the HTTP API directly. Rate limit:
+# typically one request per IP per ~60s; retry loop handles that.
+faucet_for() {
+  local addr="$1" net="$2" url=""
+  case "$net" in
+    testnet) url="https://faucet.testnet.sui.io/v2/gas" ;;
+    devnet)  url="https://faucet.devnet.sui.io/v2/gas" ;;
+    *)       echo "no faucet for $net"; return 1 ;;
+  esac
+  local body="{\"FixedAmountRequest\": {\"recipient\": \"$addr\"}}"
+  local attempt=0
+  while [ $attempt -lt 6 ]; do
+    attempt=$((attempt + 1))
+    local resp
+    resp="$(curl -sS --location --request POST "$url" --header 'Content-Type: application/json' --data-raw "$body" 2>&1)"
+    if echo "$resp" | grep -qi 'too many requests\|rate'; then
+      echo "    faucet rate-limited (attempt $attempt); waiting 30s..."
+      sleep 30
+      continue
+    fi
+    if echo "$resp" | grep -qi 'error\|fail'; then
+      echo "    faucet error: $resp"
+      sleep 10
+      continue
+    fi
+    echo "    faucet OK: $resp"
+    return 0
+  done
+  return 1
+}
+
 if ! sui client gas --json 2>/dev/null | jq -e '. | length > 0' >/dev/null; then
   if [ "$NETWORK" != "mainnet" ]; then
     echo "==> No gas coins. Requesting faucet for $NETWORK..."
-    sui client faucet || { echo "Faucet failed. Try again or fund the address manually."; exit 1; }
-    sleep 5
+    if ! faucet_for "$ACTIVE_ADDRESS" "$NETWORK"; then
+      echo "Faucet retries exhausted. Try again in a few minutes or fund the address via https://faucet.sui.io/?address=$ACTIVE_ADDRESS"
+      exit 1
+    fi
+    echo "    waiting 10s for the coin to land..."
+    sleep 10
   else
     echo "ERROR: No gas coins on mainnet. Fund $ACTIVE_ADDRESS with SUI before deploying."
     exit 1
@@ -107,7 +144,33 @@ EOF
 
 echo ""
 echo "==> Wrote deployment record to $DEPLOY_DOC"
+
+# Also update the machine-readable config/networks.json so SDKs + scripts +
+# dashboard pick up the new IDs without re-parsing markdown.
+DEPLOYED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+tmp="$(mktemp)"
+jq \
+  --arg net "$NETWORK" \
+  --arg pkg "$PACKAGE_ID" \
+  --arg reg "$REGISTRY_ID" \
+  --arg admin "$ADMIN_CAP_ID" \
+  --arg upgrade "$UPGRADE_CAP_ID" \
+  --arg deployer "$ACTIVE_ADDRESS" \
+  --arg digest "$TX_DIGEST" \
+  --arg ts "$DEPLOYED_AT" \
+  '.networks[$net].package_id = $pkg
+   | .networks[$net].registry_id = $reg
+   | .networks[$net].registry_admin_cap_id = $admin
+   | .networks[$net].upgrade_cap_id = $upgrade
+   | .networks[$net].deployer_address = $deployer
+   | .networks[$net].tx_digest = $digest
+   | .networks[$net].deployed_at = $ts
+   | .active = $net' \
+  "$NETWORKS_JSON" > "$tmp" && mv "$tmp" "$NETWORKS_JSON"
+echo "==> Updated $NETWORKS_JSON (.networks.$NETWORK + .active=\"$NETWORK\")"
+
 echo ""
 echo "Next steps:"
 echo "  1. Run \`bash scripts/verify-mainnet.sh $NETWORK\` to smoke-test the deployed package"
-echo "  2. Commit MAINNET_DEPLOY.md so the IDs are checked in"
+echo "  2. Commit MAINNET_DEPLOY.md + config/networks.json so the IDs are checked in"
+echo "  3. SDKs / scripts / dashboard read config/networks.json at runtime (set SUI_NETWORK to switch)"

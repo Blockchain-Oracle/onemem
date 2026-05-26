@@ -16,25 +16,19 @@ set -euo pipefail
 NETWORK="${1:-testnet}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONTRACT_DIR="$REPO_ROOT/contracts/onemem"
-DEPLOY_DOC="$REPO_ROOT/docs/05-our-architecture/01-protocol/MAINNET_DEPLOY.md"
+NETWORKS_JSON="$REPO_ROOT/config/networks.json"
 
 GAS_BUDGET="${GAS_BUDGET:-200000000}"
 
-if [ ! -f "$DEPLOY_DOC" ]; then
-  echo "ERROR: $DEPLOY_DOC does not exist — no prior deployment recorded."
-  echo "Run \`bash scripts/deploy-contract.sh $NETWORK\` first for the initial publish."
+if [ ! -f "$NETWORKS_JSON" ]; then
+  echo "ERROR: $NETWORKS_JSON does not exist."
   exit 1
 fi
 
-# Pull the most recent UpgradeCap ID for this network from the deploy doc.
-UPGRADE_CAP_ID="$(awk -v net="$NETWORK" '
-  /^## / && tolower($0) ~ tolower(net) { in_block = 1; next }
-  /^## / && in_block { in_block = 0 }
-  in_block && /UpgradeCap/ { match($0, /`(0x[0-9a-fA-F]+)`/, m); if (m[1] != "") print m[1] }
-' "$DEPLOY_DOC" | tail -1)"
-
+UPGRADE_CAP_ID="$(jq -r --arg n "$NETWORK" '.networks[$n].upgrade_cap_id // ""' "$NETWORKS_JSON")"
 if [ -z "$UPGRADE_CAP_ID" ]; then
-  echo "ERROR: Could not find an UpgradeCap ID for $NETWORK in $DEPLOY_DOC"
+  echo "ERROR: No UpgradeCap recorded for $NETWORK in $NETWORKS_JSON"
+  echo "Run \`bash scripts/deploy-contract.sh $NETWORK\` first for the initial publish."
   exit 1
 fi
 

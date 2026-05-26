@@ -1,0 +1,51 @@
+{
+  "$schema": "./networks.schema.json",
+  "$comment": "Machine-readable per-network deployment manifest. Populated by scripts/deploy-contract.sh on each deploy. Consumed by SDKs, scripts, dashboard, and the verify-mainnet smoke test. Human-readable history lives at docs/05-our-architecture/01-protocol/MAINNET_DEPLOY.md. Switch networks by setting SUI_NETWORK env var (testnet | mainnet | devnet | local) — every consumer should default to `active` if SUI_NETWORK is unset.",
+  "active": "testnet",
+  "networks": {
+    "testnet": {
+      "rpc_url": "https://fullnode.testnet.sui.io:443",
+      "suiscan_base": "https://suiscan.xyz/testnet",
+      "package_id": "",
+      "registry_id": "",
+      "registry_admin_cap_id": "",
+      "upgrade_cap_id": "",
+      "deployer_address": "",
+      "tx_digest": "",
+      "deployed_at": ""
+    },
+    "mainnet": {
+      "rpc_url": "https://fullnode.mainnet.sui.io:443",
+      "suiscan_base": "https://suiscan.xyz/mainnet",
+      "package_id": "",
+      "registry_id": "",
+      "registry_admin_cap_id": "",
+      "upgrade_cap_id": "",
+      "deployer_address": "",
+      "tx_digest": "",
+      "deployed_at": ""
+    },
+    "devnet": {
+      "rpc_url": "https://fullnode.devnet.sui.io:443",
+      "suiscan_base": "https://suiscan.xyz/devnet",
+      "package_id": "",
+      "registry_id": "",
+      "registry_admin_cap_id": "",
+      "upgrade_cap_id": "",
+      "deployer_address": "",
+      "tx_digest": "",
+      "deployed_at": ""
+    },
+    "local": {
+      "rpc_url": "http://127.0.0.1:9000",
+      "suiscan_base": "",
+      "package_id": "",
+      "registry_id": "",
+      "registry_admin_cap_id": "",
+      "upgrade_cap_id": "",
+      "deployer_address": "",
+      "tx_digest": "",
+      "deployed_at": ""
+    }
+  }
+}

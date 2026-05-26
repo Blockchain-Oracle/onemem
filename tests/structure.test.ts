@@ -102,6 +102,8 @@ const ROOT_CONFIGS = [
   "README.md",
   "CLAUDE.md",
   ".changeset/config.json",
+  "config/networks.json",
+  "config/networks.schema.json",
 ] as const;
 
 const GH_WORKFLOWS = [

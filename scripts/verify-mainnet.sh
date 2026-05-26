@@ -18,29 +18,19 @@ set -euo pipefail
 
 NETWORK="${1:-testnet}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEPLOY_DOC="$REPO_ROOT/docs/05-our-architecture/01-protocol/MAINNET_DEPLOY.md"
+NETWORKS_JSON="$REPO_ROOT/config/networks.json"
 
-if [ ! -f "$DEPLOY_DOC" ]; then
-  echo "ERROR: $DEPLOY_DOC does not exist — nothing deployed yet."
-  echo "Run \`bash scripts/deploy-contract.sh $NETWORK\` first."
+if [ ! -f "$NETWORKS_JSON" ]; then
+  echo "ERROR: $NETWORKS_JSON does not exist."
   exit 1
 fi
 
-# Extract the most recent Package ID + Registry ID for this network.
-PACKAGE_ID="$(awk -v net="$NETWORK" '
-  /^## / && tolower($0) ~ tolower(net) { in_block = 1; next }
-  /^## / && in_block { in_block = 0 }
-  in_block && /Package ID/ { match($0, /`(0x[0-9a-fA-F]+)`/, m); if (m[1] != "") print m[1] }
-' "$DEPLOY_DOC" | tail -1)"
-
-REGISTRY_ID="$(awk -v net="$NETWORK" '
-  /^## / && tolower($0) ~ tolower(net) { in_block = 1; next }
-  /^## / && in_block { in_block = 0 }
-  in_block && /OneMemRegistry/ { match($0, /`(0x[0-9a-fA-F]+)`/, m); if (m[1] != "") print m[1] }
-' "$DEPLOY_DOC" | tail -1)"
+PACKAGE_ID="$(jq -r --arg n "$NETWORK" '.networks[$n].package_id // ""' "$NETWORKS_JSON")"
+REGISTRY_ID="$(jq -r --arg n "$NETWORK" '.networks[$n].registry_id // ""' "$NETWORKS_JSON")"
 
 if [ -z "$PACKAGE_ID" ] || [ -z "$REGISTRY_ID" ]; then
-  echo "ERROR: Could not find Package ID or Registry ID for $NETWORK in $DEPLOY_DOC"
+  echo "ERROR: No deployment recorded for $NETWORK in $NETWORKS_JSON"
+  echo "Run \`bash scripts/deploy-contract.sh $NETWORK\` first."
   exit 1
 fi
 
