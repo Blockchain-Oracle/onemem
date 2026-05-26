@@ -13,13 +13,14 @@
 - [x] **Phase 0** — Research (Sui Overflow handbook + 65-doc inspiration audit)
 - [x] **Phase 1** — Architecture (65 design docs across `docs/05-our-architecture/`)
 - [x] **Phase 2** — Build-prep (monorepo bootstrap — commits `658848d` + `b904d54`)
-- [ ] **Phase 3 — Pillar 1: Move contract** ← **CURRENT** (executing autonomously)
-  - [x] Spec: `docs/06-specs/pillar-1-protocol/{README,PRD,architecture,epics}.md` — 22 stories inline in `epics.md` (no `stories/` subdir). Commit `8569c76`.
-  - [ ] Code (TDD): implement modules in `contracts/onemem/sources/{registry,namespace,trace,events,seal_policy,version}.move` + tests, per the 8 epics in `epics.md`
-  - [ ] Deploy testnet via `scripts/deploy-contract.sh testnet`; smoke-test via `scripts/verify-mainnet.sh testnet`
-  - [ ] Deploy mainnet via GH workflow `deploy-contract.yml` (manual approval gate)
-  - [ ] Pillar exit gate: mainnet package IDs captured in `docs/05-our-architecture/01-protocol/MAINNET_DEPLOY.md`; `pnpm test:structure` green
-- [ ] **Phase 4 — Pillar 2: SDKs** (TS + Python)
+- [~] **Phase 3 — Pillar 1: Move contract** (testnet LIVE — mainnet pending Abu greenlight)
+  - [x] Spec: `docs/06-specs/pillar-1-protocol/{README,PRD,architecture,epics}.md`. Commit `8569c76`.
+  - [x] Code (TDD): all 6 Move modules + 34 unit tests across 8 epics. Commits `b317bb3` → `4f1b31a`.
+  - [x] Deploy scripts + multi-network config + cross-language codegen. Commits `0025bab` + `8a38a48` + `afd34e3`.
+  - [x] **Testnet deploy LIVE.** Package `0x64c14fc069fe3d3584b8474b4e9b58beb55373767edecedf6e4c53732d4ceafc`. Verify-script green. Commit `ac66ff1`. Suiscan: <https://suiscan.xyz/testnet/object/0x64c14fc069fe3d3584b8474b4e9b58beb55373767edecedf6e4c53732d4ceafc>
+  - [ ] **Mainnet deploy** — gated on Abu's explicit "go mainnet" (mainnet writes are irreversible-ish; major phase boundary)
+  - [ ] Pillar exit gate: mainnet package IDs in `MAINNET_DEPLOY.md` (testnet block already there); `pnpm test:structure` green ✓ already
+- [ ] **Phase 4 — Pillar 2: SDKs** ← **NEXT** (TS + Python; can start against testnet IDs immediately)
 - [ ] **Phase 5 — Pillar 3: Per-runtime plugins** (Claude Code + OpenClaw + Hermes) + MCP server
 - [ ] **Phase 6 — Pillar 4: Framework providers** (Vercel AI + OpenAI Agents + CrewAI + LiveKit + ElevenLabs)
 - [ ] **Phase 7 — Pillar 5: CLI** (TS + Python)
