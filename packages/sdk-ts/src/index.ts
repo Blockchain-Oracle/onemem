@@ -66,21 +66,21 @@ export {
   TracesAPI,
   type VerifyResult,
 } from "./traces.js";
-export {
-  type ActionCall,
-  type ActionCallClosedEvent,
-  type ActionCallEmittedEvent,
-  type CallStatus,
-  CallStatus as CallStatusEnum,
-  type CapKind,
-  type MemoryNamespace,
-  type NamespaceCapability,
-  type NamespaceKind,
-  NamespaceKind as NamespaceKindEnum,
-  type OneMemRegistry,
-  type SessionStatus,
-  SessionStatus as SessionStatusEnum,
-  type TraceSession,
-  type TraceSessionClosedEvent,
-  type TraceSessionOpenedEvent,
+export type {
+  ActionCall,
+  ActionCallClosedEvent,
+  ActionCallEmittedEvent,
+  CapKind,
+  MemoryNamespace,
+  NamespaceCapability,
+  OneMemRegistry,
+  TraceSession,
+  TraceSessionClosedEvent,
+  TraceSessionOpenedEvent,
 } from "./types/move.js";
+// NamespaceKind/SessionStatus/CallStatus are exported as BOTH value (const
+// object) AND type (union of the literal members) — the canonical TS
+// "const-enum-like" pattern. Consumers do `NamespaceKind.User` for the
+// value and `kind: NamespaceKind` for the type. Don't add a `type` prefix
+// to these re-exports; doing so masks the runtime value.
+export { CallStatus, NamespaceKind, SessionStatus } from "./types/move.js";

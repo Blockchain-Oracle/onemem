@@ -208,23 +208,36 @@ export class TracesAPI {
     // within a single tx the order is preserved by the validator).
     events.sort((a, b) => Number(a.timestampMs - b.timestampMs));
 
-    let running = ZERO_HASH;
+    // TWO chains to verify (per docs/05-our-architecture/01-protocol/
+    // events-and-attestation.md + trace.move):
+    //
+    //   1. prev_hash chain: each call's prev_hash == previous call's
+    //      content_hash (or ZERO_HASH for the first call). Confirms no
+    //      call was inserted/dropped in the middle.
+    //
+    //   2. merkle_root chain: session.merkle_root is the result of
+    //      chain_hash(running, content) applied for each call. Confirms
+    //      no call's content_hash was forged.
+    //
+    // Both must hold for ok = true.
+    let runningMerkle = ZERO_HASH;
+    let prevContent = ZERO_HASH;
     let brokenAt: number | null = null;
+
     events.forEach((event, idx) => {
-      const expectedPrev = running;
-      if (!u8eq(event.prevHash, expectedPrev)) {
-        brokenAt ??= idx;
+      if (brokenAt === null && !u8eq(event.prevHash, prevContent)) {
+        brokenAt = idx;
       }
-      // Advance the running root.
-      running = chainHash(running, event.contentHash);
+      runningMerkle = chainHash(runningMerkle, event.contentHash);
+      prevContent = event.contentHash;
     });
 
-    const ok = brokenAt === null && u8eq(running, session.merkleRoot);
+    const ok = brokenAt === null && u8eq(runningMerkle, session.merkleRoot);
     return {
       ok,
       brokenAt,
       expectedMerkleRoot: session.merkleRoot,
-      computedMerkleRoot: running,
+      computedMerkleRoot: runningMerkle,
       callCount: events.length,
       sessionStatus: session.status,
     };
