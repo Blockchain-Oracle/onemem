@@ -1,0 +1,23 @@
+/* OneMem brand tokens — sourced from docs/02-inspirations/BRAND_AND_SURFACES.md */
+/* Apply via: @import "@onemem/brand/tokens.css"; */
+
+:root {
+  /* Color palette */
+  --onemem-lavender: #b08fff;        /* primary brand */
+  --onemem-chartreuse: #d4ff5e;      /* RESERVED for Verify affordances ONLY */
+  --onemem-cream: #faf8f5;           /* default surface */
+  --onemem-sui: #0090ff;             /* RESERVED for Suiscan links ONLY */
+  --onemem-ink: #1a1a1a;             /* primary text on cream */
+  --onemem-fog: #6b7280;             /* secondary text */
+
+  /* Typography stack */
+  --onemem-font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --onemem-font-display: "Ratch", "General Sans", "Inter", system-ui, sans-serif;
+  --onemem-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Radius scale */
+  --onemem-radius-sm: 6px;
+  --onemem-radius-md: 12px;
+  --onemem-radius-lg: 20px;
+  --onemem-radius-full: 9999px;
+}

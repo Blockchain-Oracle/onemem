@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+import("../dist/index.js").catch((e) => {
+  console.error("onemem CLI failed to load:", e);
+  process.exit(1);
+});

@@ -1,0 +1,8 @@
+{
+  "name": "onemem",
+  "version": "0.1.0",
+  "description": "OneMem — verifiable on-chain memory + action traces for Claude Code",
+  "homepage": "https://onemem.ai",
+  "license": "Apache-2.0",
+  "hooksFile": "hooks/hooks.json"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@onemem/brand",
+  "version": "0.1.0",
+  "description": "OneMem shared brand assets — logo, fonts, OG image templates, design tokens",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./logo/*": "./logo/*",
+    "./fonts/*": "./fonts/*",
+    "./og-images/*": "./og-images/*"
+  },
+  "files": [
+    "tokens.css",
+    "logo",
+    "fonts",
+    "og-images",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "biome check ."
+  }
+}

@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+import("../dist/index.js").catch((e) => {
+  console.error("onemem-mcp failed to load:", e);
+  process.exit(1);
+});

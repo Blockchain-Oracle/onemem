@@ -1,0 +1,33 @@
+{
+  "name": "@onemem/mcp",
+  "version": "0.1.0",
+  "description": "OneMem MCP server — exposes memory + trace primitives to any MCP-compatible runtime (Cursor, Codex, Antigravity, Windsurf, OpenCode, Cline, VS Code Copilot)",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "onemem-mcp": "./bin/onemem-mcp"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@onemem/sdk-ts": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

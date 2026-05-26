@@ -1,0 +1,16 @@
+{
+  "include": [
+    "packages/sdk-python",
+    "packages/cli-python",
+    "packages/plugin-hermes",
+    "packages/provider-crewai",
+    "packages/provider-livekit",
+    "packages/provider-elevenlabs"
+  ],
+  "exclude": ["**/__pycache__", "**/.venv", "**/build", "**/dist", "docs"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "standard",
+  "strict": ["packages/sdk-python"],
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none"
+}

@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: lint + test + build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+
+      - name: Show toolchain
+        run: |
+          node --version
+          pnpm --version
+          uv --version
+          sui --version || echo "sui not yet installed via mise (expected at v0.1; install via brew on runner)"
+
+      - name: Install TS deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Python deps
+        run: uv sync --frozen
+
+      - name: Lint
+        run: pnpm turbo run lint
+
+      - name: Typecheck
+        run: pnpm turbo run typecheck
+
+      - name: Test
+        run: pnpm turbo run test
+
+      - name: Build
+        run: pnpm turbo run build
+
+      - name: Move build + test
+        working-directory: contracts/onemem
+        run: |
+          sui move build
+          sui move test
+        continue-on-error: true  # remove once sui is wired into mise on the runner
+
+      - name: Python lint
+        run: uv run ruff check .
+
+      - name: Python typecheck
+        run: uv run pyright

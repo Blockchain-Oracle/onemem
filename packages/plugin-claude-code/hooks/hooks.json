@@ -1,0 +1,22 @@
+{
+  "PostToolUse": [
+    {
+      "command": "node ${CLAUDE_PROJECT_DIR}/scripts/observe.js"
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "command": "node ${CLAUDE_PROJECT_DIR}/scripts/observe.js"
+    }
+  ],
+  "SessionStart": [
+    {
+      "command": "node ${CLAUDE_PROJECT_DIR}/scripts/inject.js"
+    }
+  ],
+  "SessionEnd": [
+    {
+      "command": "node ${CLAUDE_PROJECT_DIR}/scripts/summarize.js"
+    }
+  ]
+}

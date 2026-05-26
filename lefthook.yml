@@ -1,0 +1,23 @@
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{ts,tsx,js,jsx,json}"
+      run: pnpm exec biome check --write --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+    ruff-check:
+      glob: "*.py"
+      run: uv run ruff check --fix {staged_files}
+      stage_fixed: true
+    ruff-format:
+      glob: "*.py"
+      run: uv run ruff format {staged_files}
+      stage_fixed: true
+    move-build:
+      glob: "contracts/onemem/**/*.move"
+      run: cd contracts/onemem && sui move build
+
+pre-push:
+  commands:
+    test-changed:
+      run: pnpm turbo run test --filter=...[origin/main]

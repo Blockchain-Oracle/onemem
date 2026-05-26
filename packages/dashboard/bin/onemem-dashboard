@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+// Launches the OneMem dashboard's Next.js standalone server on PORT (default 4040).
+// Per docs/05-our-architecture/06-dashboard/local-deploy.md, this is what `onemem dashboard` (CLI) spawns.
+
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const port = process.env.PORT ?? "4040";
+const serverPath = resolve(__dirname, "..", ".next", "standalone", "server.js");
+
+const proc = spawn("node", [serverPath], {
+  env: { ...process.env, PORT: port, HOSTNAME: "0.0.0.0" },
+  stdio: "inherit",
+});
+
+proc.on("exit", (code) => process.exit(code ?? 0));

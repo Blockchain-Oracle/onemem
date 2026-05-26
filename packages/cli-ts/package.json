@@ -1,0 +1,35 @@
+{
+  "name": "@onemem/cli",
+  "version": "0.1.0",
+  "description": "OneMem CLI — sign in, mint namespaces, launch dashboard, inspect traces from the terminal",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "onemem": "./bin/onemem"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@onemem/sdk-ts": "workspace:*",
+    "commander": "^12.1.0",
+    "open": "^10.1.0",
+    "execa": "^9.5.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@onemem/claude-code-plugin",
+  "version": "0.1.0",
+  "description": "OneMem plugin for Claude Code — captures hooks (PostToolUse / UserPromptSubmit / etc) into verifiable on-chain traces",
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    ".claude-plugin",
+    "hooks",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "lint": "biome check ."
+  },
+  "dependencies": {
+    "@onemem/sdk-ts": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  }
+}

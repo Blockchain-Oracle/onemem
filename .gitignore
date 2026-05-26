@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.uv-cache/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.pyright/
+
+# Build outputs
+dist/
+build/
+out/
+target/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Move build
+contracts/*/build/
+
+# Rust
+**/target/
+Cargo.lock
+
+# Environment + secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials.json
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Mise local cache
+.mise.local.toml

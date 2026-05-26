@@ -1,0 +1,52 @@
+name: Deploy Walrus Sites mirror
+
+on:
+  workflow_dispatch:
+    inputs:
+      epochs:
+        description: "Walrus Sites epochs to fund (storage duration)"
+        required: true
+        type: string
+        default: "26"
+
+concurrency:
+  group: deploy-walrus-sites
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Mirror hosted-dashboard to Walrus Sites
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: walrus-sites
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+
+      - name: Install TS deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build hosted-dashboard (static export)
+        working-directory: apps/hosted-dashboard
+        env:
+          NEXT_PUBLIC_DEPLOY_TARGET: walrus-sites
+        run: pnpm build && pnpm exec next export -o out
+
+      - name: Configure Sui CLI
+        env:
+          SUI_KEYSTORE: ${{ secrets.SUI_KEYSTORE }}
+        run: |
+          mkdir -p ~/.sui/sui_config
+          echo "$SUI_KEYSTORE" > ~/.sui/sui_config/sui.keystore
+          sui client switch --env mainnet
+
+      - name: Deploy to Walrus Sites
+        env:
+          WALRUS_EPOCHS: ${{ inputs.epochs }}
+        run: bash scripts/deploy-walrus-sites.sh

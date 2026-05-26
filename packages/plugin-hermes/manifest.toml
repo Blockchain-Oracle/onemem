@@ -1,0 +1,11 @@
+[plugin]
+name = "hermes-onemem"
+version = "0.1.0"
+description = "OneMem — verifiable on-chain action traces for Hermes"
+homepage = "https://onemem.ai"
+license = "Apache-2.0"
+entrypoint = "hermes_onemem:plugin"
+
+[hooks]
+on_action = "hermes_onemem.hooks:on_action"
+on_delegation = "hermes_onemem.hooks:on_delegation"

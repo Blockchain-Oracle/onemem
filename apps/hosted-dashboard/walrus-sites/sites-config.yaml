@@ -1,0 +1,18 @@
+# Walrus Sites mirror deploy config for apps/hosted-dashboard.
+# Builder: site-builder (Walrus Sites CLI). Run via scripts/deploy-walrus-sites.sh.
+
+# Build artifacts (next export output)
+source: ./out
+
+# Suins domain (optional; set after first deploy)
+# domain: onemem.wal.app
+
+# Walrus storage epochs to fund. 26 epochs ≈ 6 months.
+epochs: 26
+
+# Force rebuild on every deploy (set false to reuse cached blobs)
+force_refresh: false
+
+# Resource routes — Walrus Sites maps URL paths to blobs.
+routes:
+  "/*": "out/$path"
