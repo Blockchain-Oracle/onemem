@@ -1,12 +1,15 @@
 /// Authenticated event types for OneMem.
 /// Per docs/05-our-architecture/01-protocol/events-and-attestation.md.
 ///
-/// **v0.1 scope note:** these are plain copy+drop event structs emitted via
-/// `sui::event::emit` by their owning modules. Epic 4 (per the spec) will
-/// add `emit_*` wrapper functions here that call `event::emit_authenticated`
-/// once the Sui framework rev pinned in Move.toml exposes a stable API for
-/// it. Until then, consensus-signed checkpoints + Merkle chain integrity
-/// already give strong verifiability.
+/// **`event::emit_authenticated`** is used for every event. Sui validators
+/// sign checkpoints that include the authentication payload, so light
+/// clients (dashboard `/verify/[session_id]`, the verify-mainnet.sh smoke
+/// test) can verify event provenance without trusting a relayer.
+///
+/// First-mover note: no Mysten reference app uses this primitive yet as of
+/// the rev pinned in Move.toml. OneMem is among the first production users
+/// of authenticated events on Sui mainnet — worth calling out in the demo
+/// and pitch.
 ///
 /// Owning modules:
 ///   - registry.move    → RegistryInitialized, NamespaceRegistered
@@ -86,7 +89,7 @@ public fun emit_trace_session_opened(
     started_at: u64,
     initial_merkle_root: vector<u8>,
 ) {
-    event::emit(TraceSessionOpenedEvent {
+    event::emit_authenticated(TraceSessionOpenedEvent {
         session_id, namespace_id, agent_id, environment, sdk_version,
         captured_by_address, started_at, initial_merkle_root,
     });
@@ -100,7 +103,7 @@ public fun emit_trace_session_closed(
     status: u8,
     ended_at: u64,
 ) {
-    event::emit(TraceSessionClosedEvent {
+    event::emit_authenticated(TraceSessionClosedEvent {
         session_id, namespace_id, final_merkle_root, call_count, status, ended_at,
     });
 }
@@ -121,7 +124,7 @@ public fun emit_action_call_emitted(
     captured_at: u64,
     label: Option<String>,
 ) {
-    event::emit(ActionCallEmittedEvent {
+    event::emit_authenticated(ActionCallEmittedEvent {
         session_id, namespace_id, call_id, parent_call_id,
         tool_name, tool_namespace, walrus_input_blob, input_hash,
         content_hash, prev_hash, new_session_merkle_root,
@@ -137,7 +140,7 @@ public fun emit_action_call_closed(
     status: u8,
     ended_at: u64,
 ) {
-    event::emit(ActionCallClosedEvent {
+    event::emit_authenticated(ActionCallClosedEvent {
         session_id, call_id, walrus_output_blob, output_hash, status, ended_at,
     });
 }
