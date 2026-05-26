@@ -11,7 +11,7 @@ Verifiable cross-runtime AI agent memory + trace layer (Sui + Walrus + Seal + Me
 5. **Never hardcode dep versions from memory.** Use `pnpm add` / `uv add`. If hand-writing a manifest, look up actual latest via `pnpm view <pkg> version` (or `uv pip index versions <pkg>`) first; use the `^` prefix.
 6. **Research before non-trivial decisions.** `context7` MCP for live framework/SDK docs; exa/Brave for ecosystem state; this repo's `docs/` for captured decisions; 3–5 inspirations under `docs/02-inspirations/` for patterns — best-of-best, not first-match. Same rule while implementing: confused → look it up, don't guess.
 7. **Autonomous through the tracker.** Loop: research → TDD → verify → commit → flip `BUILD_SEQUENCE.md` checkbox → start next story. Pause ONLY at MAJOR phase boundaries (pillar→pillar, code→mainnet, pre-submission). Never pause mid-pillar for "ready?" — just start.
-8. **Coding guardrails.** Source files ≤ 400 lines (structure test enforces). Extract helpers at ~50-line functions or repeated logic. Use named types/structs over primitive bags. One responsibility per module. Refactor at 380 lines, not 600.
+8. **Coding guardrails.** Full doc: `docs/05-our-architecture/00-overview/CODING_GUARDRAILS.md` (TS + Python + Move + cross-cutting). Headline rules: source files ≤ 400 lines (structure test enforces); named `const` over magic literals; named types over primitive bags; structured loggers (Pino / structlog) over `console.log` / `print()`; typed error classes with `cause` chains; per-language section headers + naming per the doc; pre-commit self-review checklist at the bottom of that doc.
 
 ## Where to read before editing
 

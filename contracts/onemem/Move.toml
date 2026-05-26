@@ -5,8 +5,11 @@ version = "0.1.0"
 license = "Apache-2.0"
 authors = ["OneMem contributors"]
 
+# Sui / MoveStdlib / Bridge / DeepBook / SuiSystem are auto-injected by the
+# Sui CLI (1.72+). Do NOT add an explicit `Sui = { ... }` dep — that triggers
+# a NOTE warning and double-pulls the framework. Re-enable only if a future
+# CLI release removes the auto-inject feature.
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet" }
 
 [addresses]
 onemem = "0x0"
