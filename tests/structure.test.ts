@@ -69,6 +69,8 @@ const MOVE_TESTS = [
   "capability_transfer_tests",
   "seal_approve_tests",
   "merkle_chain_tests",
+  "version_tests",
+  "registry_tests",
 ] as const;
 
 const SCRIPTS = [
