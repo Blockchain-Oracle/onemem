@@ -30,11 +30,19 @@ const EBadNamespaceKind: u64 = 2;
 
 const VERSION: u64 = 1;
 
-// Namespace kinds (Mem0-style 5-tuple scoping per data-model.md).
+// Namespace kinds (Mem0-style 5-tuple scoping per data-model.md). Each
+// kind is part of the canonical taxonomy even when not yet referenced by
+// other entry functions — suppressing unused_const so the taxonomy stays
+// declarative + documentation lives next to the values.
+#[allow(unused_const)]
 const KIND_USER: u8 = 0;
+#[allow(unused_const)]
 const KIND_AGENT: u8 = 1;
+#[allow(unused_const)]
 const KIND_ORG: u8 = 2;
+#[allow(unused_const)]
 const KIND_SESSION: u8 = 3;
+#[allow(unused_const)]
 const KIND_SHARED: u8 = 4;
 const KIND_MAX: u8 = KIND_SHARED;
 

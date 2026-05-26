@@ -41,12 +41,15 @@ echo ""
 
 sui client switch --env "$NETWORK" >/dev/null
 
-# 1. Package object exists + is published.
+# 1. Package object exists + is a package.
+# Sui CLI 1.72+ shape: package objects have `.content.Package` (no .objType
+# at the top level for packages); non-package objects have `.objType` =
+# Move type + `.content` = field values.
 echo "==> 1. Checking package object..."
 PKG_JSON="$(sui client object "$PACKAGE_ID" --json 2>&1)" || { echo "FAIL: package not found"; exit 1; }
-if ! echo "$PKG_JSON" | jq -e '.type == "package"' >/dev/null; then
-  echo "FAIL: object $PACKAGE_ID is not a package"
-  echo "$PKG_JSON" | jq .
+if ! echo "$PKG_JSON" | jq -e '.content | has("Package")' >/dev/null; then
+  echo "FAIL: object $PACKAGE_ID is not a package (no .content.Package)"
+  echo "$PKG_JSON" | jq '{objType, content_keys: (.content | keys)}'
   exit 1
 fi
 echo "    ✓ Package object readable"
@@ -54,7 +57,7 @@ echo "    ✓ Package object readable"
 # 2. Registry object exists + has the expected type.
 echo "==> 2. Checking OneMemRegistry shared object..."
 REG_JSON="$(sui client object "$REGISTRY_ID" --json 2>&1)" || { echo "FAIL: registry not found"; exit 1; }
-REG_TYPE="$(echo "$REG_JSON" | jq -r '.content.type // empty')"
+REG_TYPE="$(echo "$REG_JSON" | jq -r '.objType // empty')"
 EXPECTED_REG_TYPE="${PACKAGE_ID}::registry::OneMemRegistry"
 if [ "$REG_TYPE" != "$EXPECTED_REG_TYPE" ]; then
   echo "FAIL: registry has wrong type"
@@ -65,14 +68,17 @@ fi
 echo "    ✓ Registry type matches"
 
 # 3. Version dynamic field is present + readable.
+# CLI shape: { "dynamicFields": [ { "fieldObject": { "json": { "name": "<base64>", "value": "<int>" } } } ] }.
+# The Move-side key is b"version" → base64 "dmVyc2lvbg==".
 echo "==> 3. Checking registry version dynamic field..."
 DF_JSON="$(sui client dynamic-field "$REGISTRY_ID" --json 2>&1)" || { echo "FAIL: could not list dynamic fields"; exit 1; }
-if ! echo "$DF_JSON" | jq -e '.data[]?.name.value? // empty' | grep -q "version"; then
+if ! echo "$DF_JSON" | jq -e '.dynamicFields[]? | select(.fieldObject.json.name == "dmVyc2lvbg==")' >/dev/null; then
   echo "FAIL: no 'version' dynamic field on registry"
-  echo "$DF_JSON" | jq .
+  echo "$DF_JSON" | jq '.dynamicFields[]?.fieldObject.json'
   exit 1
 fi
-echo "    ✓ Version dynamic field present"
+VERSION_VAL="$(echo "$DF_JSON" | jq -r '.dynamicFields[] | select(.fieldObject.json.name == "dmVyc2lvbg==") | .fieldObject.json.value')"
+echo "    ✓ Version dynamic field present (version = $VERSION_VAL)"
 
 echo ""
 echo "✓ VERIFIED — onemem is deployed + healthy on $NETWORK"

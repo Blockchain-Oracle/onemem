@@ -55,7 +55,6 @@ const SESSION_ACTIVE: u8 = 0;
 const SESSION_COMPLETED: u8 = 1;
 const SESSION_FAILED: u8 = 2;
 const SESSION_ABORTED: u8 = 3;
-const SESSION_STATUS_MAX: u8 = SESSION_ABORTED;
 
 // Call status enum.
 const CALL_PENDING: u8 = 0;
@@ -252,7 +251,7 @@ public fun close_call(
 ) {
     version::assert_version_matches(&session.id, VERSION);
     assert!(status <= CALL_STATUS_MAX && status != CALL_PENDING, EBadStatus);
-    assert!(df::exists_(&session.id, call_id), ECallNotFound);
+    assert!(df::exists(&session.id, call_id), ECallNotFound);
     assert!(cap_for_session(cap, session), EWrongSessionNamespace);
 
     let call: &mut ActionCall = df::borrow_mut(&mut session.id, call_id);
