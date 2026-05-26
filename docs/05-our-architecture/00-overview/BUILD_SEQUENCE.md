@@ -8,13 +8,13 @@
 
 ## Phase tracker — READ FIRST (the "what's next" source of truth)
 
-After every completed chunk: flip the checkbox + move the `← CURRENT` arrow + link the commit SHA in the same commit. Pause for review only at MAJOR phase transitions (architecture → bootstrap, bootstrap → spec, spec → code, code → ship).
+**Autonomous loop.** After every completed chunk: research → TDD → verify → commit → flip checkbox + link commit SHA → start next chunk. Pause ONLY at MAJOR phase boundaries (pillar → pillar; code → mainnet deploy; pre-submission). Sub-stories within a pillar = just go.
 
 - [x] **Phase 0** — Research (Sui Overflow handbook + 65-doc inspiration audit)
 - [x] **Phase 1** — Architecture (65 design docs across `docs/05-our-architecture/`)
 - [x] **Phase 2** — Build-prep (monorepo bootstrap — commits `658848d` + `b904d54`)
-- [ ] **Phase 3 — Pillar 1: Move contract** ← **CURRENT** (in spec review)
-  - [x] Spec: `docs/06-specs/pillar-1-protocol/{README,PRD,architecture,epics}.md` (22 stories inline in `epics.md`; no `stories/` subdir — see spec README) — **awaiting Abu's spec review before code phase starts**
+- [ ] **Phase 3 — Pillar 1: Move contract** ← **CURRENT** (executing autonomously)
+  - [x] Spec: `docs/06-specs/pillar-1-protocol/{README,PRD,architecture,epics}.md` — 22 stories inline in `epics.md` (no `stories/` subdir). Commit `8569c76`.
   - [ ] Code (TDD): implement modules in `contracts/onemem/sources/{registry,namespace,trace,events,seal_policy,version}.move` + tests, per the 8 epics in `epics.md`
   - [ ] Deploy testnet via `scripts/deploy-contract.sh testnet`; smoke-test via `scripts/verify-mainnet.sh testnet`
   - [ ] Deploy mainnet via GH workflow `deploy-contract.yml` (manual approval gate)

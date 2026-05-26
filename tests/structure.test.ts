@@ -14,7 +14,7 @@
 //   - Per-package unit tests (each package's own Vitest/pytest)
 
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, test } from "node:test";
 
@@ -325,6 +325,86 @@ describe("OneMem monorepo structure", () => {
       ]) {
         assert.match(css, new RegExp(token), `tokens.css missing ${token}`);
       }
+    });
+  });
+
+  // Coding guardrail: hard cap of 400 lines per source file under packages/, apps/, contracts/.
+  // Excludes generated files, lockfiles, fixtures, .next caches, and anything outside the source trees.
+  // The cap exists so we refactor at ~380 lines instead of letting files balloon to 600+.
+  describe("source file size cap (≤ 400 lines)", () => {
+    const MAX_LINES = 400;
+    const SOURCE_ROOTS = ["packages", "apps", "contracts"];
+    const SOURCE_EXTS = new Set([
+      ".ts",
+      ".tsx",
+      ".js",
+      ".jsx",
+      ".mjs",
+      ".cjs",
+      ".py",
+      ".move",
+      ".rs",
+    ]);
+    const IGNORE_DIR_NAMES = new Set([
+      "node_modules",
+      ".next",
+      ".turbo",
+      "dist",
+      "build",
+      "out",
+      "coverage",
+      "__pycache__",
+      ".venv",
+      ".pytest_cache",
+      ".ruff_cache",
+      "target",
+    ]);
+    // Generated codegen files and lockfiles are exempt — their size is not our craft signal.
+    const IGNORE_PATH_SUFFIXES = ["/move-types.ts", "/move_types.py"];
+
+    function walk(dir: string, acc: string[] = []): string[] {
+      let entries: import("node:fs").Dirent[];
+      try {
+        entries = readdirSync(dir, { withFileTypes: true });
+      } catch {
+        return acc;
+      }
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          if (IGNORE_DIR_NAMES.has(entry.name)) continue;
+          walk(join(dir, entry.name), acc);
+        } else if (entry.isFile()) {
+          const full = join(dir, entry.name);
+          const dot = entry.name.lastIndexOf(".");
+          if (dot === -1) continue;
+          const ext = entry.name.slice(dot);
+          if (!SOURCE_EXTS.has(ext)) continue;
+          if (IGNORE_PATH_SUFFIXES.some((suf) => full.endsWith(suf))) continue;
+          acc.push(full);
+        }
+      }
+      return acc;
+    }
+
+    test(`no source file exceeds ${MAX_LINES} lines`, () => {
+      const offenders: { path: string; lines: number }[] = [];
+      for (const root of SOURCE_ROOTS) {
+        const rootAbs = join(ROOT, root);
+        if (!existsSync(rootAbs)) continue;
+        for (const file of walk(rootAbs)) {
+          const lines = readFileSync(file, "utf8").split("\n").length;
+          if (lines > MAX_LINES) {
+            offenders.push({ path: file.replace(`${ROOT}/`, ""), lines });
+          }
+        }
+      }
+      assert.equal(
+        offenders.length,
+        0,
+        `${offenders.length} source file(s) exceed ${MAX_LINES} lines — refactor (extract helpers, split modules):\n${offenders
+          .map((o) => `  ${o.path} — ${o.lines} lines`)
+          .join("\n")}`,
+      );
     });
   });
 });
