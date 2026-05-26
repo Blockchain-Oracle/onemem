@@ -1,13 +1,91 @@
 #!/usr/bin/env bash
-# Smoke test against the deployed mainnet OneMem package.
-# Mints a tiny namespace, opens a trace, emits one ActionCall, verifies chain.
+# Smoke test against a deployed OneMem package.
 #
-# Usage: bash scripts/verify-mainnet.sh
-# Spec: docs/05-our-architecture/08-demos-and-tests/integration-tests.md
+# Usage: bash scripts/verify-mainnet.sh [testnet|mainnet]
 #
-# Skeleton — implemented after Pillar 1 mainnet deploy.
+# v0.1 scope: this is a LIGHTWEIGHT smoke test. It verifies:
+#   1. The package ID recorded in MAINNET_DEPLOY.md exists on the target network
+#   2. The OneMemRegistry shared object exists + is readable
+#   3. The version-as-dynamic-field upgrade pattern is in place (registry's
+#      version dynamic field reads cleanly)
+#
+# Full end-to-end verification (mint namespace → open session → emit call →
+# walk Merkle chain → assert root) is a Pillar 2 SDK integration test —
+# building a multi-step PTB in raw bash + sui CLI is brittle vs doing it
+# through the TypeScript SDK once that ships.
 
 set -euo pipefail
 
-echo "verify-mainnet: skeleton — implemented after Pillar 1 mainnet deploy"
-exit 0
+NETWORK="${1:-testnet}"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+DEPLOY_DOC="$REPO_ROOT/docs/05-our-architecture/01-protocol/MAINNET_DEPLOY.md"
+
+if [ ! -f "$DEPLOY_DOC" ]; then
+  echo "ERROR: $DEPLOY_DOC does not exist — nothing deployed yet."
+  echo "Run \`bash scripts/deploy-contract.sh $NETWORK\` first."
+  exit 1
+fi
+
+# Extract the most recent Package ID + Registry ID for this network.
+PACKAGE_ID="$(awk -v net="$NETWORK" '
+  /^## / && tolower($0) ~ tolower(net) { in_block = 1; next }
+  /^## / && in_block { in_block = 0 }
+  in_block && /Package ID/ { match($0, /`(0x[0-9a-fA-F]+)`/, m); if (m[1] != "") print m[1] }
+' "$DEPLOY_DOC" | tail -1)"
+
+REGISTRY_ID="$(awk -v net="$NETWORK" '
+  /^## / && tolower($0) ~ tolower(net) { in_block = 1; next }
+  /^## / && in_block { in_block = 0 }
+  in_block && /OneMemRegistry/ { match($0, /`(0x[0-9a-fA-F]+)`/, m); if (m[1] != "") print m[1] }
+' "$DEPLOY_DOC" | tail -1)"
+
+if [ -z "$PACKAGE_ID" ] || [ -z "$REGISTRY_ID" ]; then
+  echo "ERROR: Could not find Package ID or Registry ID for $NETWORK in $DEPLOY_DOC"
+  exit 1
+fi
+
+echo "==> Verifying onemem deployment on $NETWORK"
+echo "  Package:  $PACKAGE_ID"
+echo "  Registry: $REGISTRY_ID"
+echo ""
+
+sui client switch --env "$NETWORK" >/dev/null
+
+# 1. Package object exists + is published.
+echo "==> 1. Checking package object..."
+PKG_JSON="$(sui client object "$PACKAGE_ID" --json 2>&1)" || { echo "FAIL: package not found"; exit 1; }
+if ! echo "$PKG_JSON" | jq -e '.type == "package"' >/dev/null; then
+  echo "FAIL: object $PACKAGE_ID is not a package"
+  echo "$PKG_JSON" | jq .
+  exit 1
+fi
+echo "    ✓ Package object readable"
+
+# 2. Registry object exists + has the expected type.
+echo "==> 2. Checking OneMemRegistry shared object..."
+REG_JSON="$(sui client object "$REGISTRY_ID" --json 2>&1)" || { echo "FAIL: registry not found"; exit 1; }
+REG_TYPE="$(echo "$REG_JSON" | jq -r '.content.type // empty')"
+EXPECTED_REG_TYPE="${PACKAGE_ID}::registry::OneMemRegistry"
+if [ "$REG_TYPE" != "$EXPECTED_REG_TYPE" ]; then
+  echo "FAIL: registry has wrong type"
+  echo "  expected: $EXPECTED_REG_TYPE"
+  echo "  got:      $REG_TYPE"
+  exit 1
+fi
+echo "    ✓ Registry type matches"
+
+# 3. Version dynamic field is present + readable.
+echo "==> 3. Checking registry version dynamic field..."
+DF_JSON="$(sui client dynamic-field "$REGISTRY_ID" --json 2>&1)" || { echo "FAIL: could not list dynamic fields"; exit 1; }
+if ! echo "$DF_JSON" | jq -e '.data[]?.name.value? // empty' | grep -q "version"; then
+  echo "FAIL: no 'version' dynamic field on registry"
+  echo "$DF_JSON" | jq .
+  exit 1
+fi
+echo "    ✓ Version dynamic field present"
+
+echo ""
+echo "✓ VERIFIED — onemem is deployed + healthy on $NETWORK"
+echo ""
+echo "Suiscan:  https://suiscan.xyz/$NETWORK/object/$PACKAGE_ID"
+echo "Registry: https://suiscan.xyz/$NETWORK/object/$REGISTRY_ID"
