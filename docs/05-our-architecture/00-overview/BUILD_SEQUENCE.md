@@ -13,9 +13,9 @@ After every completed chunk: flip the checkbox + move the `← CURRENT` arrow + 
 - [x] **Phase 0** — Research (Sui Overflow handbook + 65-doc inspiration audit)
 - [x] **Phase 1** — Architecture (65 design docs across `docs/05-our-architecture/`)
 - [x] **Phase 2** — Build-prep (monorepo bootstrap — commits `658848d` + `b904d54`)
-- [ ] **Phase 3 — Pillar 1: Move contract** ← **CURRENT**
-  - [ ] Spec: `docs/06-specs/pillar-1-protocol/{PRD,architecture,epics}.md` + `stories/*.md`
-  - [ ] Code (TDD): implement modules in `contracts/onemem/sources/{registry,namespace,trace,events,seal_policy,version}.move` + tests
+- [ ] **Phase 3 — Pillar 1: Move contract** ← **CURRENT** (in spec review)
+  - [x] Spec: `docs/06-specs/pillar-1-protocol/{README,PRD,architecture,epics}.md` (22 stories inline in `epics.md`; no `stories/` subdir — see spec README) — **awaiting Abu's spec review before code phase starts**
+  - [ ] Code (TDD): implement modules in `contracts/onemem/sources/{registry,namespace,trace,events,seal_policy,version}.move` + tests, per the 8 epics in `epics.md`
   - [ ] Deploy testnet via `scripts/deploy-contract.sh testnet`; smoke-test via `scripts/verify-mainnet.sh testnet`
   - [ ] Deploy mainnet via GH workflow `deploy-contract.yml` (manual approval gate)
   - [ ] Pillar exit gate: mainnet package IDs captured in `docs/05-our-architecture/01-protocol/MAINNET_DEPLOY.md`; `pnpm test:structure` green
