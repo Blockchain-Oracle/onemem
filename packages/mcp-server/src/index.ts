@@ -35,7 +35,15 @@ function fail(message: string): ToolResult {
 }
 
 function errMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+  if (!(error instanceof Error)) return String(error);
+  // Preserve the cause chain — the actionable detail is often nested.
+  let message = error.message;
+  let cause: unknown = error.cause;
+  while (cause instanceof Error) {
+    message += `: ${cause.message}`;
+    cause = cause.cause;
+  }
+  return message;
 }
 
 function hex(bytes: Uint8Array): string {
@@ -163,6 +171,12 @@ export function buildServer(onemem: OneMem): McpServer {
         toolNamespace: z.string().optional(),
         input: z.string().describe("Tool input payload (stored encrypted on Walrus)"),
         output: z.string().optional().describe("Tool output payload (stored encrypted on Walrus)"),
+        success: z
+          .boolean()
+          .optional()
+          .describe(
+            "Did the tool call succeed? Recorded on-chain (default true). NEVER report a failed call as succeeded.",
+          ),
         encrypt: z.boolean().optional().describe("Seal-encrypt before upload (default true)"),
       },
     },
@@ -174,10 +188,13 @@ export function buildServer(onemem: OneMem): McpServer {
       toolNamespace,
       input,
       output,
+      success,
       encrypt,
     }) => {
+      const enc = encrypt ?? true;
+      const status = success === false ? CallStatus.Failure : CallStatus.Success;
+      let callId: string;
       try {
-        const enc = encrypt ?? true;
         const emit = await onemem.traces.emitCall({
           sessionId,
           namespaceId,
@@ -187,19 +204,28 @@ export function buildServer(onemem: OneMem): McpServer {
           inputContent: new TextEncoder().encode(input),
           encrypt: enc,
         });
+        callId = emit.callId;
+      } catch (error) {
+        return fail(`emit_call failed: ${errMessage(error)}`);
+      }
+      try {
         await onemem.traces.closeCall({
           sessionId,
           rwCapId,
-          callId: emit.callId,
+          callId,
           namespaceId,
           outputContent: new TextEncoder().encode(output ?? ""),
           encrypt: enc,
-          status: CallStatus.Success,
+          status,
         });
-        return ok({ callId: emit.callId });
       } catch (error) {
-        return fail(errMessage(error));
+        // The call IS already in the on-chain Merkle chain; only close failed.
+        // Return the callId so the agent can retry the close.
+        return fail(
+          `call ${callId} emitted but close failed (retry close with this callId): ${errMessage(error)}`,
+        );
       }
+      return ok({ callId, status: success === false ? "Failure" : "Success" });
     },
   );
 
