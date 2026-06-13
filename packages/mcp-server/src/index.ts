@@ -1,16 +1,25 @@
 #!/usr/bin/env node
-// @onemem/mcp — a stdio MCP server exposing OneMem's verifiable memory + trace
-// surface to any MCP runtime (Cursor, Codex, Claude Code, Windsurf, Cline, …).
+// @onemem/mcp — a stdio MCP server exposing OneMem's verifiable MEMORY surface
+// to any MCP runtime (Cursor, Codex, Claude Code, Windsurf, Cline, …).
 //
-// Tools are thin wrappers over @onemem/sdk-ts. Config via env:
-//   SUI_NETWORK         testnet | mainnet | devnet | local (default: active)
-//   ONEMEM_PRIVATE_KEY  suiprivkey1... (else falls back to the sui keystore)
+// Memory-centric (Mem0-style): agents "remember" + "recall", and can verify the
+// on-chain trace. Tools are thin wrappers over @onemem/sdk-ts. Config via env:
+//   SUI_NETWORK              testnet | mainnet | devnet | local (default active)
+//   ONEMEM_PRIVATE_KEY       suiprivkey1... (else falls back to sui keystore)
+//   ONEMEM_ACCOUNT_ID        MemWal account (enables memory tools)
+//   ONEMEM_DELEGATE_KEY      MemWal delegate key (hex)
+//   ONEMEM_EMBEDDING_API_KEY OpenAI/OpenRouter key for /manual embeddings
+//   MEMWAL_PACKAGE_ID, MEMWAL_RELAYER_URL
+//
+// Tools backed by MemWal 0.0.5 today: add_memory, search_memory (+ verify_trace,
+// trace_session, share_namespace). get/update/delete_memory + replay_session are
+// v0.2 (MemWal has no get/update/delete primitive) — intentionally not exposed.
 //
 // Spec: docs/05-our-architecture/03-runtimes/mcp-server.md
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallStatus, NamespaceKind, OneMem, SessionStatus, type SuiNetwork } from "@onemem/sdk-ts";
+import { type MemoryConfig, OneMem, type SuiNetwork } from "@onemem/sdk-ts";
 import { z } from "zod";
 
 import { resolveSigner } from "./signer.js";
@@ -36,7 +45,6 @@ function fail(message: string): ToolResult {
 
 function errMessage(error: unknown): string {
   if (!(error instanceof Error)) return String(error);
-  // Preserve the cause chain — the actionable detail is often nested.
   let message = error.message;
   let cause: unknown = error.cause;
   while (cause instanceof Error) {
@@ -47,7 +55,7 @@ function errMessage(error: unknown): string {
 }
 
 function hex(bytes: Uint8Array): string {
-  return `0x${Buffer.from(bytes).toString("hex")}`;
+  return `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
 }
 
 export function buildServer(onemem: OneMem): McpServer {
@@ -55,11 +63,61 @@ export function buildServer(onemem: OneMem): McpServer {
   const me = onemem.senderAddress();
 
   server.registerTool(
-    "onemem_verify_session",
+    "onemem_add_memory",
     {
-      title: "Verify a OneMem trace session",
+      title: "Remember something (write a memory)",
       description:
-        "Off-chain Merkle verification of a trace session: confirms no call was inserted, dropped, reordered, or tampered. Read-only.",
+        "Store a memory: client-side encrypted (Seal) and saved to Walrus via MemWal — the relayer never sees plaintext. Returns the Walrus blob id + attestation.",
+      inputSchema: {
+        text: z.string().describe("The memory text to remember"),
+        namespace: z
+          .string()
+          .optional()
+          .describe("Memory namespace for isolation (default 'default')"),
+      },
+    },
+    async ({ text, namespace }) => {
+      try {
+        const r = await onemem.requireMemory().add(text, { namespace });
+        return ok({
+          memoryId: r.memoryId,
+          walrusBlobId: r.walrusBlobId,
+          attestation: r.attestation,
+        });
+      } catch (error) {
+        return fail(errMessage(error));
+      }
+    },
+  );
+
+  server.registerTool(
+    "onemem_search_memory",
+    {
+      title: "Recall memories (vector search)",
+      description:
+        "Semantic search over stored memories. Embeds the query, searches MemWal, downloads + Seal-decrypts hits client-side. Returns ranked memories (relevance 0–1).",
+      inputSchema: {
+        query: z.string().describe("What to recall"),
+        namespace: z.string().optional(),
+        topK: z.number().int().positive().optional().describe("Max results (default 10)"),
+      },
+    },
+    async ({ query, namespace, topK }) => {
+      try {
+        const r = await onemem.requireMemory().search(query, { namespace, topK });
+        return ok({ results: r.results });
+      } catch (error) {
+        return fail(errMessage(error));
+      }
+    },
+  );
+
+  server.registerTool(
+    "onemem_verify_trace",
+    {
+      title: "Verify a trace session on-chain",
+      description:
+        "Off-chain Merkle verification of a TraceSession: confirms no recorded call was inserted, dropped, reordered, or tampered. Read-only.",
       inputSchema: { sessionId: z.string().describe("0x… TraceSession object id") },
     },
     async ({ sessionId }) => {
@@ -79,24 +137,26 @@ export function buildServer(onemem: OneMem): McpServer {
   );
 
   server.registerTool(
-    "onemem_create_namespace",
+    "onemem_trace_session",
     {
-      title: "Create a memory namespace",
+      title: "List the calls in a trace session",
       description:
-        "Mint a shared MemoryNamespace + Admin capability. The Seal policy package defaults to the deployed OneMem package so blobs are decryptable by cap holders.",
-      inputSchema: {
-        name: z.string().describe("Unique-per-owner namespace name"),
-        kind: z.number().int().optional().describe("NamespaceKind u8 (default User)"),
-      },
+        "Return the ActionCalls recorded in a session (ascending), so an agent or user can inspect what happened.",
+      inputSchema: { sessionId: z.string() },
     },
-    async ({ name, kind }) => {
+    async ({ sessionId }) => {
       try {
-        const created = await onemem.namespaces.create({
-          name,
-          kind: (kind ?? NamespaceKind.User) as NamespaceKind,
-          sealPackageId: onemem.addresses.packageId,
+        const calls = await onemem.traces.getCalls(sessionId);
+        return ok({
+          sessionId,
+          callCount: calls.length,
+          calls: calls.map((c) => ({
+            callId: c.callId,
+            parentCallId: c.parentCallId,
+            contentHash: hex(c.contentHash),
+            timestampMs: Number(c.timestampMs),
+          })),
         });
-        return ok({ namespaceId: created.namespaceId, adminCapId: created.adminCapId });
       } catch (error) {
         return fail(errMessage(error));
       }
@@ -104,146 +164,25 @@ export function buildServer(onemem: OneMem): McpServer {
   );
 
   server.registerTool(
-    "onemem_share_readwrite",
+    "onemem_share_namespace",
     {
-      title: "Mint a ReadWrite capability",
+      title: "Share a namespace (mint + transfer a capability)",
       description:
-        "Mint a ReadWrite NamespaceCapability and send it to an address (default: this server's key).",
+        "Mint a ReadWrite (or ReadOnly) NamespaceCapability and transfer it to an address — on-chain memory sharing. Requires the namespace's Admin cap.",
       inputSchema: {
         namespaceId: z.string(),
         adminCapId: z.string(),
         recipient: z.string().optional().describe("0x… address (default: this server)"),
+        readOnly: z.boolean().optional().describe("Share ReadOnly instead of ReadWrite"),
       },
     },
-    async ({ namespaceId, adminCapId, recipient }) => {
+    async ({ namespaceId, adminCapId, recipient, readOnly }) => {
       try {
-        const r = await onemem.namespaces.shareReadWrite({
-          namespaceId,
-          adminCapId,
-          recipient: recipient ?? me,
-        });
-        return ok({ capId: r.capId });
-      } catch (error) {
-        return fail(errMessage(error));
-      }
-    },
-  );
-
-  server.registerTool(
-    "onemem_open_session",
-    {
-      title: "Open a trace session",
-      description: "Start a TraceSession for recording an agent run.",
-      inputSchema: {
-        namespaceId: z.string(),
-        rwCapId: z.string(),
-        agentId: z.string(),
-        environment: z.string().optional(),
-      },
-    },
-    async ({ namespaceId, rwCapId, agentId, environment }) => {
-      try {
-        const r = await onemem.traces.startSession({
-          namespaceId,
-          rwCapId,
-          agentId,
-          environment: environment ?? "mcp",
-          sdkVersion: VERSION,
-        });
-        return ok({ sessionId: r.sessionId });
-      } catch (error) {
-        return fail(errMessage(error));
-      }
-    },
-  );
-
-  server.registerTool(
-    "onemem_record_call",
-    {
-      title: "Record a tool call into a session",
-      description:
-        "Emit + close one ActionCall. The input/output text is Seal-encrypted and stored on Walrus by default; the on-chain hash is over the plaintext so it stays verifiable.",
-      inputSchema: {
-        sessionId: z.string(),
-        namespaceId: z.string(),
-        rwCapId: z.string(),
-        toolName: z.string(),
-        toolNamespace: z.string().optional(),
-        input: z.string().describe("Tool input payload (stored encrypted on Walrus)"),
-        output: z.string().optional().describe("Tool output payload (stored encrypted on Walrus)"),
-        success: z
-          .boolean()
-          .optional()
-          .describe(
-            "Did the tool call succeed? Recorded on-chain (default true). NEVER report a failed call as succeeded.",
-          ),
-        encrypt: z.boolean().optional().describe("Seal-encrypt before upload (default true)"),
-      },
-    },
-    async ({
-      sessionId,
-      namespaceId,
-      rwCapId,
-      toolName,
-      toolNamespace,
-      input,
-      output,
-      success,
-      encrypt,
-    }) => {
-      const enc = encrypt ?? true;
-      const status = success === false ? CallStatus.Failure : CallStatus.Success;
-      let callId: string;
-      try {
-        const emit = await onemem.traces.appendCall({
-          sessionId,
-          namespaceId,
-          rwCapId,
-          toolName,
-          toolNamespace: toolNamespace ?? "mcp",
-          inputContent: new TextEncoder().encode(input),
-          encrypt: enc,
-        });
-        callId = emit.callId;
-      } catch (error) {
-        return fail(`emit_call failed: ${errMessage(error)}`);
-      }
-      try {
-        await onemem.traces.closeCall({
-          sessionId,
-          rwCapId,
-          callId,
-          namespaceId,
-          outputContent: new TextEncoder().encode(output ?? ""),
-          encrypt: enc,
-          status,
-        });
-      } catch (error) {
-        // The call IS already in the on-chain Merkle chain; only close failed.
-        // Return the callId so the agent can retry the close.
-        return fail(
-          `call ${callId} emitted but close failed (retry close with this callId): ${errMessage(error)}`,
-        );
-      }
-      return ok({ callId, status: success === false ? "Failure" : "Success" });
-    },
-  );
-
-  server.registerTool(
-    "onemem_close_session",
-    {
-      title: "Close a trace session",
-      description: "Lock the session's Merkle root and mark it completed.",
-      inputSchema: { sessionId: z.string(), rwCapId: z.string() },
-    },
-    async ({ sessionId, rwCapId }) => {
-      try {
-        await onemem.traces.endSession({
-          sessionId,
-          rwCapId,
-          status: SessionStatus.Completed,
-        });
-        return ok({ closed: true });
+        const args = { namespaceId, adminCapId, recipient: recipient ?? me };
+        const r = readOnly
+          ? await onemem.namespaces.shareReadOnly(args)
+          : await onemem.namespaces.shareReadWrite(args);
+        return ok({ capabilityId: r.capId, kind: readOnly ? "ReadOnly" : "ReadWrite" });
       } catch (error) {
         return fail(errMessage(error));
       }
@@ -253,14 +192,32 @@ export function buildServer(onemem: OneMem): McpServer {
   return server;
 }
 
+function memoryConfigFromEnv(): MemoryConfig | undefined {
+  const e = process.env;
+  if (!e.ONEMEM_ACCOUNT_ID || !e.ONEMEM_DELEGATE_KEY || !e.ONEMEM_EMBEDDING_API_KEY) {
+    return undefined;
+  }
+  return {
+    delegateKey: e.ONEMEM_DELEGATE_KEY,
+    accountId: e.ONEMEM_ACCOUNT_ID,
+    embeddingApiKey: e.ONEMEM_EMBEDDING_API_KEY,
+    memwalPackageId: e.MEMWAL_PACKAGE_ID ?? "",
+    relayerUrl: e.MEMWAL_RELAYER_URL ?? "https://relayer.memory.walrus.xyz",
+  };
+}
+
 async function main(): Promise<void> {
   const network = process.env.SUI_NETWORK as SuiNetwork | undefined;
-  const onemem = await OneMem.create({ network, signer: resolveSigner() });
+  const onemem = await OneMem.create({
+    network,
+    signer: resolveSigner(),
+    memory: memoryConfigFromEnv(),
+  });
   const server = buildServer(onemem);
   await server.connect(new StdioServerTransport());
-  // stderr is safe for MCP stdio (stdout is the protocol channel).
+  const memoryStatus = onemem.memory ? "memory ON" : "memory OFF (set MemWal env)";
   process.stderr.write(
-    `onemem-mcp ${VERSION} ready on ${onemem.network} (${onemem.senderAddress()})\n`,
+    `onemem-mcp ${VERSION} ready on ${onemem.network} (${onemem.senderAddress()}) — ${memoryStatus}\n`,
   );
 }
 
