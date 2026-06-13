@@ -51,6 +51,16 @@ Copy the printed `sessionId` + `merkle root` into a new section above.
 
 ---
 
+## Now real in the SDK (Pillar 2, PR #1)
+
+Session #1 above used `walrus:placeholder` blob strings. The SDK now does the real thing end-to-end (proven by env-gated live-testnet tests in `packages/sdk-ts/tests/sdk.integration.test.ts`):
+
+- **Real Walrus storage** — tool I/O is uploaded to Walrus testnet; the returned blob ID is stored on-chain; the on-chain hash is `sha256(plaintext)` so a reader can decrypt + re-hash to verify.
+- **Seal encryption** — content is Seal-encrypted before upload; only a `NamespaceCapability` holder can decrypt (gated by on-chain `seal_approve<KIND>`). Verified: encrypt → ciphertext (not plaintext) → Walrus → read → decrypt → match.
+- **Cross-language parity** — the Python SDK (`packages/sdk-python`) recomputes the IDENTICAL `merkle_root` (`0x82fb3f4c…`) for Session #1 that the TS SDK did.
+
+Reproduce: `ONEMEM_INTEGRATION=1 pnpm --filter @onemem/sdk-ts test` and `ONEMEM_INTEGRATION=1 uv run pytest packages/sdk-python -k integration` (needs a funded testnet keystore + WAL — see `scripts/get-wal.ts`).
+
 ## What these sessions prove
 
 Each verified session is a public, mathematically-checkable claim:
