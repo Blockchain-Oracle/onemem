@@ -143,6 +143,11 @@ export class OneMem {
     const suiPrivateKey =
       config.memory?.suiPrivateKey ??
       (config.signer as { getSecretKey?: () => string }).getSecretKey?.();
+    if (config.memory && !suiPrivateKey) {
+      throw new MemoryNotConfiguredError(
+        "memory config supplied but no Sui private key — pass memory.suiPrivateKey (this signer can't expose one).",
+      );
+    }
 
     return new OneMem({
       network,

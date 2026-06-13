@@ -85,11 +85,47 @@ export interface SearchMemoryResult {
 
 /** Thrown when the memory layer is used without MemWal config. */
 export class MemoryNotConfiguredError extends Error {
-  constructor() {
+  constructor(detail?: string) {
     super(
-      "Memory is not configured. Pass { memory: { delegateKey, accountId, embeddingApiKey, memwalPackageId, relayerUrl } } to OneMem.create().",
+      detail ??
+        "Memory is not configured. Pass { memory: { delegateKey, accountId, embeddingApiKey, memwalPackageId, relayerUrl } } to OneMem.create().",
     );
     this.name = "MemoryNotConfiguredError";
+  }
+}
+
+/** Thrown when the MemWal memory write fails. */
+export class MemoryWriteError extends Error {
+  constructor(options?: { cause?: unknown }) {
+    super("Memory write (MemWal rememberManual) failed", options);
+    this.name = "MemoryWriteError";
+  }
+}
+
+/** Thrown when the MemWal recall fails. */
+export class MemoryReadError extends Error {
+  constructor(options?: { cause?: unknown }) {
+    super("Memory search (MemWal recallManual) failed", options);
+    this.name = "MemoryReadError";
+  }
+}
+
+/**
+ * Thrown when the memory blob WAS written to MemWal but the on-chain ActionCall
+ * attestation failed. The memory exists (carries its ids) but is unattested —
+ * retry the attestation with `walrusBlobId`/`memoryId` rather than re-adding.
+ */
+export class MemoryAttestationError extends Error {
+  constructor(
+    readonly memoryId: string,
+    readonly walrusBlobId: string,
+    options?: { cause?: unknown },
+  ) {
+    super(
+      `Memory ${memoryId} written to Walrus (${walrusBlobId}) but the on-chain ActionCall failed — memory is unattested, retry the attestation`,
+      options,
+    );
+    this.name = "MemoryAttestationError";
   }
 }
 
@@ -131,24 +167,35 @@ export class MemoryAPI {
    * referencing the blob (hash taken over the plaintext).
    */
   async add(text: string, opts: AddMemoryArgs = {}): Promise<AddMemoryResult> {
-    const remembered = await this.getMemWal().rememberManual(text, opts.namespace);
+    let remembered: { id: string; blob_id: string };
+    try {
+      remembered = await this.getMemWal().rememberManual(text, opts.namespace);
+    } catch (error) {
+      throw new MemoryWriteError({ cause: error });
+    }
     const inputHash = sha256(new TextEncoder().encode(text));
 
     let suiTxDigest: string | undefined;
     let callId: string | undefined;
     if (opts.sessionId && opts.onememNamespaceId && opts.rwCapId) {
-      const emitted = await this.client.traces.appendCall({
-        sessionId: opts.sessionId,
-        namespaceId: opts.onememNamespaceId,
-        rwCapId: opts.rwCapId,
-        toolName: "memwal_write",
-        toolNamespace: "@onemem/sdk-ts",
-        walrusInputBlob: remembered.blob_id,
-        inputHash,
-        label: "memory",
-      });
-      callId = emitted.callId;
-      suiTxDigest = emitted.txDigest;
+      try {
+        const emitted = await this.client.traces.appendCall({
+          sessionId: opts.sessionId,
+          namespaceId: opts.onememNamespaceId,
+          rwCapId: opts.rwCapId,
+          toolName: "memwal_write",
+          toolNamespace: "@onemem/sdk-ts",
+          walrusInputBlob: remembered.blob_id,
+          inputHash,
+          label: "memory",
+        });
+        callId = emitted.callId;
+        suiTxDigest = emitted.txDigest;
+      } catch (error) {
+        // The memory IS written to MemWal; only the on-chain attestation
+        // failed. Surface a recoverable typed error carrying the ids.
+        throw new MemoryAttestationError(remembered.id, remembered.blob_id, { cause: error });
+      }
     }
 
     return {
@@ -168,7 +215,14 @@ export class MemoryAPI {
 
   /** Vector search via MemWal recall; returns decrypted memories ranked by relevance. */
   async search(query: string, opts: SearchMemoryArgs = {}): Promise<SearchMemoryResult> {
-    const recalled = await this.getMemWal().recallManual(query, opts.topK ?? 10, opts.namespace);
+    let recalled: { results: ({ blob_id: string; distance: number } & { text?: string })[] };
+    try {
+      recalled = await this.getMemWal().recallManual(query, opts.topK ?? 10, opts.namespace);
+    } catch (error) {
+      throw new MemoryReadError({ cause: error });
+    }
+    // The /manual full-recall variant returns decrypted `text`. Hits without it
+    // are vector-only (or a decrypt that was denied) — excluded from results.
     const results: Memory[] = recalled.results
       .filter((hit): hit is { blob_id: string; text: string; distance: number } => "text" in hit)
       .map((hit) => ({
@@ -177,5 +231,11 @@ export class MemoryAPI {
         relevance: Math.max(0, 1 - hit.distance),
       }));
     return { results };
+  }
+
+  /** Wipe MemWal key material from memory. Call when done with the client. */
+  dispose(): void {
+    this.memwal?.destroy();
+    this.memwal = null;
   }
 }

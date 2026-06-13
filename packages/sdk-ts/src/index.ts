@@ -58,8 +58,11 @@ export {
   type AddMemoryResult,
   type Memory,
   MemoryAPI,
+  MemoryAttestationError,
   type MemoryConfig,
   MemoryNotConfiguredError,
+  MemoryReadError,
+  MemoryWriteError,
   type SearchMemoryArgs,
   type SearchMemoryResult,
 } from "./memory.js";
