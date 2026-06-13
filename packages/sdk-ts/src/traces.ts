@@ -33,8 +33,12 @@ export interface EmitCallArgs {
   readonly parentCallId?: string | null;
   readonly toolName: string;
   readonly toolNamespace: string;
-  readonly walrusInputBlob: string;
-  readonly inputHash: Uint8Array;
+  /** Raw tool input. If given, it's uploaded to Walrus and its blob ID stored on-chain; `inputHash` defaults to sha256(content). Requires Walrus configured. */
+  readonly inputContent?: Uint8Array;
+  /** Pre-uploaded Walrus blob ID. Provide this OR `inputContent`. */
+  readonly walrusInputBlob?: string;
+  /** On-chain integrity hash. Required if passing `walrusInputBlob`; auto-derived from `inputContent` otherwise. */
+  readonly inputHash?: Uint8Array;
   readonly label?: string | null;
 }
 
@@ -42,8 +46,12 @@ export interface CloseCallArgs {
   readonly sessionId: string;
   readonly rwCapId: string;
   readonly callId: string;
-  readonly walrusOutputBlob: string;
-  readonly outputHash: Uint8Array;
+  /** Raw tool output. If given, uploaded to Walrus; `outputHash` defaults to sha256(content). */
+  readonly outputContent?: Uint8Array;
+  /** Pre-uploaded Walrus blob ID. Provide this OR `outputContent`. */
+  readonly walrusOutputBlob?: string;
+  /** On-chain integrity hash. Required if passing `walrusOutputBlob`; auto-derived from `outputContent` otherwise. */
+  readonly outputHash?: Uint8Array;
   readonly status: CallStatus;
 }
 
@@ -51,6 +59,14 @@ export interface CloseSessionArgs {
   readonly sessionId: string;
   readonly rwCapId: string;
   readonly status: SessionStatus;
+}
+
+/** Thrown when an emit/close call is given neither raw content nor a blob+hash pair. */
+export class TracePayloadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TracePayloadError";
+  }
 }
 
 export interface VerifyResult {
@@ -65,6 +81,31 @@ export interface VerifyResult {
 
 export class TracesAPI {
   constructor(private readonly client: OneMem) {}
+
+  /**
+   * Resolve a call payload to (blobId, hash). If raw `content` is given it's
+   * uploaded to Walrus and the hash defaults to sha256(content) — tying the
+   * on-chain integrity hash to the exact stored bytes. Otherwise a
+   * pre-uploaded blob ID + explicit hash must be supplied.
+   */
+  private async resolveBlob(
+    content: Uint8Array | undefined,
+    blobId: string | undefined,
+    hash: Uint8Array | undefined,
+    which: "input" | "output",
+  ): Promise<{ blob: string; hash: Uint8Array }> {
+    if (content !== undefined) {
+      const uploadedId = await this.client.requireWalrus().uploadBlob(content);
+      return { blob: uploadedId, hash: hash ?? sha256(content) };
+    }
+    if (blobId === undefined || hash === undefined) {
+      const field = which === "input" ? "walrusInputBlob" : "walrusOutputBlob";
+      throw new TracePayloadError(
+        `${which} payload missing: pass ${which}Content (uploaded to Walrus) or both ${field} + ${which}Hash`,
+      );
+    }
+    return { blob: blobId, hash };
+  }
 
   async openSession(args: OpenSessionArgs): Promise<{ sessionId: string; txDigest: string }> {
     const { packageId } = this.client.addresses;
@@ -106,6 +147,12 @@ export class TracesAPI {
 
   async emitCall(args: EmitCallArgs): Promise<{ callId: string; txDigest: string }> {
     const { packageId } = this.client.addresses;
+    const { blob, hash } = await this.resolveBlob(
+      args.inputContent,
+      args.walrusInputBlob,
+      args.inputHash,
+      "input",
+    );
     const tx = new Transaction();
     tx.moveCall({
       target: `${packageId}::trace::emit_call`,
@@ -116,8 +163,8 @@ export class TracesAPI {
         optionId(tx, args.parentCallId ?? null),
         tx.pure.string(args.toolName),
         tx.pure.string(args.toolNamespace),
-        tx.pure.string(args.walrusInputBlob),
-        tx.pure.vector("u8", Array.from(args.inputHash)),
+        tx.pure.string(blob),
+        tx.pure.vector("u8", Array.from(hash)),
         optionString(tx, args.label ?? null),
         tx.object(SUI_CLOCK_OBJECT_ID),
       ],
@@ -150,6 +197,12 @@ export class TracesAPI {
 
   async closeCall(args: CloseCallArgs): Promise<{ txDigest: string }> {
     const { packageId } = this.client.addresses;
+    const { blob, hash } = await this.resolveBlob(
+      args.outputContent,
+      args.walrusOutputBlob,
+      args.outputHash,
+      "output",
+    );
     const tx = new Transaction();
     tx.moveCall({
       target: `${packageId}::trace::close_call`,
@@ -157,8 +210,8 @@ export class TracesAPI {
         tx.object(args.sessionId),
         tx.object(args.rwCapId),
         tx.pure.id(args.callId),
-        tx.pure.string(args.walrusOutputBlob),
-        tx.pure.vector("u8", Array.from(args.outputHash)),
+        tx.pure.string(blob),
+        tx.pure.vector("u8", Array.from(hash)),
         tx.pure.u8(args.status),
         tx.object(SUI_CLOCK_OBJECT_ID),
       ],

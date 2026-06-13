@@ -118,4 +118,66 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
     expect(verify.brokenAt).toBeNull();
     expect(hex(verify.computedMerkleRoot)).toBe(hex(verify.expectedMerkleRoot));
   }, 120_000);
+
+  it("stores real tool I/O on Walrus and the trace stays verifiable", async () => {
+    const onemem = await OneMem.create({
+      network: "testnet",
+      signer: loadDeployerKeypair(),
+    });
+    // testnet has a default upload relay, so the Walrus store is wired up.
+    expect(onemem.walrus).toBeDefined();
+
+    // (a) direct Walrus round-trip: bytes survive upload → read.
+    const payload = new TextEncoder().encode(`onemem walrus content ${Date.now()}`);
+    const blobId = await onemem.requireWalrus().uploadBlob(payload);
+    expect(blobId).toBeTruthy();
+    expect(blobId.startsWith("walrus:")).toBe(false); // real id, not a placeholder
+    const fetched = await onemem.requireWalrus().readBlob(blobId);
+    expect(new TextDecoder().decode(fetched)).toBe(new TextDecoder().decode(payload));
+
+    // (b) the emit/close path uploads content to Walrus + auto-derives the
+    // on-chain hash from the bytes, and the Merkle chain still verifies.
+    const me = onemem.senderAddress();
+    const ns = await onemem.namespaces.create({
+      name: `wal-${Date.now().toString(36)}`,
+      kind: NamespaceKind.User,
+      sealPackageId: SEAL_PACKAGE_PLACEHOLDER,
+    });
+    const rw = await onemem.namespaces.shareReadWrite({
+      namespaceId: ns.namespaceId,
+      adminCapId: ns.adminCapId,
+      recipient: me,
+    });
+    const session = await onemem.traces.openSession({
+      namespaceId: ns.namespaceId,
+      rwCapId: rw.capId,
+      agentId: "vitest-walrus",
+      environment: "testnet-it",
+      sdkVersion: "0.1.0",
+    });
+    const { callId } = await onemem.traces.emitCall({
+      sessionId: session.sessionId,
+      namespaceId: ns.namespaceId,
+      rwCapId: rw.capId,
+      toolName: "Read",
+      toolNamespace: "walrus-it",
+      inputContent: new TextEncoder().encode("real tool input bytes"),
+    });
+    await onemem.traces.closeCall({
+      sessionId: session.sessionId,
+      rwCapId: rw.capId,
+      callId,
+      outputContent: new TextEncoder().encode("real tool output bytes"),
+      status: CallStatus.Success,
+    });
+    await onemem.traces.closeSession({
+      sessionId: session.sessionId,
+      rwCapId: rw.capId,
+      status: SessionStatus.Completed,
+    });
+
+    const verify = await onemem.traces.verifySession(session.sessionId);
+    expect(verify.ok).toBe(true);
+    expect(verify.callCount).toBe(1);
+  }, 180_000);
 });

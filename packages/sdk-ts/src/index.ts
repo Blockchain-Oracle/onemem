@@ -63,6 +63,7 @@ export {
   type CloseSessionArgs,
   type EmitCallArgs,
   type OpenSessionArgs,
+  TracePayloadError,
   TracesAPI,
   type VerifyResult,
 } from "./traces.js";
@@ -84,3 +85,12 @@ export type {
 // value and `kind: NamespaceKind` for the type. Don't add a `type` prefix
 // to these re-exports; doing so masks the runtime value.
 export { CallStatus, NamespaceKind, SessionStatus } from "./types/move.js";
+export {
+  isRetryableWalrusError,
+  UPLOAD_RELAY_BY_NETWORK,
+  type WalrusConfig,
+  WalrusNotConfiguredError,
+  WalrusReadError,
+  WalrusStore,
+  WalrusWriteError,
+} from "./walrus.js";
