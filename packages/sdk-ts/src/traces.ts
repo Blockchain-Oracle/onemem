@@ -39,6 +39,8 @@ export interface EmitCallArgs {
   readonly walrusInputBlob?: string;
   /** On-chain integrity hash. Required if passing `walrusInputBlob`; auto-derived from `inputContent` otherwise. */
   readonly inputHash?: Uint8Array;
+  /** Encrypt `inputContent` with Seal (for this namespace) before Walrus upload. Requires Seal configured. */
+  readonly encrypt?: boolean;
   readonly label?: string | null;
 }
 
@@ -52,6 +54,10 @@ export interface CloseCallArgs {
   readonly walrusOutputBlob?: string;
   /** On-chain integrity hash. Required if passing `walrusOutputBlob`; auto-derived from `outputContent` otherwise. */
   readonly outputHash?: Uint8Array;
+  /** Encrypt `outputContent` with Seal before upload. Requires `namespaceId` + Seal configured. */
+  readonly encrypt?: boolean;
+  /** Namespace for Seal encryption — required when `encrypt` is set on closeCall. */
+  readonly namespaceId?: string;
   readonly status: CallStatus;
 }
 
@@ -93,10 +99,17 @@ export class TracesAPI {
     blobId: string | undefined,
     hash: Uint8Array | undefined,
     which: "input" | "output",
+    encryptForNamespace?: string,
   ): Promise<{ blob: string; hash: Uint8Array }> {
     if (content !== undefined) {
-      const uploadedId = await this.client.requireWalrus().uploadBlob(content);
-      return { blob: uploadedId, hash: hash ?? sha256(content) };
+      // Hash the PLAINTEXT (so a cap holder can decrypt the blob + re-hash to
+      // verify); store ciphertext when encryption is requested.
+      const plaintextHash = hash ?? sha256(content);
+      const toStore = encryptForNamespace
+        ? await this.client.requireSeal().encrypt(content, encryptForNamespace)
+        : content;
+      const uploadedId = await this.client.requireWalrus().uploadBlob(toStore);
+      return { blob: uploadedId, hash: plaintextHash };
     }
     if (blobId === undefined || hash === undefined) {
       const field = which === "input" ? "walrusInputBlob" : "walrusOutputBlob";
@@ -152,6 +165,7 @@ export class TracesAPI {
       args.walrusInputBlob,
       args.inputHash,
       "input",
+      args.encrypt ? args.namespaceId : undefined,
     );
     const tx = new Transaction();
     tx.moveCall({
@@ -197,11 +211,15 @@ export class TracesAPI {
 
   async closeCall(args: CloseCallArgs): Promise<{ txDigest: string }> {
     const { packageId } = this.client.addresses;
+    if (args.encrypt && !args.namespaceId) {
+      throw new TracePayloadError("closeCall with encrypt=true requires namespaceId");
+    }
     const { blob, hash } = await this.resolveBlob(
       args.outputContent,
       args.walrusOutputBlob,
       args.outputHash,
       "output",
+      args.encrypt ? args.namespaceId : undefined,
     );
     const tx = new Transaction();
     tx.moveCall({

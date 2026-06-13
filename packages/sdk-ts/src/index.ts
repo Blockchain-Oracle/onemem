@@ -59,6 +59,13 @@ export {
   NamespacesAPI,
 } from "./namespaces.js";
 export {
+  createSealClient,
+  DEFAULT_SEAL_THRESHOLD,
+  SEAL_KEY_SERVERS_BY_NETWORK,
+  type SealConfig,
+  SealStore,
+} from "./seal.js";
+export {
   type CloseCallArgs,
   type CloseSessionArgs,
   type EmitCallArgs,

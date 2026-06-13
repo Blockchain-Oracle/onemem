@@ -30,6 +30,7 @@ import {
   type SuiNetwork,
 } from "./generated/addresses.js";
 import { NamespacesAPI } from "./namespaces.js";
+import { createSealClient, type SealConfig, SealStore } from "./seal.js";
 import { TracesAPI } from "./traces.js";
 import {
   extendWithWalrus,
@@ -64,6 +65,12 @@ export interface OneMemConfig {
    * enable other networks.
    */
   readonly walrus?: WalrusConfig;
+  /**
+   * Seal encryption settings. When key servers are available for the network
+   * (testnet by default), `onemem.seal` is wired up so trace payloads can be
+   * encrypted before Walrus upload and decrypted by capability holders.
+   */
+  readonly seal?: SealConfig;
 }
 
 export class OneMem {
@@ -75,6 +82,8 @@ export class OneMem {
   readonly traces: TracesAPI;
   /** Walrus blob store — present when a relay host is configured for the network. */
   readonly walrus?: WalrusStore;
+  /** Seal encrypt/decrypt — present when key servers are configured for the network. */
+  readonly seal?: SealStore;
 
   private constructor(params: {
     network: SuiNetwork;
@@ -82,12 +91,14 @@ export class OneMem {
     addresses: OneMemAddresses;
     signer: Signer;
     walrus?: WalrusStore;
+    seal?: SealStore;
   }) {
     this.network = params.network;
     this.client = params.client;
     this.addresses = params.addresses;
     this.signer = params.signer;
     this.walrus = params.walrus;
+    this.seal = params.seal;
     this.namespaces = new NamespacesAPI(this);
     this.traces = new TracesAPI(this);
   }
@@ -106,7 +117,19 @@ export class OneMem {
       ? new WalrusStore(walrusClient, config.signer, config.walrus ?? {})
       : undefined;
 
-    return new OneMem({ network, client, addresses, signer: config.signer, walrus: walrusStore });
+    const sealClient = createSealClient(client, network, config.seal ?? {});
+    const sealStore = sealClient
+      ? new SealStore(sealClient, client, config.signer, addresses.packageId, config.seal ?? {})
+      : undefined;
+
+    return new OneMem({
+      network,
+      client,
+      addresses,
+      signer: config.signer,
+      walrus: walrusStore,
+      seal: sealStore,
+    });
   }
 
   /** Sender address derived from the signer's public key. */
@@ -120,5 +143,15 @@ export class OneMem {
       throw new WalrusNotConfiguredError(this.network);
     }
     return this.walrus;
+  }
+
+  /** Return the Seal store or throw if it isn't configured for this network. */
+  requireSeal(): SealStore {
+    if (!this.seal) {
+      throw new Error(
+        `Seal is not configured for network "${this.network}". Pass { seal: { keyServers } } to OneMem.create().`,
+      );
+    }
+    return this.seal;
   }
 }

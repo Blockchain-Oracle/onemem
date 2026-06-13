@@ -180,4 +180,41 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
     expect(verify.ok).toBe(true);
     expect(verify.callCount).toBe(1);
   }, 180_000);
+
+  it("Seal-encrypts content, stores on Walrus, and a cap holder decrypts it", async () => {
+    const onemem = await OneMem.create({
+      network: "testnet",
+      signer: loadDeployerKeypair(),
+    });
+    expect(onemem.seal).toBeDefined();
+    const me = onemem.senderAddress();
+
+    // Namespace whose Seal policy package is our deployed onemem package.
+    const ns = await onemem.namespaces.create({
+      name: `seal-${Date.now().toString(36)}`,
+      kind: NamespaceKind.User,
+      sealPackageId: onemem.addresses.packageId,
+    });
+    await onemem.client.waitForTransaction({ digest: ns.txDigest });
+    const rw = await onemem.namespaces.shareReadWrite({
+      namespaceId: ns.namespaceId,
+      adminCapId: ns.adminCapId,
+      recipient: me,
+    });
+
+    const secret = new TextEncoder().encode(`private agent memory ${Date.now()}`);
+    const ciphertext = await onemem.requireSeal().encrypt(secret, ns.namespaceId);
+    // Ciphertext must NOT contain the plaintext.
+    expect(new TextDecoder().decode(ciphertext)).not.toContain("private agent memory");
+
+    const blobId = await onemem.requireWalrus().uploadBlob(ciphertext);
+    const fetched = await onemem.requireWalrus().readBlob(blobId);
+
+    const decrypted = await onemem.requireSeal().decrypt(fetched, {
+      namespaceId: ns.namespaceId,
+      capId: rw.capId,
+      capKind: "ReadWrite",
+    });
+    expect(new TextDecoder().decode(decrypted)).toBe(new TextDecoder().decode(secret));
+  }, 180_000);
 });
