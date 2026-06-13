@@ -57,6 +57,18 @@ Sources at the bottom.
 - **Inline `//` comments only for non-obvious WHY.** Never explain WHAT the next line does. If `// removes the first element` is needed, the code is unclear — rename the function instead.
 - **No "fix later" comments without an issue link.** `TODO: fix later` rots. `TODO(#123): re-evaluate after Pillar 2 mainnet deploy` survives.
 
+### Testing
+
+- **Two tiers, both required.** Unit tests (automated, TDD-first, CI-default) AND manual testing on the real system (real runtime / real Walrus / live testnet), done **continuously per feature, not at the end**. Full policy: `TESTING_STRATEGY.md`.
+- **`tsx`/smoke scripts are transpile-only** — they don't typecheck or build. Always also run `pnpm turbo run typecheck build`. CI does; so must you.
+- **Env-gated real-system tests** (`*.integration.test.ts` / `test_*_integration.py`) run only under `ONEMEM_INTEGRATION=1` — they need a funded keystore, so they stay out of default CI.
+- **Loggers are CI-enforced:** biome `suspicious.noConsole` (allow `warn`/`error`; off for `scripts/**`, CLI, tests) + ruff `T20`. Use Pino / structlog in shipped code.
+
+### Research before every story; specs are hypotheses
+
+- Treat the spec/architecture as a hypothesis — expect it to be subtly wrong and correct it as you build. Research **before every story**, not just big decisions: `context7` for live SDK docs, this repo's `docs/`, 3–5 inspirations under `docs/02-inspirations/`.
+- **Tire-kick unfamiliar libraries in a `/tmp` scratch** before architecting around them (never commit the spike).
+
 ---
 
 ## TypeScript / JavaScript
