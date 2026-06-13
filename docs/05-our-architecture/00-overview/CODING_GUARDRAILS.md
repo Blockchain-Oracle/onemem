@@ -66,8 +66,13 @@ Sources at the bottom.
 
 ### Research before every story; specs are hypotheses
 
-- Treat the spec/architecture as a hypothesis — expect it to be subtly wrong and correct it as you build. Research **before every story**, not just big decisions: `context7` for live SDK docs, this repo's `docs/`, 3–5 inspirations under `docs/02-inspirations/`.
+- Treat the spec/architecture as a hypothesis — expect it to be subtly wrong and correct it as you build. Research **before every story**, not just big decisions: `context7` for live SDK docs, this repo's `docs/`, 3–5 inspirations under `docs/02-inspirations/`. For OneMem, `docs/00-goal/GOAL.md` + research are the source of truth; the specs (`05-our-architecture/**`, `06-specs/**`) are known incomplete — flag gaps, don't follow blindly.
 - **Tire-kick unfamiliar libraries in a `/tmp` scratch** before architecting around them (never commit the spike).
+
+### No dead code
+
+- When replacing built-wrong or renamed code (config shapes, method names, tools), **DELETE the old code AND its tests in the SAME commit** — no back-compat shims, no aliases, no orphaned files, no commented-out blocks. A rename means every caller updates and the old name disappears (grep proves it).
+- After any removal, run `pnpm turbo run typecheck build test` + `test:structure` — a clean build is the proof there's no dangling reference.
 
 ---
 

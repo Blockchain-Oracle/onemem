@@ -1,11 +1,12 @@
 // Trace operations module — TraceSession + ActionCall PTBs + off-chain
 // Merkle chain verifier.
 //
-// Methods mirror onemem::trace entry functions 1:1:
-//   openSession(args)   → trace::open_session   (returns shared TraceSession)
-//   emitCall(args)      → trace::emit_call      (returns minted call ID)
+// Methods mirror the shared SDK surface (docs/.../shared-api-surface.md):
+//   startSession(args)  → trace::open_session   (returns shared TraceSession)
+//   appendCall(args)    → trace::emit_call      (returns minted call ID)
 //   closeCall(args)     → trace::close_call     (records output + status)
-//   closeSession(args)  → trace::close_session  (locks merkle root + status)
+//   endSession(args)    → trace::close_session  (locks merkle root + status)
+//   getCalls/getSession/listSessions/replaySession → read helpers
 //   verifySession(id)   → off-chain chain walk; reads chain, recomputes
 //                         every content_hash, asserts session.merkle_root
 //                         equals the running root. Powers the
@@ -18,7 +19,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import type { OneMem } from "./client.js";
 import type { CallStatus, SessionStatus } from "./types/move.js";
 
-export interface OpenSessionArgs {
+export interface StartSessionArgs {
   readonly namespaceId: string;
   readonly rwCapId: string;
   readonly agentId: string;
@@ -26,7 +27,7 @@ export interface OpenSessionArgs {
   readonly sdkVersion: string;
 }
 
-export interface EmitCallArgs {
+export interface AppendCallArgs {
   readonly sessionId: string;
   readonly namespaceId: string;
   readonly rwCapId: string;
@@ -61,7 +62,7 @@ export interface CloseCallArgs {
   readonly status: CallStatus;
 }
 
-export interface CloseSessionArgs {
+export interface EndSessionArgs {
   readonly sessionId: string;
   readonly rwCapId: string;
   readonly status: SessionStatus;
@@ -120,7 +121,7 @@ export class TracesAPI {
     return { blob: blobId, hash };
   }
 
-  async openSession(args: OpenSessionArgs): Promise<{ sessionId: string; txDigest: string }> {
+  async startSession(args: StartSessionArgs): Promise<{ sessionId: string; txDigest: string }> {
     const { packageId } = this.client.addresses;
     const tx = new Transaction();
     tx.moveCall({
@@ -158,7 +159,7 @@ export class TracesAPI {
     return { sessionId: session.objectId, txDigest: result.digest };
   }
 
-  async emitCall(args: EmitCallArgs): Promise<{ callId: string; txDigest: string }> {
+  async appendCall(args: AppendCallArgs): Promise<{ callId: string; txDigest: string }> {
     const { packageId } = this.client.addresses;
     const { blob, hash } = await this.resolveBlob(
       args.inputContent,
@@ -241,7 +242,7 @@ export class TracesAPI {
     return { txDigest: result.digest };
   }
 
-  async closeSession(args: CloseSessionArgs): Promise<{ txDigest: string }> {
+  async endSession(args: EndSessionArgs): Promise<{ txDigest: string }> {
     const { packageId } = this.client.addresses;
     const tx = new Transaction();
     tx.moveCall({
@@ -314,6 +315,17 @@ export class TracesAPI {
       callCount: events.length,
       sessionStatus: session.status,
     };
+  }
+
+  /** Fetch a TraceSession's on-chain metadata (decoded). */
+  async getSession(sessionId: string) {
+    return this.fetchSession(sessionId);
+  }
+
+  /** List a session's ActionCalls (from emitted events), ascending by time. */
+  async getCalls(sessionId: string) {
+    const events = await this.fetchEmittedEvents(sessionId);
+    return events.sort((a, b) => Number(a.timestampMs - b.timestampMs));
   }
 
   /** Fetch + decode a TraceSession object. Implementation lives in fetchers/ to keep this file under the 400-line cap. */

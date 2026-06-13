@@ -15,23 +15,23 @@
 //     sealPackageId: "0x...",
 //   });
 //
-//   // Mint myself a RW cap (admin holds Admin; openSession needs RW)
+//   // Mint myself a RW cap (admin holds Admin; startSession needs RW)
 //   const { capId: rwCapId } = await onemem.namespaces.shareReadWrite({
 //     namespaceId, adminCapId, recipient: onemem.senderAddress(),
 //   });
 //
-//   const { sessionId } = await onemem.traces.openSession({
+//   const { sessionId } = await onemem.traces.startSession({
 //     namespaceId, rwCapId,
 //     agentId: "my-agent", environment: "dev", sdkVersion: "0.1.0",
 //   });
 //
-//   await onemem.traces.emitCall({
+//   await onemem.traces.appendCall({
 //     sessionId, namespaceId, rwCapId,
 //     toolName: "Read", toolNamespace: "claude-code-builtin",
 //     walrusInputBlob: "walrus:abc", inputHash: new Uint8Array([1,2,3]),
 //   });
 //
-//   await onemem.traces.closeSession({
+//   await onemem.traces.endSession({
 //     sessionId, rwCapId, status: SessionStatus.Completed,
 //   });
 //
@@ -69,10 +69,10 @@ export {
   SealStore,
 } from "./seal.js";
 export {
+  type AppendCallArgs,
   type CloseCallArgs,
-  type CloseSessionArgs,
-  type EmitCallArgs,
-  type OpenSessionArgs,
+  type EndSessionArgs,
+  type StartSessionArgs,
   TracePayloadError,
   TracesAPI,
   type VerifyResult,

@@ -74,7 +74,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
       adminCapId: ns.adminCapId,
       recipient: me,
     });
-    const session = await onemem.traces.openSession({
+    const session = await onemem.traces.startSession({
       namespaceId: ns.namespaceId,
       rwCapId: rw.capId,
       agentId: "vitest-integration",
@@ -84,7 +84,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
 
     const callIds: string[] = [];
     for (let i = 0; i < 3; i++) {
-      const { callId } = await onemem.traces.emitCall({
+      const { callId } = await onemem.traces.appendCall({
         sessionId: session.sessionId,
         namespaceId: ns.namespaceId,
         rwCapId: rw.capId,
@@ -106,7 +106,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
         status: CallStatus.Success,
       });
     }
-    await onemem.traces.closeSession({
+    await onemem.traces.endSession({
       sessionId: session.sessionId,
       rwCapId: rw.capId,
       status: SessionStatus.Completed,
@@ -148,14 +148,14 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
       adminCapId: ns.adminCapId,
       recipient: me,
     });
-    const session = await onemem.traces.openSession({
+    const session = await onemem.traces.startSession({
       namespaceId: ns.namespaceId,
       rwCapId: rw.capId,
       agentId: "vitest-walrus",
       environment: "testnet-it",
       sdkVersion: "0.1.0",
     });
-    const { callId } = await onemem.traces.emitCall({
+    const { callId } = await onemem.traces.appendCall({
       sessionId: session.sessionId,
       namespaceId: ns.namespaceId,
       rwCapId: rw.capId,
@@ -170,7 +170,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
       outputContent: new TextEncoder().encode("real tool output bytes"),
       status: CallStatus.Success,
     });
-    await onemem.traces.closeSession({
+    await onemem.traces.endSession({
       sessionId: session.sessionId,
       rwCapId: rw.capId,
       status: SessionStatus.Completed,

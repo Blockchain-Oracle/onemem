@@ -143,7 +143,7 @@ export function buildServer(onemem: OneMem): McpServer {
     },
     async ({ namespaceId, rwCapId, agentId, environment }) => {
       try {
-        const r = await onemem.traces.openSession({
+        const r = await onemem.traces.startSession({
           namespaceId,
           rwCapId,
           agentId,
@@ -195,7 +195,7 @@ export function buildServer(onemem: OneMem): McpServer {
       const status = success === false ? CallStatus.Failure : CallStatus.Success;
       let callId: string;
       try {
-        const emit = await onemem.traces.emitCall({
+        const emit = await onemem.traces.appendCall({
           sessionId,
           namespaceId,
           rwCapId,
@@ -238,7 +238,7 @@ export function buildServer(onemem: OneMem): McpServer {
     },
     async ({ sessionId, rwCapId }) => {
       try {
-        await onemem.traces.closeSession({
+        await onemem.traces.endSession({
           sessionId,
           rwCapId,
           status: SessionStatus.Completed,

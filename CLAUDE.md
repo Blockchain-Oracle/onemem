@@ -2,6 +2,20 @@
 
 Verifiable cross-runtime AI agent memory + trace layer (Sui + Walrus + Seal + MemWal). Architecture lives at `docs/05-our-architecture/`. Tooling stack + sub-agent fleet + skill inventory: `docs/05-our-architecture/00-overview/{TOOLING_DECISIONS,CODING_AGENT_SETUP}.md`. License: Apache-2.0.
 
+## What OneMem actually is — READ THIS BEFORE BUILDING ANY PACKAGE
+
+OneMem is a **Mem0-ergonomic, claude-mem-inspired** memory layer that adds verifiability + cross-runtime trace on top of existing infra. It is TWO layers — do not conflate them:
+
+1. **Memory layer (the product, Mem0-mirror):** `add / search / get / update / delete / getAll / history / feedback / export`. **WRAPS `@mysten-incubation/memwal`** — memory writes call MemWal's `remember`/`analyze`, reads call `recall` (vector search), via the MemWal relayer + delegate key. We do NOT hand-roll memory storage. Every write also emits a trace `ActionCall` + returns an `attestation {suiTx, walrusBlobId, sealEnvelopeHash}`.
+2. **Trace layer (OneMem's net-new headline):** `TraceSession` + `ActionCall`, Merkle-chained, signed directly to Sui against `onemem::trace`. This is the part nobody else ships. Trace content blobs are OneMem's own Walrus+Seal.
+
+**Canonical contracts (the source of truth — read before writing code for a pillar, the task list is NOT the spec):**
+- `docs/00-goal/GOAL.md` — what we're building + what we're NOT (e.g. "not Mem0 but decentralized"; complement, never compete).
+- `docs/05-our-architecture/02-sdks/shared-api-surface.md` — the EXACT SDK method surface both TS + Python must expose.
+- `docs/02-inspirations/{mem0,claude-mem,memwal-incubation}/` + `docs/01-sui-ecosystem/memwal-deep-dive.md` — wrap/mirror these, don't reinvent.
+
+If what you're about to build isn't in those docs, you're building the wrong thing. Re-read them, don't invent from the task title.
+
 ## 10 non-negotiables
 
 1. **TDD.** Failing test first; no test = no merge. (`superpowers:test-driven-development`)
