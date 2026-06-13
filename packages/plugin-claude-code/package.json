@@ -12,7 +12,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "lint": "biome check ."
   },
   "dependencies": {

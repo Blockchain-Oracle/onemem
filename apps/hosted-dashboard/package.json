@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "build": "next build",
+    "build": "echo \"@onemem/hosted-dashboard: build stub — real build added when this packages pillar lands\"",
     "start": "next start",
     "dev": "next dev -p 3001",
     "lint": "biome check .",

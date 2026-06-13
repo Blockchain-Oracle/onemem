@@ -220,8 +220,10 @@ export class TracesAPI {
     //      no call's content_hash was forged.
     //
     // Both must hold for ok = true.
-    let runningMerkle = ZERO_HASH;
-    let prevContent = ZERO_HASH;
+    // Typed as the general Uint8Array (not the ArrayBuffer-narrowed inference
+    // from ZERO_HASH) so on-chain hashes (ArrayBufferLike) assign cleanly.
+    let runningMerkle: Uint8Array = ZERO_HASH;
+    let prevContent: Uint8Array = ZERO_HASH;
     let brokenAt: number | null = null;
 
     events.forEach((event, idx) => {

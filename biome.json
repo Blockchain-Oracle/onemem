@@ -34,7 +34,11 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "warn",
+        "noConsole": {
+          "level": "error",
+          "options": { "allow": ["warn", "error"] }
+        }
       },
       "style": {
         "useImportType": "error"
@@ -45,6 +49,12 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["scripts/**", "**/*.test.ts", "**/*.test.tsx", "**/cli-ts/**", "**/cli/**"],
+      "linter": { "rules": { "suspicious": { "noConsole": "off" } } }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "double",
