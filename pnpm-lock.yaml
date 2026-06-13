@@ -234,6 +234,9 @@ importers:
 
   packages/plugin-claude-code:
     dependencies:
+      '@mysten/sui':
+        specifier: ^2.17.0
+        version: 2.17.0(typescript@5.9.3)
       '@onemem/sdk-ts':
         specifier: workspace:*
         version: link:../sdk-ts

@@ -1,5 +1,37 @@
 # @onemem/claude-code-plugin
 
-OneMem plugin for Claude Code. Coexists with claude-mem (semantic memory) — OneMem owns verifiable on-chain trace; claude-mem owns local conversation summary.
+OneMem plugin for Claude Code — turns each Claude Code session's tool calls into
+a **verifiable on-chain trace** (Merkle-chained `ActionCall`s on Sui, content
+Seal-encrypted on Walrus). Coexists with claude-mem (semantic memory) — OneMem
+owns verifiable on-chain trace; claude-mem owns local conversation summary.
 
-See `docs/05-our-architecture/03-runtimes/claude-code-plugin.md` for the hook surface contract and `docs/02-inspirations/claude-mem/HOOKS_AND_VIEWER_REFERENCE.md` for the reference pattern.
+## How it works (hooks)
+
+| Hook | Script | What it does |
+|---|---|---|
+| `SessionStart` | `inject.js` | Opens a OneMem `TraceSession`, persists the mapping |
+| `PostToolUse` | `observe.js` | Buffers the tool call locally — **instant**, never blocks Claude |
+| `SessionEnd` | `summarize.js` | Flushes the buffer on-chain (one `ActionCall` per tool, Seal-encrypted → Walrus) + closes the session |
+
+Buffering keeps the editor responsive; the on-chain work happens once at session
+end, producing one tamper-evident trace you can verify or share.
+
+## Configure (env)
+
+- `ONEMEM_NAMESPACE_ID` + `ONEMEM_RW_CAP_ID` — the OneMem namespace + ReadWrite
+  cap to record into (required; the plugin no-ops without them).
+- `ONEMEM_PRIVATE_KEY` — `suiprivkey1…` signer (else the sui keystore's first key).
+- `SUI_NETWORK` — `testnet` (default) | `mainnet` | …
+
+## Install
+
+```bash
+# from a checkout (dev): point Claude Code at this plugin dir
+claude plugin add /absolute/path/to/packages/plugin-claude-code
+```
+
+Verified end-to-end on testnet: a SessionStart→PostToolUse→SessionEnd lifecycle
+produces a `verifySession`-passing on-chain trace
+(`tests/plugin.integration.test.ts`).
+
+Spec: `docs/05-our-architecture/03-runtimes/claude-code-plugin.md`.

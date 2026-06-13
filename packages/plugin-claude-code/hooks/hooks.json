@@ -1,22 +1,40 @@
 {
-  "PostToolUse": [
-    {
-      "command": "node ${CLAUDE_PROJECT_DIR}/scripts/observe.js"
-    }
-  ],
-  "UserPromptSubmit": [
-    {
-      "command": "node ${CLAUDE_PROJECT_DIR}/scripts/observe.js"
-    }
-  ],
-  "SessionStart": [
-    {
-      "command": "node ${CLAUDE_PROJECT_DIR}/scripts/inject.js"
-    }
-  ],
-  "SessionEnd": [
-    {
-      "command": "node ${CLAUDE_PROJECT_DIR}/scripts/summarize.js"
-    }
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/inject.js",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/observe.js",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/summarize.js",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
 }

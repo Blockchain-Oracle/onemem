@@ -1,7 +1,26 @@
 #!/usr/bin/env node
-// OneMem Claude Code plugin — observe hook handler (PostToolUse + UserPromptSubmit).
-// Skeleton implementation; full surface implemented in Pillar 3.
-// Spec: docs/05-our-architecture/03-runtimes/claude-code-plugin.md
-// Coexistence with claude-mem: docs/02-inspirations/claude-mem/HOOKS_AND_VIEWER_REFERENCE.md
+// OneMem Claude Code plugin — PostToolUse hook.
+// Buffers each tool call to a local file INSTANTLY (no network) so Claude Code
+// stays responsive; the buffer is flushed on-chain in one batch at SessionEnd
+// (per the "hooks must be fast" rule). Defensive: always exits 0.
 
-process.exit(0);
+import { bufferToolCall, readHookInput, readSessionState } from "./onemem-lib.mjs";
+
+async function main() {
+  const input = await readHookInput();
+  if (input.hook_event_name && input.hook_event_name !== "PostToolUse") return;
+  const claudeSessionId = input.session_id;
+  if (!claudeSessionId || !input.tool_name) return;
+  // Only buffer if a OneMem session was opened at SessionStart.
+  if (!readSessionState(claudeSessionId)) return;
+
+  bufferToolCall(claudeSessionId, {
+    toolName: input.tool_name,
+    toolInput: input.tool_input ?? null,
+    toolResponse: input.tool_response ?? null,
+  });
+}
+
+main()
+  .catch(() => {})
+  .finally(() => process.exit(0));
