@@ -89,6 +89,7 @@ export {
   TracePayloadError,
   TracesAPI,
   type VerifyResult,
+  verifyTraceChain,
 } from "./traces.js";
 export type {
   ActionCall,

@@ -12,6 +12,7 @@
 //                         equals the running root. Powers the
 //                         `/verify/[session_id]` public dashboard page.
 
+import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -273,48 +274,7 @@ export class TracesAPI {
    * delegate-key holder OR the v0.2 Nautilus TEE relayer.
    */
   async verifySession(sessionId: string): Promise<VerifyResult> {
-    const session = await this.fetchSession(sessionId);
-    const events = await this.fetchEmittedEvents(sessionId);
-
-    // Sort events by their on-chain order (the events come back in tx-order;
-    // within a single tx the order is preserved by the validator).
-    events.sort((a, b) => Number(a.timestampMs - b.timestampMs));
-
-    // TWO chains to verify (per docs/05-our-architecture/01-protocol/
-    // events-and-attestation.md + trace.move):
-    //
-    //   1. prev_hash chain: each call's prev_hash == previous call's
-    //      content_hash (or ZERO_HASH for the first call). Confirms no
-    //      call was inserted/dropped in the middle.
-    //
-    //   2. merkle_root chain: session.merkle_root is the result of
-    //      chain_hash(running, content) applied for each call. Confirms
-    //      no call's content_hash was forged.
-    //
-    // Both must hold for ok = true.
-    // Typed as the general Uint8Array (not the ArrayBuffer-narrowed inference
-    // from ZERO_HASH) so on-chain hashes (ArrayBufferLike) assign cleanly.
-    let runningMerkle: Uint8Array = ZERO_HASH;
-    let prevContent: Uint8Array = ZERO_HASH;
-    let brokenAt: number | null = null;
-
-    events.forEach((event, idx) => {
-      if (brokenAt === null && !u8eq(event.prevHash, prevContent)) {
-        brokenAt = idx;
-      }
-      runningMerkle = chainHash(runningMerkle, event.contentHash);
-      prevContent = event.contentHash;
-    });
-
-    const ok = brokenAt === null && u8eq(runningMerkle, session.merkleRoot);
-    return {
-      ok,
-      brokenAt,
-      expectedMerkleRoot: session.merkleRoot,
-      computedMerkleRoot: runningMerkle,
-      callCount: events.length,
-      sessionStatus: session.status,
-    };
+    return verifyTraceChain(this.client.client, this.client.addresses.packageId, sessionId);
   }
 
   /** Fetch a TraceSession's on-chain metadata (decoded). */
@@ -342,6 +302,49 @@ export class TracesAPI {
       sessionId,
     );
   }
+}
+
+// === Standalone verifier ===
+
+/**
+ * Off-chain Merkle verification of a TraceSession, using only a read-only
+ * SuiJsonRpcClient + the package id. No signer, Walrus, or Seal needed — ideal
+ * for the public dashboard verify page and any independent verifier.
+ *
+ * Verifies BOTH chains: (1) each call's prev_hash equals the predecessor's
+ * content_hash (no insert/drop), and (2) the folded merkle_root matches the
+ * on-chain session.merkle_root (no content forgery).
+ */
+export async function verifyTraceChain(
+  client: SuiJsonRpcClient,
+  packageId: string,
+  sessionId: string,
+): Promise<VerifyResult> {
+  const { fetchTraceSession, fetchActionCallEmittedEvents } = await import("./fetchers/trace.js");
+  const session = await fetchTraceSession(client, sessionId);
+  const events = await fetchActionCallEmittedEvents(client, packageId, sessionId);
+  events.sort((a, b) => Number(a.timestampMs - b.timestampMs));
+
+  let runningMerkle: Uint8Array = ZERO_HASH;
+  let prevContent: Uint8Array = ZERO_HASH;
+  let brokenAt: number | null = null;
+  events.forEach((event, idx) => {
+    if (brokenAt === null && !u8eq(event.prevHash, prevContent)) {
+      brokenAt = idx;
+    }
+    runningMerkle = chainHash(runningMerkle, event.contentHash);
+    prevContent = event.contentHash;
+  });
+
+  const ok = brokenAt === null && u8eq(runningMerkle, session.merkleRoot);
+  return {
+    ok,
+    brokenAt,
+    expectedMerkleRoot: session.merkleRoot,
+    computedMerkleRoot: runningMerkle,
+    callCount: events.length,
+    sessionStatus: session.status,
+  };
 }
 
 // === Helpers ===
