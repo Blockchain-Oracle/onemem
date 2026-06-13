@@ -20,8 +20,14 @@
   - [x] **Testnet deploy LIVE.** Package `0x64c14fc069fe3d3584b8474b4e9b58beb55373767edecedf6e4c53732d4ceafc`. Verify-script green. Commit `ac66ff1`. Suiscan: <https://suiscan.xyz/testnet/object/0x64c14fc069fe3d3584b8474b4e9b58beb55373767edecedf6e4c53732d4ceafc>
   - [ ] **Mainnet deploy** — gated on Abu's explicit "go mainnet" (mainnet writes are irreversible-ish; major phase boundary)
   - [ ] Pillar exit gate: mainnet package IDs in `MAINNET_DEPLOY.md` (testnet block already there); `pnpm test:structure` green ✓ already
-- [ ] **Phase 4 — Pillar 2: SDKs** ← **NEXT** (TS + Python; can start against testnet IDs immediately)
-- [ ] **Phase 5 — Pillar 3: Per-runtime plugins** (Claude Code + OpenClaw + Hermes) + MCP server
+- [~] **Phase 4 — Pillar 2: SDKs** (PR [#1](https://github.com/Blockchain-Oracle/onemem/pull/1) — ready to merge)
+  - [x] TS SDK: namespaces + traces + off-chain Merkle verifier (live testnet round-trip + re-verify). Commits `c1293a5`→`644f143`.
+  - [x] **Real Walrus blob storage** (`@mysten/walrus` upload relay + retry; emit/close upload content, on-chain hash = sha256(plaintext)). Verified live. Commit `a5f5a02`.
+  - [x] **Seal encryption** (encrypt before upload, decrypt gated by `seal_approve<KIND>`; permissionless testnet key servers). Verified live encrypt→Walrus→decrypt. Commits `cb66d44`+`95639dd`.
+  - [x] Python SDK: cross-language verifier — recomputes the IDENTICAL `merkle_root` as TS (verified live). Commit `570103d`.
+  - [x] CI/CD live + green (repo public; logger rules enforced; pytest wired). Commits `658…`→`029833b`.
+  - [ ] Pillar exit gate: PR #1 review (`pr-review-toolkit` done per-feature) + merge to main. Follow-ups tracked: #48 sui-in-CI, #50 union args, #51 Seal hardening.
+- [ ] **Phase 5 — Pillar 3: Per-runtime plugins** ← **NEXT** (Claude Code + OpenClaw + Hermes) + MCP server
 - [ ] **Phase 6 — Pillar 4: Framework providers** (Vercel AI + OpenAI Agents + CrewAI + LiveKit + ElevenLabs)
 - [ ] **Phase 7 — Pillar 5: CLI** (TS + Python)
 - [ ] **Phase 8 — Pillar 6: Dashboard** (`packages/dashboard` + `apps/hosted-dashboard` + public `/verify/[session_id]`)

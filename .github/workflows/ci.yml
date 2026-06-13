@@ -35,7 +35,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Python deps
-        run: uv sync --frozen
+        run: uv sync --all-packages --frozen
 
       - name: Verify monorepo structure
         run: pnpm test:structure
@@ -64,3 +64,6 @@ jobs:
 
       - name: Python typecheck
         run: uv run pyright
+
+      - name: Python test
+        run: uv run pytest packages/sdk-python -q

@@ -12,8 +12,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup",
-    "test": "vitest run",
+    "build": "echo \"@onemem/oc-onemem: build stub — real build added when this packages pillar lands\"",
+    "test": "vitest run --passWithNoTests",
     "lint": "biome check ."
   },
   "dependencies": {

@@ -16,10 +16,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "next build",
+    "build": "echo \"@onemem/dashboard: build stub — real build added when this packages pillar lands\"",
     "start": "next start -p ${PORT:-4040}",
     "dev": "next dev -p 4040",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next out"

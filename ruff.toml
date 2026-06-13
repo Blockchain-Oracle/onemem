@@ -18,10 +18,18 @@ select = [
     "UP",    # pyupgrade
     "SIM",   # simplify
     "RUF",   # ruff-specific
+    "T20",   # flake8-print — no print()/pprint() in shipped library code (use structlog)
 ]
 ignore = [
     "E501",  # line too long (handled by formatter)
 ]
+
+[lint.per-file-ignores]
+# Tooling + CLI + tests legitimately write to stdout.
+"scripts/**" = ["T20"]
+"**/cli-python/**" = ["T20"]
+"**/cli/**" = ["T20"]
+"**/tests/**" = ["T20"]
 
 [format]
 quote-style = "double"

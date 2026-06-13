@@ -2,16 +2,18 @@
 
 Verifiable cross-runtime AI agent memory + trace layer (Sui + Walrus + Seal + MemWal). Architecture lives at `docs/05-our-architecture/`. Tooling stack + sub-agent fleet + skill inventory: `docs/05-our-architecture/00-overview/{TOOLING_DECISIONS,CODING_AGENT_SETUP}.md`. License: Apache-2.0.
 
-## 8 non-negotiables
+## 10 non-negotiables
 
 1. **TDD.** Failing test first; no test = no merge. (`superpowers:test-driven-development`)
-2. **Verify before claiming done.** `pnpm test && pnpm lint` (or package-local) clean. (`superpowers:verification-before-completion`)
-3. **Git worktrees for multi-commit work.** (`superpowers:using-git-worktrees`)
-4. **Playwright MCP for UI research,** not WebFetch.
-5. **Never hardcode dep versions from memory.** Use `pnpm add` / `uv add`. If hand-writing a manifest, look up actual latest via `pnpm view <pkg> version` (or `uv pip index versions <pkg>`) first; use the `^` prefix.
-6. **Research before non-trivial decisions.** `context7` MCP for live framework/SDK docs; exa/Brave for ecosystem state; this repo's `docs/` for captured decisions; 3–5 inspirations under `docs/02-inspirations/` for patterns — best-of-best, not first-match. Same rule while implementing: confused → look it up, don't guess.
-7. **Autonomous through the tracker.** Loop: research → TDD → verify → commit → flip `BUILD_SEQUENCE.md` checkbox → start next story. Pause ONLY at MAJOR phase boundaries (pillar→pillar, code→mainnet, pre-submission). Never pause mid-pillar for "ready?" — just start.
-8. **Coding guardrails.** Full doc: `docs/05-our-architecture/00-overview/CODING_GUARDRAILS.md` (TS + Python + Move + cross-cutting). Headline rules: source files ≤ 400 lines (structure test enforces); named `const` over magic literals; named types over primitive bags; structured loggers (Pino / structlog) over `console.log` / `print()`; typed error classes with `cause` chains; per-language section headers + naming per the doc; pre-commit self-review checklist at the bottom of that doc.
+2. **Verify before claiming done.** `pnpm test && pnpm lint` AND `pnpm turbo run typecheck build` (or package-local) clean. `tsx`/smoke scripts transpile-only — they hide typecheck + `tsup` build errors; CI runs the real build, so run it locally too. (`superpowers:verification-before-completion`)
+3. **Manual testing on real systems.** Beyond unit tests, exercise every new feature by hand on the real runtime / real Walrus / real testnet as it's built — continuously, never batched to the end. The manual real-system run is the bar; env-gated integration tests (`ONEMEM_INTEGRATION=1`) just make it repeatable. Detail → `docs/05-our-architecture/00-overview/TESTING_STRATEGY.md`.
+4. **Git worktrees for multi-commit work.** (`superpowers:using-git-worktrees`)
+5. **Playwright MCP for UI research,** not WebFetch.
+6. **Never hardcode dep versions from memory.** Use `pnpm add` / `uv add`. If hand-writing a manifest, look up actual latest via `pnpm view <pkg> version` (or `uv pip index versions <pkg>`) first; use the `^` prefix.
+7. **Research before every story; specs are hypotheses.** Expect the spec/architecture to be subtly wrong (~99% of the time) — validate by building and correct as you discover. Before each story: `context7` for live SDK docs, exa/Brave for ecosystem state, this repo's `docs/` for captured decisions, 3–5 inspirations under `docs/02-inspirations/` for patterns. Tire-kick unfamiliar libs in a `/tmp` scratch before architecting around them. Confused mid-build → look it up, don't guess.
+8. **Autonomous through the tracker.** Loop: research → TDD → verify → commit → flip `BUILD_SEQUENCE.md` checkbox → start next story. Pause ONLY at MAJOR phase boundaries (pillar→pillar, code→mainnet, pre-submission). Never pause mid-pillar for "ready?" — just start.
+9. **Review each feature, not just at PR time.** Run `pr-review-toolkit` (review-pr + its agents: code-reviewer, silent-failure-hunter, type-design-analyzer, comment-analyzer, pr-test-analyzer) on each new feature's diff *as you build it* — don't wait for PR creation. Branch `pillar-N-<name>`; one PR per pillar; CI green to merge.
+10. **Coding guardrails.** Full doc: `docs/05-our-architecture/00-overview/CODING_GUARDRAILS.md` (TS + Python + Move + cross-cutting). Headline rules: source files ≤ 400 lines (structure test enforces); named `const` over magic literals; named types over primitive bags; structured loggers (Pino / structlog) over `console.log` / `print()` — now CI-enforced via biome `noConsole` + ruff `T20`; typed error classes with `cause` chains; each new TS lib package needs its own `tsup.config.ts` or it builds nothing; per-language section headers + naming per the doc; pre-commit self-review checklist at the bottom of that doc.
 
 ## Where to read before editing
 

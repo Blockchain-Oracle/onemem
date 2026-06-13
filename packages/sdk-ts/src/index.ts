@@ -59,10 +59,21 @@ export {
   NamespacesAPI,
 } from "./namespaces.js";
 export {
+  createSealClient,
+  DEFAULT_SEAL_THRESHOLD,
+  SEAL_KEY_SERVERS_BY_NETWORK,
+  type SealConfig,
+  SealDecryptError,
+  SealEncryptError,
+  SealNotConfiguredError,
+  SealStore,
+} from "./seal.js";
+export {
   type CloseCallArgs,
   type CloseSessionArgs,
   type EmitCallArgs,
   type OpenSessionArgs,
+  TracePayloadError,
   TracesAPI,
   type VerifyResult,
 } from "./traces.js";
@@ -84,3 +95,12 @@ export type {
 // value and `kind: NamespaceKind` for the type. Don't add a `type` prefix
 // to these re-exports; doing so masks the runtime value.
 export { CallStatus, NamespaceKind, SessionStatus } from "./types/move.js";
+export {
+  isRetryableWalrusError,
+  UPLOAD_RELAY_BY_NETWORK,
+  type WalrusConfig,
+  WalrusNotConfiguredError,
+  WalrusReadError,
+  WalrusStore,
+  WalrusWriteError,
+} from "./walrus.js";

@@ -262,6 +262,23 @@ describe("OneMem monorepo structure", () => {
     });
   });
 
+  describe("overview docs", () => {
+    const OVERVIEW = "docs/05-our-architecture/00-overview";
+    test("TESTING_STRATEGY.md exists in 00-overview", () => {
+      assert.ok(
+        exists(`${OVERVIEW}/TESTING_STRATEGY.md`),
+        "TESTING_STRATEGY.md missing — it's the canonical two-tier testing policy",
+      );
+    });
+    test("root CLAUDE.md references TESTING_STRATEGY.md", () => {
+      const claude = readFileSync(join(ROOT, "CLAUDE.md"), "utf8");
+      assert.ok(
+        claude.includes("TESTING_STRATEGY.md"),
+        "CLAUDE.md must point at TESTING_STRATEGY.md so the testing policy is discoverable",
+      );
+    });
+  });
+
   describe("workspace cross-refs", () => {
     test("workspace:* deps resolve to real workspace packages", () => {
       // Build the set of @onemem/* package names declared by TS packages
