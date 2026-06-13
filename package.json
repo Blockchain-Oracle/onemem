@@ -35,5 +35,10 @@
   "engines": {
     "node": ">=20.18.0",
     "pnpm": ">=10.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@mysten-incubation/oc-memwal>@mysten-incubation/memwal": "$@mysten-incubation/memwal"
+    }
   }
 }

@@ -1,9 +1,0 @@
-{
-  "name": "oc-onemem",
-  "version": "0.1.0",
-  "description": "OneMem — verifiable on-chain action traces for OpenClaw agents",
-  "homepage": "https://onemem.ai",
-  "license": "Apache-2.0",
-  "depends_on": ["oc-memwal"],
-  "entrypoint": "dist/index.js"
-}
