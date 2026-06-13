@@ -10,9 +10,22 @@
 //
 // Spec: docs/05-our-architecture/03-runtimes/openclaw-plugin.md
 
-import ocMemwal from "@mysten-incubation/oc-memwal";
-
 import { loadConfig, TraceRecorder } from "./onemem-trace.js";
+
+// oc-memwal is an OPTIONAL peer: when installed, we delegate to it for
+// Walrus-backed memory; when absent (or its broken 0.0.4 publish can't install),
+// OneMem still provides the verifiable trace layer standalone. Loaded
+// dynamically so a missing dep never breaks plugin load.
+async function delegateToOcMemwal(api: unknown): Promise<void> {
+  try {
+    const mod = (await import("@mysten-incubation/oc-memwal")) as {
+      default?: { register?: (api: unknown) => void };
+    };
+    mod.default?.register?.(api);
+  } catch {
+    // oc-memwal not present — trace layer works without it.
+  }
+}
 
 // OpenClaw's plugin api is large + version-bundled; we use only a couple seams
 // (registerHook + logger), typed loosely to stay resilient across versions.
@@ -43,12 +56,8 @@ const plugin = {
   description: "Verifiable on-chain memory + action traces for OpenClaw (superset of oc-memwal).",
   kind: "memory" as const,
   register(api: OpenClawApi): void {
-    // 1) Delegate to oc-memwal — all Walrus-backed memory functionality.
-    try {
-      (ocMemwal as { register?: (api: unknown) => void }).register?.(api);
-    } catch {
-      // oc-memwal is optional at runtime; the trace layer still works.
-    }
+    // 1) Delegate to oc-memwal (optional) — Walrus-backed memory when present.
+    void delegateToOcMemwal(api);
 
     // 2) Add the OneMem verifiable trace layer.
     const config = loadConfig();
