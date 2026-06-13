@@ -29,6 +29,7 @@ import {
   type OneMemAddresses,
   type SuiNetwork,
 } from "./generated/addresses.js";
+import { MemoryAPI, type MemoryConfig, MemoryNotConfiguredError } from "./memory.js";
 import { NamespacesAPI } from "./namespaces.js";
 import { createSealClient, type SealConfig, SealNotConfiguredError, SealStore } from "./seal.js";
 import { TracesAPI } from "./traces.js";
@@ -71,6 +72,13 @@ export interface OneMemConfig {
    * encrypted before Walrus upload and decrypted by capability holders.
    */
   readonly seal?: SealConfig;
+  /**
+   * Memory layer (Mem0-mirror) config — MemWal `/manual` credentials. When
+   * present, `onemem.memory` is wired up so `add`/`search` work. Needs a
+   * MemWal account + delegate key (see scripts/setup-memwal.mts) + an
+   * embedding API key.
+   */
+  readonly memory?: MemoryConfig;
 }
 
 export class OneMem {
@@ -84,6 +92,8 @@ export class OneMem {
   readonly walrus?: WalrusStore;
   /** Seal encrypt/decrypt — present when key servers are configured for the network. */
   readonly seal?: SealStore;
+  /** Memory layer (Mem0-mirror) — present when MemWal config is supplied. */
+  readonly memory?: MemoryAPI;
 
   private constructor(params: {
     network: SuiNetwork;
@@ -92,6 +102,8 @@ export class OneMem {
     signer: Signer;
     walrus?: WalrusStore;
     seal?: SealStore;
+    memory?: MemoryConfig;
+    suiPrivateKey?: string;
   }) {
     this.network = params.network;
     this.client = params.client;
@@ -101,6 +113,10 @@ export class OneMem {
     this.seal = params.seal;
     this.namespaces = new NamespacesAPI(this);
     this.traces = new TracesAPI(this);
+    this.memory =
+      params.memory && params.suiPrivateKey
+        ? new MemoryAPI(this, params.memory, params.suiPrivateKey)
+        : undefined;
   }
 
   static async create(config: OneMemConfig): Promise<OneMem> {
@@ -122,6 +138,12 @@ export class OneMem {
       ? new SealStore(sealClient, client, config.signer, addresses.packageId, config.seal ?? {})
       : undefined;
 
+    // MemWal `/manual` needs a bech32 Sui key for Seal + Walrus signing;
+    // default to the signer's own key when it exposes getSecretKey (keypairs do).
+    const suiPrivateKey =
+      config.memory?.suiPrivateKey ??
+      (config.signer as { getSecretKey?: () => string }).getSecretKey?.();
+
     return new OneMem({
       network,
       client,
@@ -129,6 +151,8 @@ export class OneMem {
       signer: config.signer,
       walrus: walrusStore,
       seal: sealStore,
+      memory: config.memory,
+      suiPrivateKey,
     });
   }
 
@@ -151,5 +175,13 @@ export class OneMem {
       throw new SealNotConfiguredError(this.network);
     }
     return this.seal;
+  }
+
+  /** Return the Memory API or throw if MemWal config wasn't supplied. */
+  requireMemory(): MemoryAPI {
+    if (!this.memory) {
+      throw new MemoryNotConfiguredError();
+    }
+    return this.memory;
   }
 }

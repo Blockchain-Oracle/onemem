@@ -54,6 +54,16 @@ export {
   type SuiNetwork,
 } from "./generated/addresses.js";
 export {
+  type AddMemoryArgs,
+  type AddMemoryResult,
+  type Memory,
+  MemoryAPI,
+  type MemoryConfig,
+  MemoryNotConfiguredError,
+  type SearchMemoryArgs,
+  type SearchMemoryResult,
+} from "./memory.js";
+export {
   type CreateNamespaceArgs,
   type CreateNamespaceResult,
   NamespacesAPI,
