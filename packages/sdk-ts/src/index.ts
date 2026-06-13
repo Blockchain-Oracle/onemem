@@ -63,6 +63,9 @@ export {
   DEFAULT_SEAL_THRESHOLD,
   SEAL_KEY_SERVERS_BY_NETWORK,
   type SealConfig,
+  SealDecryptError,
+  SealEncryptError,
+  SealNotConfiguredError,
   SealStore,
 } from "./seal.js";
 export {

@@ -22,6 +22,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { fromHex } from "@mysten/sui/utils";
 
 import type { SuiNetwork } from "./generated/addresses.js";
+import type { CapKind } from "./types/move.js";
 
 /** Verified testnet key servers (decentralized + aggregator). */
 export const SEAL_KEY_SERVERS_BY_NETWORK: Partial<
@@ -48,6 +49,40 @@ export interface SealConfig {
 }
 
 const strip0x = (hex: string): string => (hex.startsWith("0x") ? hex.slice(2) : hex);
+
+/** Thrown when Seal is used on a client where it wasn't configured. */
+export class SealNotConfiguredError extends Error {
+  constructor(network: string) {
+    super(
+      `Seal is not configured for network "${network}". Pass { seal: { keyServers } } to OneMem.create().`,
+    );
+    this.name = "SealNotConfiguredError";
+  }
+}
+
+/** Thrown when Seal encryption fails; carries the namespace + cause. */
+export class SealEncryptError extends Error {
+  constructor(
+    readonly namespaceId: string,
+    options?: { cause?: unknown },
+  ) {
+    super(`Seal encryption failed for namespace ${namespaceId}`, options);
+    this.name = "SealEncryptError";
+  }
+}
+
+/** Thrown when Seal decryption fails — wrong cap, inactive namespace, or key-server error. */
+export class SealDecryptError extends Error {
+  constructor(
+    message: string,
+    readonly namespaceId: string,
+    readonly capId: string,
+    options?: { cause?: unknown },
+  ) {
+    super(message, options);
+    this.name = "SealDecryptError";
+  }
+}
 
 /**
  * Build a SealClient bound to a network's key servers, or null when none are
@@ -90,13 +125,20 @@ export class SealStore {
 
   /** Encrypt plaintext for a namespace. No signature, no gas. */
   async encrypt(plaintext: Uint8Array, namespaceId: string): Promise<Uint8Array> {
-    const { encryptedObject } = await this.seal.encrypt({
-      threshold: this.threshold,
-      packageId: this.packageId,
-      id: this.identityFor(namespaceId),
-      data: plaintext,
-    });
-    return encryptedObject;
+    try {
+      const { encryptedObject } = await this.seal.encrypt({
+        threshold: this.threshold,
+        packageId: this.packageId,
+        id: this.identityFor(namespaceId),
+        data: plaintext,
+      });
+      if (encryptedObject.length === 0) {
+        throw new Error("Seal returned empty ciphertext");
+      }
+      return encryptedObject;
+    } catch (error) {
+      throw new SealEncryptError(namespaceId, { cause: error });
+    }
   }
 
   /**
@@ -105,31 +147,43 @@ export class SealStore {
    */
   async decrypt(
     ciphertext: Uint8Array,
-    args: { namespaceId: string; capId: string; capKind: string },
+    args: { namespaceId: string; capId: string; capKind: CapKind },
   ): Promise<Uint8Array> {
-    const id = this.identityFor(args.namespaceId);
+    try {
+      const id = this.identityFor(args.namespaceId);
 
-    const tx = new Transaction();
-    tx.moveCall({
-      target: `${this.packageId}::seal_policy::seal_approve`,
-      typeArguments: [`${this.packageId}::namespace::${args.capKind}`],
-      arguments: [
-        tx.pure.vector("u8", fromHex(id)),
-        tx.object(args.namespaceId),
-        tx.object(args.capId),
-      ],
-    });
-    const txBytes = await tx.build({ client: this.suiClient as never, onlyTransactionKind: true });
+      const tx = new Transaction();
+      tx.moveCall({
+        target: `${this.packageId}::seal_policy::seal_approve`,
+        typeArguments: [`${this.packageId}::namespace::${args.capKind}`],
+        arguments: [
+          tx.pure.vector("u8", fromHex(id)),
+          tx.object(args.namespaceId),
+          tx.object(args.capId),
+        ],
+      });
+      const txBytes = await tx.build({
+        client: this.suiClient as never,
+        onlyTransactionKind: true,
+      });
 
-    const sessionKey = await SessionKey.create({
-      address: this.signer.toSuiAddress(),
-      packageId: this.packageId,
-      ttlMin: this.ttlMin,
-      suiClient: this.suiClient as never,
-    });
-    const { signature } = await this.signer.signPersonalMessage(sessionKey.getPersonalMessage());
-    sessionKey.setPersonalMessageSignature(signature);
+      const sessionKey = await SessionKey.create({
+        address: this.signer.toSuiAddress(),
+        packageId: this.packageId,
+        ttlMin: this.ttlMin,
+        suiClient: this.suiClient as never,
+      });
+      const { signature } = await this.signer.signPersonalMessage(sessionKey.getPersonalMessage());
+      sessionKey.setPersonalMessageSignature(signature);
 
-    return this.seal.decrypt({ data: ciphertext, sessionKey, txBytes });
+      return await this.seal.decrypt({ data: ciphertext, sessionKey, txBytes });
+    } catch (error) {
+      throw new SealDecryptError(
+        `Seal decryption failed (namespace ${args.namespaceId}, cap ${args.capId}, kind ${args.capKind}) — wrong/inactive cap or key-server error`,
+        args.namespaceId,
+        args.capId,
+        { cause: error },
+      );
+    }
   }
 }

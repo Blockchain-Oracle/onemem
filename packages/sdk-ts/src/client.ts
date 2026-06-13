@@ -30,7 +30,7 @@ import {
   type SuiNetwork,
 } from "./generated/addresses.js";
 import { NamespacesAPI } from "./namespaces.js";
-import { createSealClient, type SealConfig, SealStore } from "./seal.js";
+import { createSealClient, type SealConfig, SealNotConfiguredError, SealStore } from "./seal.js";
 import { TracesAPI } from "./traces.js";
 import {
   extendWithWalrus,
@@ -148,9 +148,7 @@ export class OneMem {
   /** Return the Seal store or throw if it isn't configured for this network. */
   requireSeal(): SealStore {
     if (!this.seal) {
-      throw new Error(
-        `Seal is not configured for network "${this.network}". Pass { seal: { keyServers } } to OneMem.create().`,
-      );
+      throw new SealNotConfiguredError(this.network);
     }
     return this.seal;
   }
