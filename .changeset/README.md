@@ -23,3 +23,17 @@ Changeset notes are still useful release context, but the current script does
 not parse changeset metadata; it builds and publishes the Python package list
 defined in the script and lets `uv publish` skip already-present identical PyPI
 files or fail on real publish errors.
+
+## Release credentials
+
+The GitHub Release workflow creates or updates the Changesets release PR even
+when registry credentials are absent. It only attempts npm publication when
+either `NPM_TOKEN` is configured as a repository secret or
+`ONEMEM_NPM_TRUSTED_PUBLISHING` is explicitly set to `1`/`true` as a repository
+variable after npm-side trusted publisher configuration exists.
+
+Python publication only runs after the npm publish step reports success and
+`PYPI_TOKEN` is configured as a repository secret. A green Release run without
+those credentials means release PR automation succeeded; it does not mean npm
+or PyPI packages were published. Confirm publication with registry lookups such
+as `npm view @onemem/codex-plugin version` before claiming a package is live.

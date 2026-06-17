@@ -377,6 +377,16 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-17-demo-matrix-ci-gate.md`
 - Demo Matrix CI Gate verification:
   `../verification/2026-06-17-demo-matrix-ci-gate.md`
+- Release Auth Gate research:
+  `../research/2026-06-17-release-auth-gate.md`
+- Release Auth Gate spec:
+  `../specs/2026-06-17-release-auth-gate.md`
+- Release Auth Gate stories:
+  `../stories/2026-06-17-release-auth-gate.md`
+- Release Auth Gate plan:
+  `../plans/2026-06-17-release-auth-gate.md`
+- Release Auth Gate verification:
+  `../verification/2026-06-17-release-auth-gate.md`
 
 ## Maintenance Notes
 

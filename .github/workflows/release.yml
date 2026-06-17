@@ -18,6 +18,10 @@ jobs:
     name: Publish TS packages via Changesets
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      ONEMEM_NPM_TRUSTED_PUBLISHING: ${{ vars.ONEMEM_NPM_TRUSTED_PUBLISHING }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,7 +53,23 @@ jobs:
           npm --version
           pnpm --version
 
+      - name: Report npm publish disabled
+        if: ${{ env.NPM_TOKEN == '' && env.ONEMEM_NPM_TRUSTED_PUBLISHING != '1' && env.ONEMEM_NPM_TRUSTED_PUBLISHING != 'true' }}
+        run: |
+          echo "::notice::NPM_TOKEN is not configured and ONEMEM_NPM_TRUSTED_PUBLISHING is not enabled; creating/updating the Changesets release PR without publishing npm packages."
+
+      - name: Create Release PR without npm publish
+        if: ${{ env.NPM_TOKEN == '' && env.ONEMEM_NPM_TRUSTED_PUBLISHING != '1' && env.ONEMEM_NPM_TRUSTED_PUBLISHING != 'true' }}
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release PR or publish to npm
+        if: ${{ env.NPM_TOKEN != '' || env.ONEMEM_NPM_TRUSTED_PUBLISHING == '1' || env.ONEMEM_NPM_TRUSTED_PUBLISHING == 'true' }}
         id: changesets
         uses: changesets/action@v1
         with:
@@ -59,13 +79,18 @@ jobs:
           title: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ env.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
           NPM_CONFIG_ACCESS: public
           PUBLISH_ALL_NPM_PROVENANCE: "1"
 
+      - name: Report PyPI publish disabled
+        if: ${{ steps.changesets.outputs.published == 'true' && env.PYPI_TOKEN == '' }}
+        run: |
+          echo "::notice::PYPI_TOKEN is not configured; skipping Python package publication after npm publish."
+
       - name: Publish Python packages to PyPI
-        if: steps.changesets.outputs.published == 'true'
+        if: ${{ steps.changesets.outputs.published == 'true' && env.PYPI_TOKEN != '' }}
         run: bash scripts/publish-all.sh python
         env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          UV_PUBLISH_TOKEN: ${{ env.PYPI_TOKEN }}

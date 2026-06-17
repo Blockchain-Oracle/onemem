@@ -175,6 +175,21 @@ describe("OneMem monorepo structure", () => {
       const workflow = readFileSync(join(ROOT, ".github/workflows/release.yml"), "utf8");
       assert.match(
         workflow,
+        /NPM_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/,
+        "release workflow must map NPM_TOKEN into job env before conditions",
+      );
+      assert.match(
+        workflow,
+        /PYPI_TOKEN:\s*\$\{\{\s*secrets\.PYPI_TOKEN\s*\}\}/,
+        "release workflow must map PYPI_TOKEN into job env before conditions",
+      );
+      assert.match(
+        workflow,
+        /ONEMEM_NPM_TRUSTED_PUBLISHING:\s*\$\{\{\s*vars\.ONEMEM_NPM_TRUSTED_PUBLISHING\s*\}\}/,
+        "release workflow must expose an explicit trusted-publishing opt-in",
+      );
+      assert.match(
+        workflow,
         /publish:\s*bash scripts\/publish-all\.sh ts/,
         "Changesets release must route TS publishing through scripts/publish-all.sh",
       );
@@ -190,8 +205,58 @@ describe("OneMem monorepo structure", () => {
       );
       assert.match(
         workflow,
-        /NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/,
+        /NODE_AUTH_TOKEN:\s*\$\{\{\s*env\.NPM_TOKEN\s*\}\}/,
         "release workflow must support token-based npm publishing",
+      );
+    });
+
+    test("release workflow gates registry publishing on credentials", () => {
+      const workflow = readFileSync(join(ROOT, ".github/workflows/release.yml"), "utf8");
+      const changesetsActionCount = [...workflow.matchAll(/uses:\s*changesets\/action@v1/g)].length;
+      assert.equal(
+        changesetsActionCount,
+        2,
+        "release workflow must keep separate version-only and publish-capable Changesets paths",
+      );
+      const versionStart = workflow.indexOf("- name: Create Release PR without npm publish");
+      const publishStart = workflow.indexOf("- name: Create Release PR or publish to npm");
+      const pypiNoticeStart = workflow.indexOf("- name: Report PyPI publish disabled");
+      assert.ok(versionStart > -1, "missing version-only Changesets step");
+      assert.ok(publishStart > versionStart, "missing publish-capable Changesets step");
+      assert.ok(pypiNoticeStart > publishStart, "missing PyPI notice step");
+
+      const versionOnlyStep = workflow.slice(versionStart, publishStart);
+      const publishStep = workflow.slice(publishStart, pypiNoticeStart);
+      assert.match(
+        versionOnlyStep,
+        /if:\s*\$\{\{\s*env\.NPM_TOKEN == '' && env\.ONEMEM_NPM_TRUSTED_PUBLISHING != '1' && env\.ONEMEM_NPM_TRUSTED_PUBLISHING != 'true'\s*\}\}/,
+        "version-only Changesets path must run only when npm publish is disabled",
+      );
+      assert.doesNotMatch(
+        versionOnlyStep,
+        /publish:\s/,
+        "version-only Changesets path must not include a publish input",
+      );
+      assert.match(
+        publishStep,
+        /if:\s*\$\{\{\s*env\.NPM_TOKEN != '' \|\| env\.ONEMEM_NPM_TRUSTED_PUBLISHING == '1' \|\| env\.ONEMEM_NPM_TRUSTED_PUBLISHING == 'true'\s*\}\}/,
+        "publish Changesets path must require token auth or explicit trusted-publishing opt-in",
+      );
+      assert.match(publishStep, /publish:\s*bash scripts\/publish-all\.sh ts/);
+      assert.match(
+        publishStep,
+        /NODE_AUTH_TOKEN:\s*\$\{\{\s*env\.NPM_TOKEN\s*\}\}/,
+        "release workflow must support token-based npm publishing",
+      );
+      assert.match(
+        workflow,
+        /if:\s*\$\{\{\s*steps\.changesets\.outputs\.published == 'true' && env\.PYPI_TOKEN != ''\s*\}\}/,
+        "Python publish must require successful TS publish and a PyPI token",
+      );
+      assert.match(
+        workflow,
+        /UV_PUBLISH_TOKEN:\s*\$\{\{\s*env\.PYPI_TOKEN\s*\}\}/,
+        "Python publish must pass the mapped PyPI token to uv",
       );
     });
 
@@ -787,6 +852,27 @@ describe("OneMem monorepo structure", () => {
         );
       }
     });
+
+    test("changeset release docs explain registry credential gates", () => {
+      const content = readFileSync(join(ROOT, ".changeset/README.md"), "utf8");
+      assert.match(content, /NPM_TOKEN/, "release docs must name the npm token gate");
+      assert.match(
+        content,
+        /ONEMEM_NPM_TRUSTED_PUBLISHING/,
+        "release docs must name the trusted-publishing opt-in",
+      );
+      assert.match(content, /PYPI_TOKEN/, "release docs must name the PyPI token gate");
+      assert.match(
+        content,
+        /does not mean npm\s+or PyPI packages were published/i,
+        "release docs must not let green Release runs imply registry publication",
+      );
+      assert.match(
+        content,
+        /npm view @onemem\/codex-plugin version/,
+        "release docs must require registry lookup before publication claims",
+      );
+    });
   });
 
   describe("Context Engineering artifacts", () => {
@@ -990,6 +1076,11 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/stories/2026-06-17-demo-matrix-ci-gate.md",
       ".thoughts/plans/2026-06-17-demo-matrix-ci-gate.md",
       ".thoughts/verification/2026-06-17-demo-matrix-ci-gate.md",
+      ".thoughts/research/2026-06-17-release-auth-gate.md",
+      ".thoughts/specs/2026-06-17-release-auth-gate.md",
+      ".thoughts/stories/2026-06-17-release-auth-gate.md",
+      ".thoughts/plans/2026-06-17-release-auth-gate.md",
+      ".thoughts/verification/2026-06-17-release-auth-gate.md",
     ]) {
       test(`Context Engineering artifact exists: ${f}`, () => {
         assert.ok(exists(f), `${f} missing`);

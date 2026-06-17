@@ -204,3 +204,9 @@
   package tests, typechecks, lints, and builds across all four executable demos.
   Live `demo:trace` writes remain manual/on-demand because they mint real Sui
   testnet objects.
+- Implemented Release Auth Gate. Release now keeps Changesets release PR
+  automation available when registry credentials are absent, but only attempts
+  npm publication when `NPM_TOKEN` exists or
+  `ONEMEM_NPM_TRUSTED_PUBLISHING` is explicitly enabled after npm-side trusted
+  publisher setup. Python publish is gated on both successful npm publish and
+  `PYPI_TOKEN`; docs and structure tests guard the no-credential boundary.
