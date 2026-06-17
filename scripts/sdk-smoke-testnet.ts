@@ -7,9 +7,9 @@
  *   2. OneMem.create({ network: "testnet", signer })
  *   3. namespaces.create({ name, kind, sealPackageId })
  *   4. namespaces.shareReadWrite — mint myself a RW cap so I can open sessions
- *   5. traces.openSession — start a new session
- *   6. traces.emitCall — 3 calls, chained via parent_call_id
- *   7. traces.closeSession — lock the Merkle root
+ *   5. traces.startSession — start a new session
+ *   6. traces.appendCall — 3 calls, chained via parent_call_id
+ *   7. traces.endSession — lock the Merkle root
  *   8. traces.verifySession — off-chain Merkle walk; assert ok === true
  *
  * Prints the sessionId at the end so it can be used to seed the
@@ -61,6 +61,12 @@ function hexEnc(bytes: Uint8Array): string {
     .join("")}`;
 }
 
+function sessionStatusLabel(status: SessionStatus): string {
+  return (
+    Object.entries(SessionStatus).find(([, value]) => value === status)?.[0] ?? String(status)
+  );
+}
+
 async function main() {
   console.log("==> Loading deployer keypair from sui keystore...");
   const signer = loadDeployerKeypair();
@@ -92,8 +98,8 @@ async function main() {
   });
   console.log(`    rwCapId: ${rw.capId}`);
 
-  console.log("\n==> 3. traces.openSession");
-  const session = await onemem.traces.openSession({
+  console.log("\n==> 3. traces.startSession");
+  const session = await onemem.traces.startSession({
     namespaceId: created.namespaceId,
     rwCapId: rw.capId,
     agentId: "sdk-smoke-test",
@@ -102,19 +108,21 @@ async function main() {
   });
   console.log(`    sessionId: ${session.sessionId}`);
 
-  console.log("\n==> 4. traces.emitCall (3 chained calls)");
+  console.log("\n==> 4. traces.appendCall (3 chained calls)");
   const callIds: string[] = [];
   for (let i = 0; i < 3; i++) {
     const parent = callIds[callIds.length - 1] ?? null;
-    const emit = await onemem.traces.emitCall({
+    const emit = await onemem.traces.appendCall({
       sessionId: session.sessionId,
       namespaceId: created.namespaceId,
       rwCapId: rw.capId,
       parentCallId: parent,
       toolName: `tool-${i}`,
       toolNamespace: "sdk-smoke",
-      walrusInputBlob: `walrus:placeholder-${i}`,
-      inputHash: new Uint8Array([i, i + 1, i + 2]),
+      input: {
+        walrusBlob: `walrus:placeholder-${i}`,
+        hash: new Uint8Array([i, i + 1, i + 2]),
+      },
       label: `step ${i}`,
     });
     console.log(`    call[${i}]: ${emit.callId} (parent=${parent ?? "<root>"})`);
@@ -127,15 +135,17 @@ async function main() {
       sessionId: session.sessionId,
       rwCapId: rw.capId,
       callId,
-      walrusOutputBlob: `walrus:output-${i}`,
-      outputHash: new Uint8Array([0xa0 + i, 0xb0 + i, 0xc0 + i]),
+      output: {
+        walrusBlob: `walrus:output-${i}`,
+        hash: new Uint8Array([0xa0 + i, 0xb0 + i, 0xc0 + i]),
+      },
       status: CallStatus.Success,
     });
   }
   console.log("    all calls closed");
 
-  console.log("\n==> 6. traces.closeSession (COMPLETED)");
-  await onemem.traces.closeSession({
+  console.log("\n==> 6. traces.endSession (COMPLETED)");
+  await onemem.traces.endSession({
     sessionId: session.sessionId,
     rwCapId: rw.capId,
     status: SessionStatus.Completed,
@@ -145,9 +155,7 @@ async function main() {
   const verify = await onemem.traces.verifySession(session.sessionId);
   console.log(`    ok:           ${verify.ok}`);
   console.log(`    callCount:    ${verify.callCount}`);
-  console.log(
-    `    sessionStatus:${verify.sessionStatus} (${SessionStatus[verify.sessionStatus] ?? verify.sessionStatus})`,
-  );
+  console.log(`    sessionStatus:${verify.sessionStatus} (${sessionStatusLabel(verify.sessionStatus)})`);
   console.log(`    expectedRoot: ${hexEnc(verify.expectedMerkleRoot)}`);
   console.log(`    computedRoot: ${hexEnc(verify.computedMerkleRoot)}`);
   console.log(`    brokenAt:     ${verify.brokenAt}`);

@@ -30,6 +30,8 @@ Sources:
 - `apps/docs/` — docs content.
 - `packages/plugin-*` — runtime plugins.
 - `packages/provider-*` — framework/voice providers.
+- `demos/agent-sends-money/` — executable safe testnet demo that writes and
+  verifies a mocked payment `TraceSession`.
 
 ## Current Truth Sources
 

@@ -67,8 +67,8 @@ Combined: every v0.1 runtime + every v0.1 framework + every pillar is exercised 
 | Demo | Status |
 |---|---|
 | Switch laptops | ⏳ pending |
-| Agent sends money | ⏳ pending |
+| Agent sends money | ✅ executable safe testnet trace harness in `demos/agent-sends-money`; payment step is mocked |
 | Verifiable research agent | ⏳ pending |
 | Multi-agent coordination | ⏳ pending |
-| E2E test matrix CI | ⏳ pending |
+| E2E test matrix CI | ⏳ pending; current CI covers structure/lint/typecheck/unit/build/Move/Python, not the full demo matrix |
 | Final Demo Day video | ⏳ pending |

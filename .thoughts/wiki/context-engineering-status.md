@@ -258,6 +258,19 @@ CLI and Python read-only mirror instead of the larger planned surface, the CLI
 README status table reflects built TS/Python packages, and structure tests guard
 known deferred commands from being advertised as current command headings.
 
+Executable Demo Trace is the twenty-fifth demo/verification slice.
+`demos/agent-sends-money` now exposes a workspace command that records a safe,
+mocked payment flow as a real Sui testnet `TraceSession`, writes a JSON run
+artifact, and verifies the Merkle chain. The generic SDK smoke script was
+updated to the current trace API, and the SDK now lazy-loads MemWal's manual
+entrypoint so trace-only imports do not require MemWal at startup. Live proof:
+the demo created and verified
+`0xc173d0abc33f51bef8f489c9e928e2d956a290419edc7e3924b79a39bec56d59`
+with four calls (`resolve_suins`, `fetch_pyth_oracle`, `check_gas_estimate`,
+`execute_payment`), and the TS CLI independently verified the same session from
+chain data. This slice does not prove a real transfer, Walrus plaintext
+availability, Seal decryptability, or trusted Codex/Claude hook capture.
+
 CLI Historical Docs Boundary is the twenty-fifth docs/status slice. The older
 CLI implementation/output sketches are now explicitly historical, the CLI
 README points current truth at `command-surface.md` and package code, and

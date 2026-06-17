@@ -1,0 +1,25 @@
+{
+  "name": "@onemem/demo-agent-sends-money",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Executable OneMem demo: mocked agent payment flow recorded as a real verifiable testnet trace",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "clean": "rm -rf out .turbo",
+    "demo:trace": "tsx src/mock-payment-trace.ts",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@onemem/sdk-ts": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.21",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

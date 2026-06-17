@@ -13,7 +13,7 @@
 // those are intentionally not exposed at v0.1 (tracked as OneMem-side
 // bookkeeping / v0.2 — see PILLAR2_AUDIT_AND_CORRECTION.md).
 
-import { MemWalManual } from "@mysten-incubation/memwal/manual";
+import type { MemWalManual } from "@mysten-incubation/memwal/manual";
 import { sha256 } from "@noble/hashes/sha2.js";
 
 import type { OneMem } from "./client.js";
@@ -143,8 +143,9 @@ export class MemoryAPI {
     private readonly suiPrivateKey: string,
   ) {}
 
-  private getMemWal(): MemWalManual {
+  private async getMemWal(): Promise<MemWalManual> {
     if (!this.memwal) {
+      const { MemWalManual } = await import("@mysten-incubation/memwal/manual");
       this.memwal = MemWalManual.create({
         key: this.config.delegateKey,
         suiPrivateKey: this.suiPrivateKey,
@@ -169,7 +170,8 @@ export class MemoryAPI {
   async add(text: string, opts: AddMemoryArgs = {}): Promise<AddMemoryResult> {
     let remembered: { id: string; blob_id: string };
     try {
-      remembered = await this.getMemWal().rememberManual(text, opts.namespace);
+      const memwal = await this.getMemWal();
+      remembered = await memwal.rememberManual(text, opts.namespace);
     } catch (error) {
       throw new MemoryWriteError({ cause: error });
     }
@@ -216,7 +218,8 @@ export class MemoryAPI {
   async search(query: string, opts: SearchMemoryArgs = {}): Promise<SearchMemoryResult> {
     let recalled: { results: ({ blob_id: string; distance: number } & { text?: string })[] };
     try {
-      recalled = await this.getMemWal().recallManual(query, opts.topK ?? 10, opts.namespace);
+      const memwal = await this.getMemWal();
+      recalled = await memwal.recallManual(query, opts.topK ?? 10, opts.namespace);
     } catch (error) {
       throw new MemoryReadError({ cause: error });
     }

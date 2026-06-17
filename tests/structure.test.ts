@@ -47,6 +47,7 @@ const PY_PACKAGES = [
 ] as const;
 
 const APPS = ["landing", "docs", "hosted-dashboard"] as const;
+const DEMOS = ["agent-sends-money"] as const;
 
 const HOSTED_DASHBOARD_ROUTES = [
   "login",
@@ -880,6 +881,11 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/research/2026-06-17-public-plugin-release-state.md",
       ".thoughts/plans/2026-06-17-public-plugin-release-state.md",
       ".thoughts/verification/2026-06-17-public-plugin-release-state.md",
+      ".thoughts/research/2026-06-17-demo-executable-trace.md",
+      ".thoughts/specs/2026-06-17-demo-executable-trace.md",
+      ".thoughts/stories/2026-06-17-demo-executable-trace.md",
+      ".thoughts/plans/2026-06-17-demo-executable-trace.md",
+      ".thoughts/verification/2026-06-17-demo-executable-trace.md",
     ]) {
       test(`Context Engineering artifact exists: ${f}`, () => {
         assert.ok(exists(f), `${f} missing`);
@@ -888,6 +894,22 @@ describe("OneMem monorepo structure", () => {
   });
 
   describe("workspace cross-refs", () => {
+    test("executable demo packages keep their load-bearing files", () => {
+      for (const demo of DEMOS) {
+        assert.ok(exists(`demos/${demo}/package.json`), `demos/${demo}/package.json`);
+        assert.ok(exists(`demos/${demo}/tsconfig.json`), `demos/${demo}/tsconfig.json`);
+        assert.ok(exists(`demos/${demo}/README.md`), `demos/${demo}/README.md`);
+      }
+      assert.ok(
+        exists("demos/agent-sends-money/src/mock-payment-trace.ts"),
+        "agent-sends-money executable trace script missing",
+      );
+      assert.ok(
+        exists("demos/agent-sends-money/src/trace-model.test.ts"),
+        "agent-sends-money trace model tests missing",
+      );
+    });
+
     test("workspace:* deps resolve to real workspace packages", () => {
       // Build the set of @onemem/* package names declared by TS packages
       const wsPackages = new Set<string>();
@@ -900,6 +922,9 @@ describe("OneMem monorepo structure", () => {
         ...TS_PACKAGES.map((p) => `packages/${p}/package.json`),
         ...APPS.filter((a) => exists(`apps/${a}/package.json`)).map(
           (a) => `apps/${a}/package.json`,
+        ),
+        ...DEMOS.filter((d) => exists(`demos/${d}/package.json`)).map(
+          (d) => `demos/${d}/package.json`,
         ),
       ];
 
@@ -958,12 +983,12 @@ describe("OneMem monorepo structure", () => {
     });
   });
 
-  // Coding guardrail: hard cap of 400 lines per source file under packages/, apps/, contracts/.
+  // Coding guardrail: hard cap of 400 lines per source file under packages/, apps/, contracts/, demos/.
   // Excludes generated files, lockfiles, fixtures, .next caches, and anything outside the source trees.
   // The cap exists so we refactor at ~380 lines instead of letting files balloon to 600+.
   describe("source file size cap (≤ 400 lines)", () => {
     const MAX_LINES = 400;
-    const SOURCE_ROOTS = ["packages", "apps", "contracts"];
+    const SOURCE_ROOTS = ["packages", "apps", "contracts", "demos"];
     const SOURCE_EXTS = new Set([
       ".ts",
       ".tsx",
