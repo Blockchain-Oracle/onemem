@@ -373,6 +373,21 @@ invariants. This does not claim npm upload success: local `npm whoami` still
 returns `E401`, and `npm view @onemem/codex-plugin` plus
 `npm view @onemem/claude-code-plugin` still return `E404`.
 
+Verifiable Research Agent Executable Demo is the thirty-seventh demo-readiness
+slice. `demos/verifiable-research-agent` now has a private workspace package,
+deterministic model tests, and a live `demo:trace` command. The command creates
+three real Sui testnet `TraceSession`s in one namespace for a mocked Day 1
+source-discovery memory, Day 2 synthesis memory, and Day 3 answer-from-memory
+flow. Live proof verified sessions
+`0x78f425ce0dc09429e04101fa8281c73985fdf5ab7c243b1e459bd7d820a015f3`,
+`0x4e3fdb55e768fa631afb19d6ef93fa741cf68fa35d73bd66b4e527c08069b00e`,
+and `0x8190f5619b5f315bde621bb0bc1532fa62370becfd794535cf6bdc67b506b031`
+under namespace
+`0xbc2a0e293cd05eae4c428754dad518b9d9e57662bbda42483b3ba56744fc07dd`.
+This is same-namespace, multi-session research-memory continuity proof with
+mocked tools/runtime; it does not claim real web search, PDF extraction, Hermes
+execution, MemWal semantic recall, Walrus plaintext, or Seal decryptability.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:

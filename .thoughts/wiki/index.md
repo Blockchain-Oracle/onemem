@@ -347,6 +347,16 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-17-npm-provenance-release-hardening.md`
 - npm Provenance Release Hardening verification:
   `../verification/2026-06-17-npm-provenance-release-hardening.md`
+- Verifiable Research Agent Executable Demo research:
+  `../research/2026-06-17-verifiable-research-agent-executable-demo.md`
+- Verifiable Research Agent Executable Demo spec:
+  `../specs/2026-06-17-verifiable-research-agent-executable-demo.md`
+- Verifiable Research Agent Executable Demo stories:
+  `../stories/2026-06-17-verifiable-research-agent-executable-demo.md`
+- Verifiable Research Agent Executable Demo plan:
+  `../plans/2026-06-17-verifiable-research-agent-executable-demo.md`
+- Verifiable Research Agent Executable Demo verification:
+  `../verification/2026-06-17-verifiable-research-agent-executable-demo.md`
 
 ## Maintenance Notes
 

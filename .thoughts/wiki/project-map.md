@@ -34,6 +34,8 @@ Sources:
   verifies a mocked payment `TraceSession`.
 - `demos/switch-laptops/` — executable safe testnet demo that writes and
   verifies two mocked cross-runtime handoff `TraceSession`s in one namespace.
+- `demos/verifiable-research-agent/` — executable safe testnet demo that writes
+  and verifies three mocked multi-day research `TraceSession`s in one namespace.
 
 ## Current Truth Sources
 

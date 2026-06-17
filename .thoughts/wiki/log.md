@@ -181,3 +181,11 @@
   invariants. Plugin npm dry-runs and Python publish dry-run pass, but actual
   npm publication remains unclaimed because local npm auth returns `E401` and
   both plugin package registry lookups return `E404`.
+- Implemented Verifiable Research Agent Executable Demo. The formerly pending
+  `demos/verifiable-research-agent` now records a mocked three-day research
+  flow as three real Sui testnet TraceSessions in one namespace, writes a JSON
+  artifact, and verifies each session. Live proof created sessions
+  `0x78f425...15f3`, `0x4e3fdb...b00e`, and `0x8190f5...b031`; independent TS
+  CLI verification returned `ok: true` for all three. The boundary stays
+  explicit: mocked tools/runtime, no real web/PDF/Hermes/MemWal/Walrus/Seal
+  proof.
