@@ -10,7 +10,7 @@ and Claude Code, and the verified release commit has been pushed to both
 `pillar-3-plugins` and `main`. Public GitHub marketplace installs from
 `Blockchain-Oracle/onemem` now pass without a branch/ref suffix for Codex and
 Claude Code. The Claude Code release tag `onemem--v0.1.0` has been pushed and
-resolves to `origin/main` commit `640c3a3`. Npm package dry-runs are clean, and
+resolves to `origin/main` commit `2481351`. Npm package dry-runs are clean, and
 the plugin tarballs no longer carry `workspace:*` package metadata, but npm
 upload is blocked because local npm auth lacks publish permission, the
 repository has no `NPM_TOKEN` GitHub secret, and the release workflow's OIDC
@@ -19,6 +19,11 @@ scope.
 Commit `a35779b` fixed the Python CI typecheck regressions and is pushed to
 both `pillar-3-plugins` and `main`; main CI run `27710532983` passed all gates,
 including Python lint/typecheck/test.
+Commit `2481351` is now on `main` with the plugin npm metadata fix; main CI run
+`27714277410` passed all gates. Release run `27714277350` still failed at npm
+publish with `NPM_TOKEN` empty and npm `E404` permission errors for unpublished
+packages including `@onemem/codex-plugin@0.1.0` and
+`@onemem/claude-code-plugin@0.1.0`.
 Codex's stable MCP layer remains installable, and the optional hook scripts run
 from a clean Codex plugin cache without a workspace SDK symlink by flushing
 through the published `@onemem/sdk-ts@0.6.0` trace CLI. Full automatic Codex
@@ -175,12 +180,12 @@ Result: passed, 304 tests, including the guard that published plugin packages
 do not ship `workspace:` protocol dependencies.
 
 ```bash
-git tag -a onemem--v0.1.0 640c3a3 -m "onemem 0.1.0"
-git push origin refs/tags/onemem--v0.1.0
+git tag -f -a onemem--v0.1.0 2481351 -m "onemem 0.1.0"
+git push --force origin refs/tags/onemem--v0.1.0
 ```
 
 Result: tag pushed. `git ls-remote --tags origin refs/tags/onemem--v0.1.0`
-shows the annotated tag and peeled commit `640c3a3`.
+shows the annotated tag and peeled commit `2481351`.
 
 ```bash
 cd packages/plugin-codex && npm publish --access public
@@ -281,9 +286,33 @@ permission errors for unpublished packages:
 `@onemem/dashboard@0.1.0`, `@onemem/claude-code-plugin@0.1.0`, and
 `@onemem/codex-plugin@0.1.0`.
 
+```bash
+git ls-remote --tags origin refs/tags/onemem--v0.1.0 refs/tags/onemem--v0.1.0^{}
+```
+
+Result: tag `onemem--v0.1.0` is pushed and peels to commit `2481351`.
+
+```bash
+gh run watch 27714277410 --repo Blockchain-Oracle/onemem --exit-status
+```
+
+Result: main CI passed in 3m15s on commit `2481351`: monorepo structure, lint,
+typecheck, test, build, Move build/test, Python lint/typecheck/test.
+
+```bash
+gh run view 27714277350 --repo Blockchain-Oracle/onemem --log-failed
+```
+
+Result: Release still failed in the Changesets publish step. Logs show
+`NPM_TOKEN:` empty, OIDC/trusted publishing selected, npm info returning 404 for
+both plugin packages, and npm `E404 Not Found - PUT` / permission errors for
+`@onemem/codex-plugin@0.1.0` and
+`@onemem/claude-code-plugin@0.1.0`.
+
 ## Deviations From Plan
 
-- Direct npm upload was not attempted after `npm whoami` returned `E401`.
+- Direct npm upload was attempted after package metadata was fixed; npm returned
+  the same `E404` permission failure as CI.
 - Public default-branch install initially failed before branch publication, then
   passed after the verified release commit was pushed to `main`.
 - The first Release workflow run failed because npm authentication/trusted

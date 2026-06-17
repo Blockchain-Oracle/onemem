@@ -98,7 +98,7 @@ Codex and Claude Code plugin packages.
 - A temporary local Claude Code marketplace install creates a plugin cache entry
   whose `node_modules/@onemem/sdk-ts/dist/runtime.js` is present.
 - On 2026-06-17, the Claude Code release tag `onemem--v0.1.0` was created and
-  pushed. The annotated tag resolves to `origin/main` commit `640c3a3`.
+  pushed. The annotated tag resolves to `origin/main` commit `2481351`.
 - Fresh public default-branch marketplace installs still pass for both Codex and
   Claude Code after the tag push.
 - `npm pack` inspection found that the Claude Code plugin tarball still carried
@@ -109,6 +109,11 @@ Codex and Claude Code plugin packages.
   `@onemem/codex-plugin@0.1.0` and
   `@onemem/claude-code-plugin@0.1.0` still failed with npm `E404 Not Found -
   PUT ... or you do not have permission to access it`.
+- After the package metadata fix reached `main` as commit `2481351`, main CI
+  run `27714277410` passed. Release run `27714277350` still failed in
+  Changesets/npm publish with `NPM_TOKEN` empty and npm `E404` permission
+  errors for unpublished packages including the Codex and Claude Code plugin
+  packages.
 
 ## Inferences
 
