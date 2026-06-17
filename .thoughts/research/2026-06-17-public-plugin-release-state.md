@@ -28,6 +28,8 @@ Codex and Claude Code plugin packages.
 - `gh secret list --repo Blockchain-Oracle/onemem --json name,updatedAt`
 - `gh run view 27709795260 --repo Blockchain-Oracle/onemem --log-failed`
 - `gh run view 27710076086 --repo Blockchain-Oracle/onemem --log-failed`
+- `gh run watch 27710532983 --repo Blockchain-Oracle/onemem --exit-status`
+- `gh run view 27710530899 --repo Blockchain-Oracle/onemem --log-failed`
 - npm trusted publishing docs, checked 2026-06-17:
   `https://docs.npmjs.com/trusted-publishers/`
 
@@ -71,6 +73,16 @@ Codex and Claude Code plugin packages.
   `@onemem/codex-plugin@0.1.0`, `@onemem/claude-code-plugin@0.1.0`,
   `@onemem/cli@0.1.0`, `@onemem/brand@0.1.0`, and
   `@onemem/dashboard@0.1.0`.
+- Commit `a35779b` fixed Python typecheck regressions in the CLI/network
+  validator, ElevenLabs tracer, LiveKit tracer, and SDK memory tests. It is
+  pushed to both `pillar-3-plugins` and `main`.
+- Main CI run `27710532983` passed all repository gates on commit `a35779b`,
+  including the previously failing Python typecheck step.
+- Release run `27710530899` still failed in npm publish with `E404 Not Found -
+  PUT` permission errors for unpublished packages:
+  `@onemem/brand@0.1.0`, `@onemem/cli@0.1.0`,
+  `@onemem/dashboard@0.1.0`, `@onemem/claude-code-plugin@0.1.0`, and
+  `@onemem/codex-plugin@0.1.0`.
 - An initial temporary local Codex marketplace install created a plugin cache
   entry for `onemem-codex@onemem` with an empty copied
   `node_modules/@onemem` scope; the workspace symlink to `@onemem/sdk-ts` was

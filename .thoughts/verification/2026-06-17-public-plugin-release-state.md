@@ -13,6 +13,9 @@ Claude Code. Npm package dry-runs are clean, but npm upload is blocked because
 local npm auth is invalid, the repository has no `NPM_TOKEN` GitHub secret, and
 the release workflow's OIDC path reaches npm but is not authorized for first
 publishes under the `@onemem` scope.
+Commit `a35779b` fixed the Python CI typecheck regressions and is pushed to
+both `pillar-3-plugins` and `main`; main CI run `27710532983` passed all gates,
+including Python lint/typecheck/test.
 Codex's stable MCP layer remains installable, and the optional hook scripts run
 from a clean Codex plugin cache without a workspace SDK symlink by flushing
 through the published `@onemem/sdk-ts@0.6.0` trace CLI. Full automatic Codex
@@ -30,6 +33,10 @@ emits and verifies a real on-chain OneMem `TraceSession`.
 - `packages/plugin-claude-code/`
 - `packages/sdk-ts/src/runtime.ts`
 - `packages/sdk-ts/src/runtime-controls.ts`
+- `packages/cli-python/onemem_cli/_validate.py`
+- `packages/provider-elevenlabs/onemem_elevenlabs/tracer.py`
+- `packages/provider-livekit/onemem_livekit/tracer.py`
+- `packages/sdk-python/tests/test_memory.py`
 - `tests/structure.test.ts`
 
 ## Requirement Traceability
@@ -75,6 +82,10 @@ emits and verifies a real on-chain OneMem `TraceSession`.
   a fake `ONEMEM_TRACE_CLI`.
 - AC6: Live trusted Codex hook-to-chain proof is not claimed.
   Evidence: no real trusted `/hooks` Codex session was run in this slice.
+- AC7: Main branch CI is green after the publication docs and plugin package
+  commits.
+  Evidence: GitHub Actions CI run `27710532983` passed on `main` for commit
+  `a35779b`, including the previously failing Python typecheck step.
 
 ## Quality Gates
 
@@ -201,6 +212,35 @@ packages including `@onemem/codex-plugin@0.1.0` and
 `@onemem/claude-code-plugin@0.1.0`. This is consistent with missing npm-side
 package/scope publishing permission or missing trusted publisher configuration.
 
+```bash
+uv run pyright
+uv run ruff check packages/cli-python/onemem_cli/_validate.py packages/provider-elevenlabs/onemem_elevenlabs/tracer.py packages/provider-livekit/onemem_livekit/tracer.py packages/sdk-python/tests/test_memory.py
+uv run pytest packages/sdk-python/tests/test_memory.py -q
+uv run pytest packages/provider-livekit/tests/test_tracer.py -q
+uv run pytest packages/provider-elevenlabs/tests/test_tracer.py -q
+git diff --check
+```
+
+Result: all passed locally before commit `a35779b`.
+
+```bash
+gh run watch 27710532983 --repo Blockchain-Oracle/onemem --exit-status
+```
+
+Result: main CI passed in 3m16s. The run completed structure verification,
+lint, typecheck, tests, build, Move build/test, Python lint, Python typecheck,
+and Python test.
+
+```bash
+gh run view 27710530899 --repo Blockchain-Oracle/onemem --log-failed
+```
+
+Result: Release still failed in the Changesets publish step with npm `E404`
+permission errors for unpublished packages:
+`@onemem/brand@0.1.0`, `@onemem/cli@0.1.0`,
+`@onemem/dashboard@0.1.0`, `@onemem/claude-code-plugin@0.1.0`, and
+`@onemem/codex-plugin@0.1.0`.
+
 ## Deviations From Plan
 
 - Direct npm upload was not attempted after `npm whoami` returned `E401`.
@@ -220,8 +260,7 @@ package/scope publishing permission or missing trusted publisher configuration.
   configured.
 - Full Codex hook trace coverage still needs a real trusted `/hooks` session and
   on-chain OneMem `TraceSession` verification.
-- Codex hook trace coverage still needs live trusted `/hooks` proof against a
-  real chain trace. The current `npx` flush path may be slower than a future
+- The current `npx` hook flush path may be slower than a future
   worker, but it avoids the workspace-symlink install trap.
 
 ## Follow-ups
@@ -248,3 +287,7 @@ package/scope publishing permission or missing trusted publisher configuration.
 - Release run `27709795260`: failed with npm `ENEEDAUTH`.
 - Release run `27710076086`: failed with npm `E404` permission errors for
   unpublished `@onemem/*` packages after Node 24/npm latest was enabled.
+- Commit `a35779b`: pushed to `pillar-3-plugins` and `main`.
+- CI run `27710532983`: passed on `main`.
+- Release run `27710530899`: failed with npm `E404` permission errors for
+  unpublished `@onemem/*` packages.
