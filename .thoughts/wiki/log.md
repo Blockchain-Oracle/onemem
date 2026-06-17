@@ -210,3 +210,11 @@
   `ONEMEM_NPM_TRUSTED_PUBLISHING` is explicitly enabled after npm-side trusted
   publisher setup. Python publish is gated on both successful npm publish and
   `PYPI_TOKEN`; docs and structure tests guard the no-credential boundary.
+- Repaired Plugin Test SDK Boundary. Fresh CI exposed that publishable plugin
+  manifests resolve `@onemem/sdk-ts` from npm, while unit tests were importing a
+  repo-current runtime-control helper through the public package name. The
+  plugin tests now import the repo-local SDK source for that fixture helper.
+  The Claude Code hook helper also reads runtime controls locally instead of
+  importing an SDK runtime export that may not exist in the installed registry
+  version. Structure tests guard both boundaries without reintroducing
+  `workspace:` dependencies into published plugin metadata.

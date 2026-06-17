@@ -3,8 +3,8 @@ import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { setRuntimePaused } from "@onemem/sdk-ts/runtime";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { setRuntimePaused } from "../../sdk-ts/src/runtime-controls.ts";
 import {
   bufferPath,
   bufferToolCall,

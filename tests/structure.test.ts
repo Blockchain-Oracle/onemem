@@ -429,6 +429,39 @@ describe("OneMem monorepo structure", () => {
         assert.doesNotMatch(manifest, /workspace:/, `${rel} must be installable outside pnpm`);
       }
     });
+
+    test("plugin unit tests do not rely on registry SDK internals", () => {
+      for (const rel of [
+        "packages/plugin-codex/tests/plugin.test.ts",
+        "packages/plugin-claude-code/tests/plugin.test.ts",
+      ]) {
+        const source = readFileSync(join(ROOT, rel), "utf8");
+        assert.match(
+          source,
+          /from "\.\.\/\.\.\/sdk-ts\/src\/runtime-controls\.ts"/,
+          `${rel} must import repo-local runtime control helpers for test-only policy setup`,
+        );
+        assert.doesNotMatch(
+          source,
+          /from "@onemem\/sdk-ts\/runtime"/,
+          `${rel} must not assume the published sdk runtime entry has repo-current test helpers`,
+        );
+      }
+    });
+
+    test("Claude Code hook runtime-control policy is plugin-local", () => {
+      const source = readFileSync(
+        join(ROOT, "packages/plugin-claude-code/scripts/onemem-lib.mjs"),
+        "utf8",
+      );
+      assert.match(source, /function runtimeControlsPath\(\)/);
+      assert.match(source, /ONEMEM_RUNTIME_CONTROLS_PATH/);
+      assert.doesNotMatch(
+        source,
+        /@onemem\/sdk-ts\/runtime/,
+        "Claude hook policy must not depend on an installed SDK runtime export",
+      );
+    });
   });
 
   describe("Python packages", () => {
@@ -1081,6 +1114,8 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/stories/2026-06-17-release-auth-gate.md",
       ".thoughts/plans/2026-06-17-release-auth-gate.md",
       ".thoughts/verification/2026-06-17-release-auth-gate.md",
+      ".thoughts/plans/2026-06-17-plugin-test-sdk-boundary.md",
+      ".thoughts/verification/2026-06-17-plugin-test-sdk-boundary.md",
     ]) {
       test(`Context Engineering artifact exists: ${f}`, () => {
         assert.ok(exists(f), `${f} missing`);

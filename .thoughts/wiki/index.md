@@ -387,6 +387,10 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-17-release-auth-gate.md`
 - Release Auth Gate verification:
   `../verification/2026-06-17-release-auth-gate.md`
+- Plugin Test SDK Boundary plan:
+  `../plans/2026-06-17-plugin-test-sdk-boundary.md`
+- Plugin Test SDK Boundary verification:
+  `../verification/2026-06-17-plugin-test-sdk-boundary.md`
 
 ## Maintenance Notes
 

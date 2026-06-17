@@ -10,6 +10,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 const DEFAULT_STATE_DIR = join(homedir(), ".onemem", "cc-sessions");
+const DEFAULT_RUNTIME_CONTROLS_FILE = join(homedir(), ".onemem", "runtime-controls.json");
 
 export function stateDir() {
   const pluginData = process.env.CLAUDE_PLUGIN_DATA || process.env.PLUGIN_DATA;
@@ -140,11 +141,26 @@ export function drainToolCalls(claudeSessionId) {
   return calls;
 }
 
-export async function traceCaptureEnabled(runtime) {
+export function runtimeControlsPath() {
+  return process.env.ONEMEM_RUNTIME_CONTROLS_PATH || DEFAULT_RUNTIME_CONTROLS_FILE;
+}
+
+function normalizeRuntime(runtime) {
+  return String(runtime || "").trim().toLowerCase();
+}
+
+export function traceCaptureEnabled(runtime) {
+  const id = normalizeRuntime(runtime);
+  if (!id) return false;
   try {
-    const { shouldTraceRuntime } = await import("@onemem/sdk-ts/runtime");
-    return shouldTraceRuntime(runtime);
-  } catch {
+    const parsed = JSON.parse(readFileSync(runtimeControlsPath(), "utf8"));
+    const control = parsed?.runtimes?.[id];
+    const traceCapture = control?.permissions?.traceCapture;
+    return control?.paused !== true && traceCapture !== false;
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return true;
+    }
     return false;
   }
 }
