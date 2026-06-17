@@ -97,6 +97,18 @@ Codex and Claude Code plugin packages.
   Codex tool call.
 - A temporary local Claude Code marketplace install creates a plugin cache entry
   whose `node_modules/@onemem/sdk-ts/dist/runtime.js` is present.
+- On 2026-06-17, the Claude Code release tag `onemem--v0.1.0` was created and
+  pushed. The annotated tag resolves to `origin/main` commit `640c3a3`.
+- Fresh public default-branch marketplace installs still pass for both Codex and
+  Claude Code after the tag push.
+- `npm pack` inspection found that the Claude Code plugin tarball still carried
+  a runtime dependency on `@onemem/sdk-ts: "workspace:*"`. The plugin package
+  manifests were changed to use the published SDK range `^0.6.0`, and tarball
+  re-inspection confirmed no `workspace:*` remains in either plugin package.
+- Direct `npm publish --access public` attempts for
+  `@onemem/codex-plugin@0.1.0` and
+  `@onemem/claude-code-plugin@0.1.0` still failed with npm `E404 Not Found -
+  PUT ... or you do not have permission to access it`.
 
 ## Inferences
 
@@ -117,6 +129,9 @@ Codex and Claude Code plugin packages.
 - The Codex optional hook layer no longer depends on a workspace symlink in the
   plugin cache, but live production coverage still requires trusted `/hooks`
   execution and real on-chain verification.
+- Repository marketplace publication and Claude Code tag publication are in our
+  control and are complete for v0.1.0. Npm package publication is blocked by
+  npm scope/package permission rather than by package contents.
 
 ## Unknowns And Questions
 
@@ -130,6 +145,9 @@ Codex and Claude Code plugin packages.
   session.
 - Whether the `npx` CLI flush path is fast enough for all real Codex `Stop`
   hook sessions, or whether a long-running worker should replace it later.
+- Which npm account, organization permission, `NPM_TOKEN`, or npm trusted
+  publisher configuration is authorized to create first publishes under the
+  `@onemem` scope.
 
 ## Not Included
 

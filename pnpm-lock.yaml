@@ -272,7 +272,7 @@ importers:
         specifier: ^2.17.0
         version: 2.17.0(typescript@6.0.3)
       '@onemem/sdk-ts':
-        specifier: workspace:*
+        specifier: ^0.6.0
         version: link:../sdk-ts
     devDependencies:
       vitest:
@@ -282,7 +282,7 @@ importers:
   packages/plugin-codex:
     devDependencies:
       '@onemem/sdk-ts':
-        specifier: workspace:*
+        specifier: ^0.6.0
         version: link:../sdk-ts
       vitest:
         specifier: ^2.1.0

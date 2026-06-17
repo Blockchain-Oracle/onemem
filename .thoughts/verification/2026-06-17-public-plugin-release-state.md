@@ -9,10 +9,13 @@ The repo-local plugin package and marketplace shapes verify cleanly for Codex
 and Claude Code, and the verified release commit has been pushed to both
 `pillar-3-plugins` and `main`. Public GitHub marketplace installs from
 `Blockchain-Oracle/onemem` now pass without a branch/ref suffix for Codex and
-Claude Code. Npm package dry-runs are clean, but npm upload is blocked because
-local npm auth is invalid, the repository has no `NPM_TOKEN` GitHub secret, and
-the release workflow's OIDC path reaches npm but is not authorized for first
-publishes under the `@onemem` scope.
+Claude Code. The Claude Code release tag `onemem--v0.1.0` has been pushed and
+resolves to `origin/main` commit `640c3a3`. Npm package dry-runs are clean, and
+the plugin tarballs no longer carry `workspace:*` package metadata, but npm
+upload is blocked because local npm auth lacks publish permission, the
+repository has no `NPM_TOKEN` GitHub secret, and the release workflow's OIDC
+path reaches npm but is not authorized for first publishes under the `@onemem`
+scope.
 Commit `a35779b` fixed the Python CI typecheck regressions and is pushed to
 both `pillar-3-plugins` and `main`; main CI run `27710532983` passed all gates,
 including Python lint/typecheck/test.
@@ -31,6 +34,8 @@ emits and verifies a real on-chain OneMem `TraceSession`.
 - `.claude-plugin/marketplace.json`
 - `packages/plugin-codex/`
 - `packages/plugin-claude-code/`
+- `packages/plugin-codex/package.json`
+- `packages/plugin-claude-code/package.json`
 - `packages/sdk-ts/src/runtime.ts`
 - `packages/sdk-ts/src/runtime-controls.ts`
 - `packages/cli-python/onemem_cli/_validate.py`
@@ -47,10 +52,12 @@ emits and verifies a real on-chain OneMem `TraceSession`.
 - Public Claude Code marketplace shape: implemented in
   `.claude-plugin/marketplace.json` and verified through `claude plugin
   validate . --strict` plus temporary clean `HOME` installs from both a local
-  checkout and the public default branch.
+  checkout and the public default branch. Release tag `onemem--v0.1.0` is
+  pushed for the plugin version.
 - Plugin package contents: verified by `npm publish --dry-run --access public`
   for `@onemem/codex-plugin@0.1.0` and
-  `@onemem/claude-code-plugin@0.1.0`.
+  `@onemem/claude-code-plugin@0.1.0`; `npm pack` inspection confirms neither
+  tarball contains `workspace:*` package metadata.
 - Hook runtime dependency: the Codex hook scripts no longer import
   `@onemem/sdk-ts/runtime` from the plugin cache; `Stop` shells out to the
   published trace CLI.
@@ -74,9 +81,10 @@ emits and verifies a real on-chain OneMem `TraceSession`.
   after `main` was fast-forwarded to the verified release commit.
 - AC4: Npm packages are ready to publish but not published from this shell.
   Evidence: dry-runs passed; `npm whoami` returns `E401`; `gh secret list`
-  returns no repository secrets; release workflow first failed with npm
-  `ENEEDAUTH`, then failed with npm `E404` permission errors after the workflow
-  was moved to Node 24/npm latest.
+  returns no repository secrets; direct `npm publish --access public` attempts
+  for both plugin packages failed with npm `E404` permission errors; release
+  workflow first failed with npm `ENEEDAUTH`, then failed with npm `E404`
+  permission errors after the workflow was moved to Node 24/npm latest.
 - AC5: Clean Codex hook lifecycle no longer depends on workspace symlinks.
   Evidence: installed plugin-cache scripts emitted a valid trace payload through
   a fake `ONEMEM_TRACE_CLI`.
@@ -149,6 +157,38 @@ cd packages/plugin-claude-code && npm publish --dry-run --access public
 
 Result: both passed and included the expected manifest, hook, script, skill,
 README, and LICENSE files.
+
+```bash
+cd packages/plugin-codex && npm pack --json
+cd packages/plugin-claude-code && npm pack --json
+```
+
+Result: both tarballs include real semver SDK metadata instead of `workspace:*`.
+`@onemem/codex-plugin` has `@onemem/sdk-ts` only as a devDependency at
+`^0.6.0`; `@onemem/claude-code-plugin` depends on `@onemem/sdk-ts` at `^0.6.0`.
+
+```bash
+node --import tsx --test tests/structure.test.ts
+```
+
+Result: passed, 304 tests, including the guard that published plugin packages
+do not ship `workspace:` protocol dependencies.
+
+```bash
+git tag -a onemem--v0.1.0 640c3a3 -m "onemem 0.1.0"
+git push origin refs/tags/onemem--v0.1.0
+```
+
+Result: tag pushed. `git ls-remote --tags origin refs/tags/onemem--v0.1.0`
+shows the annotated tag and peeled commit `640c3a3`.
+
+```bash
+cd packages/plugin-codex && npm publish --access public
+cd packages/plugin-claude-code && npm publish --access public
+```
+
+Result: both actual publish attempts failed with npm `E404 Not Found - PUT ...
+or you do not have permission to access it`.
 
 ```bash
 CODEX_HOME="$tmp/codex-home" codex plugin marketplace add /Users/abu/dev/hackathon/sui-overflow/onemem --json
@@ -258,6 +298,8 @@ permission errors for unpublished packages:
 - The release workflow now uses Node 24/npm latest for the publish path, but npm
   still rejects unpublished packages with `E404` until registry permissions are
   configured.
+- Direct local npm publish now fails with the same npm `E404` permission class,
+  even after package tarball metadata was fixed.
 - Full Codex hook trace coverage still needs a real trusted `/hooks` session and
   on-chain OneMem `TraceSession` verification.
 - The current `npx` hook flush path may be slower than a future
