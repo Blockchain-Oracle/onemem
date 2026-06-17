@@ -194,6 +194,12 @@ describe("OneMem monorepo structure", () => {
         "release workflow must support token-based npm publishing",
       );
     });
+
+    test("CI exposes deterministic demo matrix gate", () => {
+      const workflow = readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8");
+      assert.match(workflow, /Verify deterministic demo matrix/);
+      assert.match(workflow, /pnpm test:demo-matrix/);
+    });
   });
 
   describe("TS packages", () => {
@@ -523,6 +529,14 @@ describe("OneMem monorepo structure", () => {
         script,
         /NPM_CONFIG_PROVENANCE="\$\{NPM_CONFIG_PROVENANCE:-true\}"/,
         "provenance switch must set npm provenance config",
+      );
+    });
+
+    test("root package exposes deterministic demo matrix script", () => {
+      const manifest = readJson<{ scripts?: Record<string, string> }>("package.json");
+      assert.equal(
+        manifest.scripts?.["test:demo-matrix"],
+        "turbo run test typecheck lint build --filter=./demos/*",
       );
     });
   });
@@ -971,6 +985,11 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/stories/2026-06-17-multi-agent-coordination-executable-demo.md",
       ".thoughts/plans/2026-06-17-multi-agent-coordination-executable-demo.md",
       ".thoughts/verification/2026-06-17-multi-agent-coordination-executable-demo.md",
+      ".thoughts/research/2026-06-17-demo-matrix-ci-gate.md",
+      ".thoughts/specs/2026-06-17-demo-matrix-ci-gate.md",
+      ".thoughts/stories/2026-06-17-demo-matrix-ci-gate.md",
+      ".thoughts/plans/2026-06-17-demo-matrix-ci-gate.md",
+      ".thoughts/verification/2026-06-17-demo-matrix-ci-gate.md",
     ]) {
       test(`Context Engineering artifact exists: ${f}`, () => {
         assert.ok(exists(f), `${f} missing`);

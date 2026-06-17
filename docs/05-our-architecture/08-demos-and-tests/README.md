@@ -70,5 +70,5 @@ Combined: every v0.1 runtime + every v0.1 framework + every pillar is exercised 
 | Agent sends money | ✅ executable safe testnet trace harness in `demos/agent-sends-money`; payment step is mocked |
 | Verifiable research agent | ✅ executable safe testnet trace harness in `demos/verifiable-research-agent`; research tools/runtime are mocked |
 | Multi-agent coordination | ✅ executable safe testnet trace harness in `demos/multi-agent-coordination`; runtimes are mocked |
-| E2E test matrix CI | ⏳ pending; current CI covers structure/lint/typecheck/unit/build/Move/Python, not the full demo matrix |
+| E2E test matrix CI | ✅ deterministic demo matrix in CI via `pnpm test:demo-matrix`; live testnet trace writes remain manual/on-demand |
 | Final Demo Day video | ⏳ pending |

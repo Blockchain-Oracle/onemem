@@ -198,3 +198,9 @@
   returned `ok: true` for all three. The two specialist sessions start from
   orchestrator delegate `parentCallId` values; runtime execution remains
   mocked, and no LangGraph or full cross-session dashboard tree claim is made.
+- Implemented Demo Matrix CI Gate. Root `package.json` now exposes
+  `test:demo-matrix`, CI runs `Verify deterministic demo matrix`, and structure
+  tests guard both. The gate scopes Turborepo to `./demos/*` and runs demo
+  package tests, typechecks, lints, and builds across all four executable demos.
+  Live `demo:trace` writes remain manual/on-demand because they mint real Sui
+  testnet objects.

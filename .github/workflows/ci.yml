@@ -53,6 +53,9 @@ jobs:
       - name: Verify monorepo structure
         run: pnpm test:structure
 
+      - name: Verify deterministic demo matrix
+        run: pnpm test:demo-matrix
+
       - name: Lint
         run: pnpm turbo run lint
 

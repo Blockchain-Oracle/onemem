@@ -367,6 +367,16 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-17-multi-agent-coordination-executable-demo.md`
 - Multi-Agent Coordination Executable Demo verification:
   `../verification/2026-06-17-multi-agent-coordination-executable-demo.md`
+- Demo Matrix CI Gate research:
+  `../research/2026-06-17-demo-matrix-ci-gate.md`
+- Demo Matrix CI Gate spec:
+  `../specs/2026-06-17-demo-matrix-ci-gate.md`
+- Demo Matrix CI Gate stories:
+  `../stories/2026-06-17-demo-matrix-ci-gate.md`
+- Demo Matrix CI Gate plan:
+  `../plans/2026-06-17-demo-matrix-ci-gate.md`
+- Demo Matrix CI Gate verification:
+  `../verification/2026-06-17-demo-matrix-ci-gate.md`
 
 ## Maintenance Notes
 

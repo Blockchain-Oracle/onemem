@@ -8,6 +8,7 @@
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
+    "test:demo-matrix": "turbo run test typecheck lint build --filter=./demos/*",
     "test:structure": "node --import tsx --test tests/structure.test.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

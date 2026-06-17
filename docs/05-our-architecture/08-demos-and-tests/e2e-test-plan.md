@@ -1,5 +1,12 @@
 # E2E Test Plan — OneMem
 
+> Current implementation note, 2026-06-17: CI now includes a deterministic demo
+> matrix gate via `pnpm test:demo-matrix`. That command runs demo package tests,
+> typechecks, lints, and builds across `demos/*`. It does **not** run
+> `demo:trace`, because those commands mint real Sui testnet objects and should
+> remain manual/on-demand until a separately researched scheduled or
+> workflow-dispatch live testnet job exists.
+
 End-to-end test matrix covering every v0.1 runtime + framework + SDK. Runs in CI on every push to main; full matrix runs nightly against mainnet.
 
 ---
