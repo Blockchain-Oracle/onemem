@@ -36,6 +36,9 @@ Sources:
   verifies two mocked cross-runtime handoff `TraceSession`s in one namespace.
 - `demos/verifiable-research-agent/` — executable safe testnet demo that writes
   and verifies three mocked multi-day research `TraceSession`s in one namespace.
+- `demos/multi-agent-coordination/` — executable safe testnet demo that writes
+  and verifies a mocked Claude Code -> Hermes/CrewAI coordination flow as three
+  cross-linked `TraceSession`s in one namespace.
 
 ## Current Truth Sources
 

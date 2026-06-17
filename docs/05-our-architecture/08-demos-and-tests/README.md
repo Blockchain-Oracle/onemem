@@ -38,7 +38,7 @@ The 4 demos that exercise OneMem end-to-end. They drive the demo video, validate
 | Switch laptops | Cross-device + Walrus | Claude Code, Hermes | — | 1, 2, 3, 7 |
 | Agent sends money | Trace + verify + replay | Claude Code | OpenAI Agents (wallet tool) | 1, 2, 3, 4, 7 |
 | Verifiable research agent | Long-running memory + audit | Hermes | Vercel AI SDK | 1, 2, 3, 4, 7 |
-| Multi-agent coordination | Cross-runtime trace composition | Claude Code + Hermes + LangGraph | — | 1, 2, 3, 7 |
+| Multi-agent coordination | Cross-runtime trace composition | Claude Code + Hermes + CrewAI | — | 1, 2, 3, 7 |
 
 Combined: every v0.1 runtime + every v0.1 framework + every pillar is exercised across the 4 demos.
 
@@ -69,6 +69,6 @@ Combined: every v0.1 runtime + every v0.1 framework + every pillar is exercised 
 | Switch laptops | ✅ executable safe testnet trace harness in `demos/switch-laptops`; runtime handoff is mocked |
 | Agent sends money | ✅ executable safe testnet trace harness in `demos/agent-sends-money`; payment step is mocked |
 | Verifiable research agent | ✅ executable safe testnet trace harness in `demos/verifiable-research-agent`; research tools/runtime are mocked |
-| Multi-agent coordination | ⏳ pending |
+| Multi-agent coordination | ✅ executable safe testnet trace harness in `demos/multi-agent-coordination`; runtimes are mocked |
 | E2E test matrix CI | ⏳ pending; current CI covers structure/lint/typecheck/unit/build/Move/Python, not the full demo matrix |
 | Final Demo Day video | ⏳ pending |

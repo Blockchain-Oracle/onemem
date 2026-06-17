@@ -357,6 +357,16 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-17-verifiable-research-agent-executable-demo.md`
 - Verifiable Research Agent Executable Demo verification:
   `../verification/2026-06-17-verifiable-research-agent-executable-demo.md`
+- Multi-Agent Coordination Executable Demo research:
+  `../research/2026-06-17-multi-agent-coordination-executable-demo.md`
+- Multi-Agent Coordination Executable Demo spec:
+  `../specs/2026-06-17-multi-agent-coordination-executable-demo.md`
+- Multi-Agent Coordination Executable Demo stories:
+  `../stories/2026-06-17-multi-agent-coordination-executable-demo.md`
+- Multi-Agent Coordination Executable Demo plan:
+  `../plans/2026-06-17-multi-agent-coordination-executable-demo.md`
+- Multi-Agent Coordination Executable Demo verification:
+  `../verification/2026-06-17-multi-agent-coordination-executable-demo.md`
 
 ## Maintenance Notes
 

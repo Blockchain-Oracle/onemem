@@ -1,5 +1,12 @@
 # Demo: Multi-Agent Coordination
 
+> Current implementation note, 2026-06-17: the executable v0.1 harness lives in
+> `demos/multi-agent-coordination`. It writes real Sui testnet TraceSessions
+> with cross-session `parent_call_id` links, but Claude Code, Hermes, CrewAI,
+> and LangGraph execution are mocked. The current dashboard supports linked
+> call markers and grouped verification/export; a true `/trace/[id]`
+> cross-session tree walker remains future work.
+
 **Wedge moment:** cross-runtime trace composition. Claude Code spawns a Hermes sub-agent, which uses a LangGraph workflow. ALL THREE render as ONE unified trace tree in the dashboard.
 
 **Duration:** ~90 seconds.

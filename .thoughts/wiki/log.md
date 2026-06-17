@@ -189,3 +189,12 @@
   CLI verification returned `ok: true` for all three. The boundary stays
   explicit: mocked tools/runtime, no real web/PDF/Hermes/MemWal/Walrus/Seal
   proof.
+- Implemented Multi-Agent Coordination Executable Demo. The formerly pending
+  `demos/multi-agent-coordination` now records a mocked Claude Code
+  orchestrator plus mocked Hermes and CrewAI specialists as three real Sui
+  testnet TraceSessions in one namespace. Live proof created namespace
+  `0x6947b0...e136` with sessions `0x6b46e4...b542`,
+  `0x1dadb4...6bb3`, and `0x4ce846...0de1`; independent TS CLI verification
+  returned `ok: true` for all three. The two specialist sessions start from
+  orchestrator delegate `parentCallId` values; runtime execution remains
+  mocked, and no LangGraph or full cross-session dashboard tree claim is made.
