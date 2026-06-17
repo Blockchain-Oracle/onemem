@@ -391,6 +391,16 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-17-plugin-test-sdk-boundary.md`
 - Plugin Test SDK Boundary verification:
   `../verification/2026-06-17-plugin-test-sdk-boundary.md`
+- Framework Provider Status Refresh research:
+  `../research/2026-06-17-framework-provider-status-refresh.md`
+- Framework Provider Status Refresh spec:
+  `../specs/2026-06-17-framework-provider-status-refresh.md`
+- Framework Provider Status Refresh stories:
+  `../stories/2026-06-17-framework-provider-status-refresh.md`
+- Framework Provider Status Refresh plan:
+  `../plans/2026-06-17-framework-provider-status-refresh.md`
+- Framework Provider Status Refresh verification:
+  `../verification/2026-06-17-framework-provider-status-refresh.md`
 
 ## Maintenance Notes
 

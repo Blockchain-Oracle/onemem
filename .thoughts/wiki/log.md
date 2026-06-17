@@ -218,3 +218,9 @@
   importing an SDK runtime export that may not exist in the installed registry
   version. Structure tests guard both boundaries without reintroducing
   `workspace:` dependencies into published plugin metadata.
+- Refreshed Framework Provider Status. The historical framework-provider
+  architecture README no longer marks the five built v0.1 provider packages as
+  pending. It now records current scoped trace/memory behavior, checked
+  framework-provider registry evidence, and explicit deferred boundaries for
+  Python memory helpers and Mem0-style ergonomics. Structure tests guard against
+  stale pending rows returning.
