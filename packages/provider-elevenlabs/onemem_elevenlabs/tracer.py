@@ -36,13 +36,14 @@ import shlex
 import subprocess
 import tempfile
 import threading
-from collections.abc import Callable
-from typing import Any
+from collections.abc import Awaitable, Callable
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
 _DEFAULT_TRACE_CMD = "npx -y -p @onemem/sdk-ts@latest onemem-trace"
 _FLUSH_TIMEOUT_S = 600
+_BACKGROUND_CALLBACKS: set[asyncio.Future[Any]] = set()
 
 
 def _safe(value: Any) -> Any:
@@ -250,13 +251,23 @@ def _chain(fn: Callable[..., Any] | None, *args: Any) -> None:
     try:
         result = fn(*args)
         if inspect.isawaitable(result):
+            awaitable = cast(Awaitable[Any], result)
             # ElevenLabs fires callbacks from both async and sync (WS worker
             # thread) contexts. Schedule on the running loop if there is one;
             # otherwise run to completion ourselves so the user's coroutine is
             # never silently dropped.
             try:
-                asyncio.get_running_loop().create_task(result)
+                future = asyncio.ensure_future(awaitable)
+                _BACKGROUND_CALLBACKS.add(future)
+                future.add_done_callback(_BACKGROUND_CALLBACKS.discard)
             except RuntimeError:
-                asyncio.run(result)
+                if inspect.iscoroutine(awaitable):
+                    asyncio.run(awaitable)
+                else:
+                    loop = asyncio.new_event_loop()
+                    try:
+                        loop.run_until_complete(awaitable)
+                    finally:
+                        loop.close()
     except Exception:
         logger.exception("[onemem] chained callback failed")

@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import os
+from typing import cast
 
-_NETWORKS = ("testnet", "mainnet", "devnet", "local")
+from onemem import SuiNetwork
+
+_NETWORKS: tuple[SuiNetwork, ...] = ("testnet", "mainnet", "devnet", "local")
 
 
-def resolve_network(raw: str | None) -> str:
+def resolve_network(raw: str | None) -> SuiNetwork:
     """Validate an explicit --network, else fall back to $SUI_NETWORK, else testnet.
 
     A typo like ``--network mannet`` is rejected loudly rather than silently
@@ -16,8 +19,8 @@ def resolve_network(raw: str | None) -> str:
     if raw is not None:
         if raw not in _NETWORKS:
             raise ValueError(f'unknown network "{raw}" — expected one of: {", ".join(_NETWORKS)}')
-        return raw
+        return cast(SuiNetwork, raw)
     env = os.environ.get("SUI_NETWORK")
     if env and env in _NETWORKS:
-        return env
+        return cast(SuiNetwork, env)
     return "testnet"

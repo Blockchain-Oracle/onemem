@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import json
 import subprocess
+from collections.abc import Sequence
 from types import SimpleNamespace
+from typing import Any, NoReturn
 
 import pytest
 from onemem.memory import MemoryClient, MemoryError
@@ -15,10 +17,10 @@ def _proc(stdout: str = "", returncode: int = 0, stderr: str = "") -> SimpleName
     return SimpleNamespace(stdout=stdout, returncode=returncode, stderr=stderr)
 
 
-def test_add_sends_payload_and_parses_result(monkeypatch):
-    captured: dict = {}
+def test_add_sends_payload_and_parses_result(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
 
-    def fake_run(cmd, **kwargs):
+    def fake_run(cmd: Sequence[str], **kwargs: Any) -> SimpleNamespace:
         captured["cmd"] = cmd
         captured["input"] = json.loads(kwargs["input"])
         return _proc(
@@ -40,10 +42,10 @@ def test_add_sends_payload_and_parses_result(monkeypatch):
     assert res.attestation["suiTxDigest"] == "0xtx"
 
 
-def test_search_parses_ranked_memories(monkeypatch):
-    captured: dict = {}
+def test_search_parses_ranked_memories(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
 
-    def fake_run(cmd, **kwargs):
+    def fake_run(cmd: Sequence[str], **kwargs: Any) -> SimpleNamespace:
         captured["input"] = json.loads(kwargs["input"])
         return _proc(
             json.dumps(
@@ -66,20 +68,26 @@ def test_search_parses_ranked_memories(monkeypatch):
     assert hits[0].relevance == 0.8
 
 
-def test_nonzero_exit_raises_memory_error(monkeypatch):
-    monkeypatch.setattr(subprocess, "run", lambda *a, **k: _proc(returncode=1, stderr="boom"))
+def test_nonzero_exit_raises_memory_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_run(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+        return _proc(returncode=1, stderr="boom")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
     with pytest.raises(MemoryError, match="exited 1"):
         MemoryClient(command="onemem-memory").add("x")
 
 
-def test_non_json_output_raises_memory_error(monkeypatch):
-    monkeypatch.setattr(subprocess, "run", lambda *a, **k: _proc(stdout="not json"))
+def test_non_json_output_raises_memory_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_run(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+        return _proc(stdout="not json")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
     with pytest.raises(MemoryError, match="non-JSON"):
         MemoryClient(command="onemem-memory").search("x")
 
 
-def test_spawn_failure_raises_memory_error(monkeypatch):
-    def boom(*a, **k):
+def test_spawn_failure_raises_memory_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    def boom(*_args: Any, **_kwargs: Any) -> NoReturn:
         raise FileNotFoundError("no node")
 
     monkeypatch.setattr(subprocess, "run", boom)
@@ -87,7 +95,7 @@ def test_spawn_failure_raises_memory_error(monkeypatch):
         MemoryClient(command="missing-bin").add("x")
 
 
-def test_empty_input_rejected():
+def test_empty_input_rejected() -> None:
     client = MemoryClient(command="onemem-memory")
     with pytest.raises(MemoryError):
         client.add("")

@@ -26,7 +26,8 @@ import shlex
 import subprocess
 import tempfile
 import threading
-from typing import Any
+from collections.abc import Iterable
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,14 @@ def _safe(value: Any) -> Any:
         return str(value)[:4000]
     except Exception:
         return "<unrepresentable>"
+
+
+def _list_or_empty(value: Any) -> list[Any]:
+    if isinstance(value, list):
+        return value
+    if isinstance(value, tuple):
+        return list(value)
+    return []
 
 
 class OneMemTracer:
@@ -99,14 +108,14 @@ class OneMemTracer:
 
     def _on_tools(self, ev: Any) -> None:
         try:
-            pairs = None
+            pairs: list[tuple[Any, Any]] | None = None
             with contextlib.suppress(Exception):
                 zipped = _attr(ev, "zipped")
                 if callable(zipped):
-                    pairs = list(zipped())
+                    pairs = list(cast(Iterable[tuple[Any, Any]], zipped()))
             if pairs is None:
-                calls = _attr(ev, "function_calls") or []
-                outputs = _attr(ev, "function_call_outputs") or []
+                calls = _list_or_empty(_attr(ev, "function_calls"))
+                outputs = _list_or_empty(_attr(ev, "function_call_outputs"))
                 if outputs and len(outputs) != len(calls):
                     logger.warning(
                         "[onemem] tool call/output count mismatch (%d/%d)", len(calls), len(outputs)
