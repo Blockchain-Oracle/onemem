@@ -2,7 +2,7 @@
 
 ## Verdict
 
-Pass locally; remote CI pending after push.
+Pass.
 
 ## Artifacts Checked
 
@@ -45,6 +45,10 @@ Pass locally; remote CI pending after push.
 - `mise exec -- pnpm test:demo-matrix` - pass, 17/17 Turbo tasks.
 - `mise exec -- pnpm turbo run lint typecheck build` - pass, 42/42 Turbo tasks.
 - `git diff --check` - pass.
+- GitHub Actions CI for implementation commit `8ced775` - pass, run
+  `27723295087`, 3m12s.
+- GitHub Actions Release for implementation commit `8ced775` - pass, run
+  `27723295091`.
 
 ## Deviations From Plan
 
@@ -55,12 +59,12 @@ controls locally, matching the Codex helper.
 
 ## Gaps And Risks
 
-- Remote CI must still be rechecked after push.
 - This does not publish npm packages; release upload is still controlled by npm credentials or trusted publishing configuration.
 
 ## Follow-ups
 
-- Recheck GitHub Actions CI and Release after push.
+- Configure npm credentials or npm trusted publishing before claiming registry
+  publication.
 
 ## Evidence Log
 
@@ -72,3 +76,10 @@ controls locally, matching the Codex helper.
 - Final focused proof: both plugin focused suites passed.
 - Broader local proof: structure, root test, demo matrix, and TS
   lint/typecheck/build gates passed.
+- Remote proof: GitHub Actions CI run `27723295087` passed all steps,
+  including structure, demo matrix, lint, typecheck, test, build, Move, and
+  Python gates.
+- Release proof: GitHub Actions Release run `27723295091` passed; because
+  `NPM_TOKEN` and `ONEMEM_NPM_TRUSTED_PUBLISHING` were empty, it executed
+  `Report npm publish disabled` and `Create Release PR without npm publish`,
+  while npm and PyPI publish steps were skipped.
