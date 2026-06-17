@@ -101,8 +101,12 @@ marketplace is now named `onemem`, the production selector is
 `.claude-plugin/marketplace.json` with plugin selector `onemem@onemem`. Active
 docs and dashboard install strings now use `Blockchain-Oracle/onemem` repository
 marketplace commands first, with local checkout commands only as development
-fallbacks. Npm dry-runs pass for both plugin packages, but actual registry
-publication is blocked until npm authentication is restored.
+fallbacks. GitHub marketplace installs from public `main` pass for both Codex
+and Claude Code, and the Claude Code plugin tag `onemem--v0.1.0` is pushed.
+Both plugin npm tarballs now use the published `@onemem/sdk-ts@^0.6.0` range
+instead of `workspace:*`; direct npm publish still fails with npm `E404`
+permission errors until `@onemem` scope publish permission, a valid `NPM_TOKEN`,
+or npm trusted publisher configuration is fixed.
 
 Runtime Controls is the eighth implemented prototype/runtime slice. The SDK now
 persists local runtime policy at `~/.onemem/runtime-controls.json` (or

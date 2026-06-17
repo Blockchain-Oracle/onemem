@@ -318,6 +318,18 @@ describe("OneMem monorepo structure", () => {
     });
   });
 
+  describe("plugin npm package metadata", () => {
+    test("published plugin packages do not ship workspace protocol dependencies", () => {
+      for (const rel of [
+        "packages/plugin-codex/package.json",
+        "packages/plugin-claude-code/package.json",
+      ]) {
+        const manifest = JSON.stringify(readJson(rel));
+        assert.doesNotMatch(manifest, /workspace:/, `${rel} must be installable outside pnpm`);
+      }
+    });
+  });
+
   describe("Python packages", () => {
     for (const pkg of PY_PACKAGES) {
       test(`packages/${pkg}: pyproject.toml + README`, () => {

@@ -30,7 +30,7 @@
     "lint": "biome check ."
   },
   "devDependencies": {
-    "@onemem/sdk-ts": "workspace:*",
+    "@onemem/sdk-ts": "^0.6.0",
     "vitest": "^2.1.0"
   }
 }
