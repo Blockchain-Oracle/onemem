@@ -30,6 +30,7 @@ ignore = [
 "**/cli-python/**" = ["T20"]
 "**/cli/**" = ["T20"]
 "**/tests/**" = ["T20"]
+"**/install.py" = ["T20"]  # console-script installers legitimately print
 
 [format]
 quote-style = "double"

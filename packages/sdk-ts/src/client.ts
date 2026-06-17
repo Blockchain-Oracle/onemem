@@ -23,6 +23,9 @@
 import type { Signer } from "@mysten/sui/cryptography";
 import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
 
+type SignArgs = Parameters<SuiJsonRpcClient["signAndExecuteTransaction"]>[0];
+type ExecResult = Awaited<ReturnType<SuiJsonRpcClient["signAndExecuteTransaction"]>>;
+
 import {
   ACTIVE_NETWORK,
   addressesFor,
@@ -164,6 +167,25 @@ export class OneMem {
   /** Sender address derived from the signer's public key. */
   senderAddress(): string {
     return this.signer.toSuiAddress();
+  }
+
+  /**
+   * Sign + execute a transaction with this client's signer, then wait for it to
+   * settle before returning. Waiting matters for back-to-back writes funded by a
+   * single gas coin: without it the next `tx.build()` can reference a stale
+   * owned-object version and abort with "object … unavailable for consumption".
+   */
+  async execute(args: {
+    transaction: SignArgs["transaction"];
+    options?: SignArgs["options"];
+  }): Promise<ExecResult> {
+    const result = await this.client.signAndExecuteTransaction({
+      signer: this.signer,
+      transaction: args.transaction,
+      options: args.options,
+    });
+    await this.client.waitForTransaction({ digest: result.digest });
+    return result;
   }
 
   /** Return the Walrus store or throw a clear error if it isn't configured for this network. */

@@ -1,5 +1,10 @@
 # Browser Login Flow — `onemem login`
 
+> Current implementation note, 2026-06-17: the TS CLI binds
+> `127.0.0.1` on an OS-assigned free port (`listen(0)`) and passes that port to
+> the hosted `/cli-login` page. The current CLI does not register a `logout`
+> command.
+
 Browser-based wallet login that writes `~/.onemem/credentials.json`. Mirrors the `@mysten-incubation/memwal-mcp` pattern (per `02-inspirations/memwal-incubation/README.md`).
 
 ---
@@ -10,10 +15,10 @@ Browser-based wallet login that writes `~/.onemem/credentials.json`. Mirrors the
 1. User runs:
    $ onemem login
 
-2. CLI starts ephemeral HTTP server on localhost:12340
+2. CLI starts an ephemeral HTTP server on 127.0.0.1 using an OS-assigned free port
 
 3. CLI opens browser to:
-   https://app.onemem.ai/cli-login?nonce=<random>&port=12340
+   https://app.onemem.ai/cli-login?nonce=<random>&port=<bound-port>
    
    (or https://staging.app.onemem.ai/... in staging mode)
 
@@ -25,7 +30,7 @@ Browser-based wallet login that writes `~/.onemem/credentials.json`. Mirrors the
    - Delegate key is registered to the MemWalAccount on-chain (one Sui tx)
    - All gasless via Enoki sponsored-tx for new users
 
-5. Browser POSTs back to localhost:12340/callback with:
+5. Browser POSTs back to http://127.0.0.1:<bound-port>/callback with:
    {
      "delegateKey": "<ed25519 private hex>",
      "delegatePublicKey": "<hex>",
@@ -102,7 +107,8 @@ Permissions: `chmod 600` (owner read/write only). Refuse to load if perms are wi
 - Delegate keys default to 30-day expiry (configurable per `app.onemem.ai/cli-login`)
 - CLI checks `expiresAt` on every command; warns at <7 days remaining
 - On expiry: any command fails with `OneMemAuthError`; user runs `onemem login` again
-- `onemem logout` deletes the file + ideally calls `client.namespace.revoke_capability` to burn the delegate key on chain (clean revocation)
+- There is no current logout command; credential deletion and on-chain delegate
+  revocation are deferred lifecycle work.
 
 ---
 
@@ -143,7 +149,7 @@ Detail in `06-dashboard/hosted-deploy.md` §"CLI login page".
 | Browser doesn't open | Prints URL to terminal + waits — user opens manually |
 | User closes browser without signing | Times out after 5 min; CLI exits with error |
 | User cancels wallet signature | Browser POSTs `{"cancelled": true}`; CLI exits with error |
-| `localhost:12340` already in use | CLI tries 12341, 12342, etc; uses first free port |
+| Local callback bind fails | CLI exits with the bind error before opening the browser |
 | Network error during callback | CLI exits with helpful error message |
 | Signature validation fails (replay attack attempt) | CLI exits with error; logs to stderr |
 
@@ -153,7 +159,7 @@ Detail in `06-dashboard/hosted-deploy.md` §"CLI login page".
 
 - `command-surface.md` — `onemem login` command spec
 - `cli-typescript-impl.md` — Node implementation of login server
-- `cli-python-impl.md` — Python implementation of login server
+- `cli-python-impl.md` — historical Python parity sketch; current Python CLI has no login command
 - `../06-dashboard/hosted-deploy.md` — `app.onemem.ai/cli-login` page detail
 - `../../01-sui-ecosystem/enoki-zklogin.md` — Enoki sponsored-tx mechanics
 - `../../02-inspirations/memwal-incubation/README.md` — MemWal MCP login pattern (the reference)

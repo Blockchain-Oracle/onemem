@@ -1,6 +1,12 @@
 # CLI Output Design — `onemem`
 
-Consistent visual + structural output across Node + Python implementations. References brand tokens from `../../02-inspirations/BRAND_AND_SURFACES.md`.
+> Historical note, 2026-06-17: this is a richer output design sketch. Current
+> command truth lives in `command-surface.md`, and current output behavior lives
+> in the package code/tests. Examples below may mention deferred commands.
+
+Consistent visual + structural output direction across future Node + Python
+implementations. References brand tokens from
+`../../02-inspirations/BRAND_AND_SURFACES.md`.
 
 ---
 

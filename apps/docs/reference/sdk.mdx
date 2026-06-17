@@ -1,0 +1,74 @@
+---
+title: "SDK reference"
+description: "@onemem/sdk-ts — the TypeScript SDK"
+---
+
+# SDK reference
+
+```bash
+npm install @onemem/sdk-ts
+```
+
+## Create a client
+
+```ts
+import { OneMem } from "@onemem/sdk-ts";
+
+const onemem = await OneMem.create({
+  network: "testnet",
+  signer,                    // Ed25519/Secp256k1 keypair
+  memory: { /* optional MemWal config */ },
+});
+```
+
+## Traces
+
+```ts
+onemem.traces.startSession({ namespaceId, rwCapId, agentId, environment });
+onemem.traces.appendCall({ sessionId, toolName, toolNamespace, inputContent, encrypt: true });
+onemem.traces.closeCall({ sessionId, callId, outputContent, status: "SUCCESS" });
+onemem.traces.endSession({ sessionId, status: "COMPLETED" });
+onemem.traces.verifySession(sessionId);   // VerifyResult
+onemem.traces.getSession(sessionId);
+onemem.traces.getCalls(sessionId);
+```
+
+## Memory
+
+```ts
+onemem.memory.add(text, opts);     // → { memoryId, walrusBlobId, attestation }
+onemem.memory.search(query, opts); // → { results: Memory[] }
+```
+
+## Namespaces
+
+```ts
+onemem.namespaces.create({ name, kind, sealPackageId });
+onemem.namespaces.shareReadOnly({ namespaceId, adminCapId, recipient });
+onemem.namespaces.shareReadWrite({ namespaceId, adminCapId, recipient });
+```
+
+## Standalone verification (no signer)
+
+```ts
+import { verifyTraceChain } from "@onemem/sdk-ts";
+import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+
+const client = new SuiJsonRpcClient({ network: "testnet", url });
+const result = await verifyTraceChain(client, packageId, sessionId);
+```
+
+## Runtime helpers
+
+For plugin/CLI authors (`@onemem/sdk-ts/runtime`):
+
+```ts
+import { createTraceRecorder, ensureNamespace, resolveSigner } from "@onemem/sdk-ts/runtime";
+
+const recorder = createTraceRecorder({ agentId: "my-agent" });
+recorder.record(calls); // fire-and-forget; auto-provisions + records one verifiable session
+```
+
+<Note>
+Reads (`verifyTraceChain`, `getSession`, `getCalls`) are browser-safe via `SuiJsonRpcClient`. Writes need a signer. The package pulls Walrus wasm, so in Next.js keep it in `serverExternalPackages`.
+</Note>

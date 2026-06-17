@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "onemem",
+  "description": "OneMem plugins for verifiable cross-runtime memory and on-chain agent trace capture.",
+  "owner": {
+    "name": "OneMem"
+  },
+  "metadata": {
+    "description": "Install OneMem for Claude Code from the public repository marketplace.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "onemem",
+      "version": "0.1.0",
+      "description": "Verifiable OneMem action traces for Claude Code, backed by Sui, Walrus, Seal, and MemWal.",
+      "author": {
+        "name": "OneMem"
+      },
+      "category": "productivity",
+      "source": "./packages/plugin-claude-code",
+      "homepage": "https://github.com/Blockchain-Oracle/onemem/tree/main/packages/plugin-claude-code"
+    }
+  ]
+}

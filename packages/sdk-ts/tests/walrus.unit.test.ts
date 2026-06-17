@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   extendWithWalrus,
   isRetryableWalrusError,
+  isRetryableWalrusReadError,
   WalrusReadError,
   WalrusStore,
   WalrusWriteError,
@@ -20,7 +21,11 @@ function makeStore(writeBlob: WriteFn, readBlob: ReadFn = vi.fn()) {
   // biome-ignore lint/suspicious/noExplicitAny: minimal mock of the walrus client seam
   const client = { walrus: { writeBlob, readBlob } } as any;
   // biome-ignore lint/suspicious/noExplicitAny: signer is unused once writeBlob is mocked
-  return new WalrusStore(client, {} as any, { writeRetries: 3, retryBackoffMs: 0 });
+  return new WalrusStore(client, {} as any, {
+    writeRetries: 3,
+    readRetries: 3,
+    retryBackoffMs: 0,
+  });
 }
 
 describe("isRetryableWalrusError", () => {
@@ -72,6 +77,25 @@ describe("WalrusStore.uploadBlob", () => {
   });
 });
 
+describe("isRetryableWalrusReadError", () => {
+  it("treats fresh-blob aborts/timeouts as transient (on top of the write set)", () => {
+    expect(isRetryableWalrusReadError(new Error("Request was aborted."))).toBe(true);
+    const abort = new Error("x");
+    abort.name = "AbortError";
+    expect(isRetryableWalrusReadError(abort)).toBe(true);
+    const timeout = new Error("y");
+    timeout.name = "TimeoutError";
+    expect(isRetryableWalrusReadError(timeout)).toBe(true);
+    expect(isRetryableWalrusReadError(new Error("fetch failed"))).toBe(true);
+  });
+  it("treats genuine not-found/other errors as terminal (no loose substring match)", () => {
+    expect(isRetryableWalrusReadError(new Error("blob not found"))).toBe(false);
+    // Merely mentioning "timeout" must NOT trigger the full retry window.
+    expect(isRetryableWalrusReadError(new Error("config timeout value invalid"))).toBe(false);
+    expect(isRetryableWalrusReadError("nope")).toBe(false);
+  });
+});
+
 describe("WalrusStore.readBlob", () => {
   it("wraps read failures in WalrusReadError carrying the blob ID", async () => {
     const readBlob = vi.fn().mockRejectedValue(new Error("boom"));
@@ -80,6 +104,25 @@ describe("WalrusStore.readBlob", () => {
     const err = await store.readBlob("blob-abc").catch((e) => e);
     expect(err).toBeInstanceOf(WalrusReadError);
     expect(err.blobId).toBe("blob-abc");
+  });
+
+  it("retries a fresh-blob abort and succeeds once it propagates", async () => {
+    const readBlob = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Request was aborted."))
+      .mockResolvedValueOnce(new Uint8Array([7]));
+    const store = makeStore(vi.fn(), readBlob);
+
+    await expect(store.readBlob("blob-abc")).resolves.toEqual(new Uint8Array([7]));
+    expect(readBlob).toHaveBeenCalledTimes(2);
+  });
+
+  it("fails fast (no retry) on a terminal read error", async () => {
+    const readBlob = vi.fn().mockRejectedValue(new Error("blob not found"));
+    const store = makeStore(vi.fn(), readBlob);
+
+    await expect(store.readBlob("blob-abc")).rejects.toBeInstanceOf(WalrusReadError);
+    expect(readBlob).toHaveBeenCalledTimes(1);
   });
 });
 

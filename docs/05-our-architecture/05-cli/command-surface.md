@@ -1,375 +1,230 @@
 # CLI Command Surface — `onemem`
 
-**Load-bearing file.** Every command, flag, exit code. Both TS (Node) and Python implementations expose THIS EXACT surface.
+**Load-bearing current surface.** This file describes the commands registered in
+the current v0.1 CLIs, not the larger historical/planned CLI surface.
+
+Authoritative implementation files:
+
+- TS CLI: `packages/cli-ts/src/index.ts`
+- Python CLI: `packages/cli-python/onemem_cli/main.py`
 
 ---
 
-## Top-level structure
+## Binaries
 
-```
-onemem <command> [subcommand] [args] [flags]
-```
+| Binary | Package | Scope |
+|---|---|---|
+| `onemem` | `@onemem/cli` | Canonical TS CLI. Read-only verification, hosted login pairing, provisioning, namespace capability operations, and MemWal-backed memory add/search. |
+| `onemem-py` | `onemem-cli` | Python read-only mirror for verification, trace inspection, and health checks. |
 
-Global flags (work on every command):
+The Python CLI intentionally does not expose provisioning, namespace writes, or
+MemWal memory add/search in v0.1 because the Python SDK is verification-focused.
+
+---
+
+## Global Flags
+
+The current TS CLI accepts:
 
 | Flag | Description |
 |---|---|
-| `--json` | Output JSON instead of human-readable text |
-| `--verbose, -v` | Verbose logging |
-| `--quiet, -q` | Suppress non-essential output |
-| `--config <path>` | Override credentials file (default `~/.onemem/credentials.json`) |
-| `--namespace <id>` | Override default namespace for this command |
-| `--server <url>` | Override relayer URL |
-| `--network <name>` | Sui network (default `mainnet`) |
-| `--help, -h` | Show help |
-| `--version` | Show CLI version |
+| `--json` | Output machine-readable JSON where supported. |
+| `--network <name>` | Sui network: `testnet`, `mainnet`, `devnet`, or `local`. |
+| `--help`, `-h` | Show help. |
+| `--version` | Show CLI version. |
+
+The Python CLI accepts:
+
+| Flag | Description |
+|---|---|
+| `--json` | Output machine-readable JSON where supported. |
+| `--network <name>` | Sui network: `testnet`, `mainnet`, `devnet`, or `local`. |
+| `--help` | Show help. |
 
 ---
 
-## Commands
-
-### `onemem login`
-
-Browser-based wallet login. Writes `~/.onemem/credentials.json`.
-
-```
-onemem login [--account-id <id>]
-```
-
-Detail: `login-flow.md`.
-
-Exit: 0 success, 1 cancelled by user, 2 wallet error.
-
----
-
-### `onemem logout`
-
-Clears `~/.onemem/credentials.json`.
-
-Exit: 0 always.
-
----
-
-### `onemem init`
-
-Bootstrap a new MemWalAccount + first namespace. Run after `login`.
-
-```
-onemem init [--name <namespace-name>] [--kind <USER|AGENT|ORG|SESSION>]
-```
-
-If `--name` omitted: prompts interactively.
-If `--kind` omitted: defaults to `USER`.
-
-Output (human):
-```
-✓ Created MemWalAccount on Sui: 0xabc...
-✓ Created namespace "personal" on Sui: 0xdef...
-✓ Minted Admin capability: 0xfff...
-
-Set these in your shell:
-  export ONEMEM_DELEGATE_KEY=<from credentials>
-  export ONEMEM_ACCOUNT_ID=0xabc...
-  export ONEMEM_NAMESPACE_ID=0xdef...
-```
-
-Output (`--json`):
-```json
-{"accountId": "0xabc...", "namespaceId": "0xdef...", "adminCapId": "0xfff...", "suiTxDigest": "..."}
-```
-
-Exit: 0 success.
-
----
-
-### `onemem dashboard`
-
-Launches the local OneMem dashboard at `http://localhost:4040`.
-
-```
-onemem dashboard [--port <n>] [--no-open]
-```
-
-Default port 4040. `--no-open` skips auto-opening browser. Process runs until Ctrl-C.
-
-Exit: 0 (on Ctrl-C), 1 (port in use, etc).
-
----
-
-### `onemem search`
-
-Vector + entity search.
-
-```
-onemem search <query> [--top-k <n>] [--threshold <0..1>] [--namespace <id>]
-```
-
-Output (human, table):
-```
-ID                       Class        Tier  Text                                  Verified
-─────────────────────── ──────────── ────  ──────────────────────────────────── ────────
-0x123abc...              episodic     L0    User prefers dark mode               ✓
-0x456def...              semantic     L1    Project uses pnpm + Vite             ✓
-```
-
-Output (`--json`):
-```json
-{"results": [{"id": "0x123...", "text": "...", "memoryClass": "episodic", ...}]}
-```
-
-Exit: 0 success, 0 empty results (just empty table).
-
----
-
-### `onemem add`
-
-Add a memory.
-
-```
-onemem add <text> [--class <semantic|episodic|procedural>] [--tier <L0|L1|L2>] [--metadata <json>]
-```
-
-Output: `{ memoryId, walrusBlobId, suiTxDigest }`
-
-Exit: 0 success.
-
----
-
-### `onemem get <memory-id>`
-
-Fetch a single memory by ID.
-
----
-
-### `onemem update <memory-id> <new-text>`
-
-Update memory; emits new version.
-
----
-
-### `onemem delete <memory-id>`
-
-Soft delete.
-
----
-
-### `onemem list`
-
-List memories (paginated). Subset of `search` but without query.
-
-```
-onemem list [--limit <n>] [--page <n>] [--namespace <id>] [--filter <key=value,...>]
-```
-
----
-
-### `onemem history <memory-id>`
-
-Show all versions of a memory (OneMem-unique — every version is on-chain).
-
----
-
-### `onemem export`
-
-Tamper-evident export (Walrus IDs + Sui txids + Seal policy proofs included).
-
-```
-onemem export [--out <file>] [--format <json|sarif>] [--namespace <id>] [--since <iso-date>]
-```
-
----
-
-### `onemem namespace ...`
-
-Namespace operations.
-
-```
-onemem namespace create <name> [--kind <USER|AGENT|ORG|SESSION|SHARED>]
-onemem namespace list
-onemem namespace get <namespace-id>
-onemem namespace share <namespace-id> <recipient-address> [--cap <ReadOnly|ReadWrite|Admin>]
-onemem namespace revoke <namespace-id> <capability-id>
-onemem namespace deactivate <namespace-id>
-onemem namespace reactivate <namespace-id>
-onemem namespace caps <namespace-id>      # list all capabilities
-```
-
----
-
-### `onemem trace ...`
-
-Trace session operations.
-
-```
-onemem trace list [--namespace <id>] [--agent <id>] [--limit <n>]
-onemem trace get <session-id>
-onemem trace tree <session-id>            # render ASCII tree
-onemem trace events <session-id>          # tail trace events (SSE; Ctrl-C to stop)
-onemem trace end <session-id> [--status <COMPLETED|FAILED|ABORTED>]
-```
-
----
-
-### `onemem verify <session-id>`
-
-Walk the Merkle chain end-to-end.
-
-Output (human):
-```
-Verifying session 0x123...
-  ✓ ActionCall 1/47 (Read /path/to/file)
-  ✓ ActionCall 2/47 (Bash echo $FOO)
-  ...
-  ✓ ActionCall 47/47 (memwal_write)
-  ✓ Session merkle_root: 0xabc... (matches on-chain)
-
-VERIFIED ✓
-```
-
-Output (failure):
-```
-Verifying session 0x123...
-  ✓ ActionCall 1/47
-  ...
-  ✗ ActionCall 12/47: content_hash mismatch
-    expected: 0xabc...
-    actual:   0xdef...
-    
-BROKEN at call 0xcall12 (status: chain integrity failed)
-```
-
-Output (`--json`):
-```json
-{"verified": true, "chainLength": 47, "merkleRoot": "0xabc..."}
-```
-
-Exit: 0 verified, 1 broken, 2 not found.
-
----
-
-### `onemem replay <session-id>`
-
-Reconstruct the full session from chain + Walrus + Seal.
-
-```
-onemem replay <session-id> [--out <file>] [--format <json|text>]
-```
-
-Human output: chronological list of decrypted call inputs/outputs.
-
-JSON output: full ReplayedSession object per `02-sdks/shared-api-surface.md`.
-
----
-
-### `onemem stats`
-
-Quick stats: total memories, total sessions, namespace count.
-
-```
-onemem stats [--namespace <id>]
-```
-
----
+## Current TS Commands
 
 ### `onemem health`
 
-Check relayer + chain + SDK compatibility.
+Check Sui RPC and package reachability.
 
-Output:
-```
-OneMem CLI v0.1.0
-  Relayer:        ✓ relayer.memwal.ai (200ms)
-  Sui network:    ✓ mainnet (block 12345678)
-  SDK version:    0.1.0 (min supported: 0.1.0) ✓
-  Credentials:    ✓ valid, expires in 30d
-  Active namespace: 0x123... ("personal")
-```
+Needs: no signer.
 
----
+### `onemem verify <session-id>`
 
-### `onemem install --runtime <id>`
+Independently verify a `TraceSession` Merkle chain from chain data.
 
-Install OneMem plugin for a specific runtime. Mirrors claude-mem's `install --ide <id>` pattern.
+Needs: no signer, no Walrus, no Seal.
 
-```
-onemem install --runtime <id>
-```
+### `onemem trace list`
 
-Supported `<id>` values at v0.1:
-- `claude-code` — installs `@onemem/claude-code-plugin` + writes plugin marketplace entry
-- `openclaw` — installs `@onemem/oc-onemem` + sets `plugins.slots.memory = 'onemem'`
-- `hermes` — installs `hermes-onemem` + sets `memory.provider = onemem` in Hermes config
-- `cursor` — writes `.cursor/mcp.json` with OneMem MCP entry
-- `windsurf` — writes `.windsurf/mcp.json`
-- `codex` — writes `~/.codex/config.toml` MCP entry
-- `claude-desktop` — writes Claude Desktop config
-- `cline` — writes Cline MCP config
-- `vscode` — writes VS Code MCP config
-- `antigravity` — writes `mcp_config.json`
-- `all` — installs MCP entry for every detected MCP-capable runtime + native plugins where supported
+List recent `TraceSessionOpenedEvent` sessions for the configured package.
 
-Each installer is a separate module in `src/installers/<runtime>.ts` / `onemem/installers/<runtime>.py`.
+Needs: no signer.
 
-Output:
-```
-✓ Detected Claude Code at /Users/.../.claude/
-✓ Installed plugin to ~/.claude/plugins/onemem
-✓ Wrote plugin manifest
-✓ Added MCP server entry
+### `onemem trace get <session-id>`
 
-Restart Claude Code to activate.
-```
+Show session metadata.
 
----
+Needs: no signer.
 
-### `onemem uninstall --runtime <id>`
+### `onemem trace events <session-id>`
 
-Reverses `install`.
+Show decoded `ActionCallEmittedEvent` rows for a session.
 
----
+Needs: no signer.
 
-### `onemem set-namespace <namespace-id>`
+### `onemem login`
 
-Set the active namespace (saved to credentials file).
+Pair the terminal with the hosted dashboard and save
+`~/.onemem/credentials.json`.
 
----
+Options:
 
-### `onemem set-agent <agent-id>`
-
-Set the active agent_id used for trace emission.
-
----
-
-## Exit code conventions (across all commands)
-
-| Code | Meaning |
+| Flag | Description |
 |---|---|
-| 0 | Success |
-| 1 | User-facing failure (bad input, validation error, etc) |
-| 2 | System failure (network, auth, etc) |
-| 3 | Verification failure (Merkle chain broken, etc) |
-| 130 | Ctrl-C (SIGINT) |
+| `--url <url>` | Dashboard URL. Defaults to `$ONEMEM_DASHBOARD_URL` or `https://app.onemem.ai`. |
+| `--timeout <seconds>` | Callback wait timeout. |
+| `--no-open` | Print the pairing URL instead of opening a browser. |
+
+The callback payload is validated before persistence: delegate key/public key
+match, nonce signature verifies, delegate address matches, and the submitted
+registration digest proves a successful MemWal `account::add_delegate_key` call
+for the submitted owner/account/delegate.
+
+### `onemem init`
+
+Provision or reuse a namespace + ReadWrite capability using the shared runtime
+signer resolver.
+
+Options:
+
+| Flag | Description |
+|---|---|
+| `--label <label>` | Namespace label. Defaults to `onemem`. |
+
+Needs: a Sui signer resolvable by the SDK runtime.
+
+Outputs:
+
+- sender address
+- network
+- namespace ID
+- ReadWrite cap ID
+- Admin cap ID when created/resolved
+
+### `onemem namespace share <namespace-id> <recipient>`
+
+Mint and transfer a namespace capability to a recipient address.
+
+Options:
+
+| Flag | Description |
+|---|---|
+| `--cap <kind>` | `ReadOnly` or `ReadWrite`. Defaults to `ReadOnly`. |
+| `--admin-cap <id>` | Admin capability ID. Falls back to `ONEMEM_ADMIN_CAP_ID`. |
+
+Needs: signer + Admin cap.
+
+### `onemem namespace revoke <cap-id>`
+
+Holder self-revoke. Consumes a capability object owned by the signer.
+
+Options:
+
+| Flag | Description |
+|---|---|
+| `--allow-admin` | Permit revoking an Admin cap. Without this guard, Admin cap revocation is refused. |
+
+Needs: signer that owns the capability object.
+
+### `onemem namespace capabilities <namespace-id>`
+
+List active capabilities for a namespace from chain events.
+
+Needs: no signer.
+
+### `onemem add <text>`
+
+Store a memory through MemWal and emit a verifiable OneMem `ActionCall`.
+
+Options:
+
+| Flag | Description |
+|---|---|
+| `--namespace <ns>` | MemWal namespace override. |
+
+Needs: signer + MemWal config.
+
+### `onemem search <query>`
+
+Vector-recall memories through MemWal.
+
+Options:
+
+| Flag | Description |
+|---|---|
+| `--top-k <n>` | Max result count. |
+| `--namespace <ns>` | MemWal namespace override. |
+
+Needs: signer + MemWal config.
 
 ---
 
-## Help text convention
+## Current Python Commands
 
-`onemem <command> --help` always shows:
-1. One-line description
-2. Usage
-3. Arguments table
-4. Flags table
-5. Examples (2-3)
-6. Related commands
-7. Link to docs.onemem.ai for that command
+The Python CLI exposes the independently-verifiable read surface:
+
+```text
+onemem-py health
+onemem-py verify <session-id>
+onemem-py trace list
+onemem-py trace get <session-id>
+onemem-py trace events <session-id>
+```
+
+These commands are read-only and require no signer, Walrus, or Seal.
+
+---
+
+## Deferred Commands
+
+These appeared in older design docs but are not registered in the current v0.1
+TS/Python CLI surface:
+
+- `onemem dashboard`
+- `onemem logout`
+- `onemem get`
+- `onemem update`
+- `onemem delete`
+- `onemem list`
+- `onemem history`
+- `onemem export`
+- `onemem namespace create`
+- `onemem namespace list`
+- `onemem namespace get`
+- `onemem namespace deactivate`
+- `onemem namespace reactivate`
+- `onemem trace tree`
+- `onemem trace end`
+- `onemem replay`
+- `onemem stats`
+- `onemem set-namespace`
+- `onemem set-agent`
+- `onemem install --runtime <id>`
+- `onemem uninstall --runtime <id>`
+
+Implementing any deferred command should be a separate researched slice with its
+own spec, tests, and verification. The dashboard package currently exposes the
+local dashboard binary as `onemem-dashboard`; the unified TS CLI does not
+register `onemem dashboard`.
 
 ---
 
 ## Cross-references
 
-- `README.md` — design principles
-- `output-design.md` — color + table + JSON formats
-- `cli-typescript-impl.md` — Node implementation
-- `cli-python-impl.md` — Python implementation
-- `login-flow.md` — browser-based login detail
-- `../02-sdks/shared-api-surface.md` — SDK methods each command wraps
+- `packages/cli-ts/README.md` — package-facing TS CLI surface.
+- `packages/cli-python/README.md` — package-facing Python CLI surface.
+- `apps/docs/reference/cli.mdx` — public docs CLI reference.
+- `login-flow.md` — hosted pairing flow.

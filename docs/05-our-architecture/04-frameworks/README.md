@@ -1,5 +1,9 @@
 # Pillar 4 — Framework Provider SDKs (OneMem)
 
+> Current note, 2026-06-17: this is a historical design document. Current
+> provider package READMEs and source are the implementation truth; use
+> `.thoughts/` for active planning.
+
 Mem0-style 1-line `provider: "onemem"` integration for every AI app framework. The bar: a user moving from Mem0 → OneMem should not have to rewrite their integration code.
 
 ---

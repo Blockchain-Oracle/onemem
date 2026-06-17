@@ -1,20 +1,23 @@
 # `contracts/onemem/` — Coding Agent Context
 
+Active repo routing lives in `AGENTS.md`; active Context Engineering artifacts
+live under `.thoughts/`.
+
 The Sui Move package. Load-bearing for the entire product — every other package depends on these primitives compiling, deploying, and behaving correctly on mainnet.
 
 ## Read before editing
 - `docs/05-our-architecture/01-protocol/` (every doc — this is the canonical spec for the Move surface)
-- `docs/01-sui-ecosystem/seal.md` (Seal `seal_approve` integration)
-- `docs/01-sui-ecosystem/walrus.md` (Walrus blob storage integration)
+- `docs/01-sui-ecosystem/seal-deep-dive.md` (Seal `seal_approve` integration)
+- `docs/01-sui-ecosystem/walrus-deep-dive.md` (Walrus blob storage integration)
 - `docs/02-inspirations/memwal-incubation/` (we sit on top of MemWal — its account.move + version pattern is what we lift)
-- `docs/05-our-architecture/01-protocol/upgrade-pattern.md` (version-as-dynamic-field upgrade flow — critical for safe mainnet upgrades)
+- `docs/05-our-architecture/01-protocol/upgrade-strategy.md` (version-as-dynamic-field upgrade flow — critical for safe mainnet upgrades)
 
 ## Non-negotiables
 - **Capability pattern.** Access control is `NamespaceCapability<KIND>` with phantom types `ReadOnly | ReadWrite | Admin`. NEVER use address-based ACL — caps are the right Sui idiom for transferrable + revocable access.
-- **Version-as-dynamic-field upgrade pattern.** Lifted from MemWal's `account.move`. Every long-lived object holds a `version` dynamic field; upgrade entry functions atomically swap it. Per `upgrade-pattern.md`.
+- **Version-as-dynamic-field upgrade pattern.** Lifted from MemWal's `account.move`. Every long-lived object holds a `version` dynamic field; upgrade entry functions atomically swap it. Per `upgrade-strategy.md`.
 - **`event::emit_authenticated`** for all trace events. First-mover use on Sui mainnet. Per `events-and-attestation.md`.
 - **Merkle chain on `(content_hash, prev_hash)`.** Every `ActionCall` references its predecessor by hash. Session-level `merkle_root` is the chain head. Per `events-and-attestation.md`.
-- **Seal `seal_approve`** gates Walrus blob decryption to cap holders. Server NEVER decrypts. Per `seal-policy.md`.
+- **Seal `seal_approve`** gates Walrus blob decryption to cap holders. Server NEVER decrypts. Per `access-control-and-sharing.md`.
 - **TDD per `superpowers:test-driven-development`.** Move tests via `sui move test` — write the failing test before writing the entry function.
 - **`security-reviewer` on every diff.** This is the surface where bugs are catastrophic — every change goes through the security-reviewer subagent before merge.
 

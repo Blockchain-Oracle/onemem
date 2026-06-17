@@ -1,11 +1,16 @@
 {
   "id": "oc-onemem",
   "activation": {
-    "onStartup": false
+    "onCapabilities": ["hook"]
   },
   "configSchema": {
     "type": "object",
     "additionalProperties": true,
-    "properties": {}
+    "properties": {
+      "namespaceId": { "type": "string" },
+      "rwCapId": { "type": "string" },
+      "network": { "type": "string" },
+      "privateKey": { "type": "string" }
+    }
   }
 }

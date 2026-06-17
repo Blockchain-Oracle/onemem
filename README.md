@@ -6,13 +6,19 @@ Apache-2.0. Built for Sui Overflow 2026 (Walrus track).
 
 ## Status
 
-Architecture phase complete (65 design docs). Build-prep phase complete. Bootstrap landed. Implementation begins per-pillar.
+Hackathon implementation is active across protocol, SDKs, CLI, MCP, dashboard,
+runtime integrations, landing, and docs. The old architecture-first plan still
+exists for historical context, but day-to-day work now follows the Context
+Engineering router in `AGENTS.md` and the artifacts under
+`.thoughts/`.
 
 ## Where to start
 
 | You want to... | Read this |
 |---|---|
-| Understand the product + protocol | `docs/05-our-architecture/00-overview/README.md` |
+| Work as an agent in this repo | `AGENTS.md` |
+| See current Context Engineering artifacts | `.thoughts/wiki/index.md` |
+| Understand the product + protocol | `.thoughts/wiki/project-map.md` + `docs/05-our-architecture/README.md` |
 | Run + extend a specific package | `packages/<name>/README.md` + `packages/<name>/CLAUDE.md` (where present) |
 | Understand the Move contract | `docs/05-our-architecture/01-protocol/` + `contracts/onemem/sources/` |
 | Understand the dashboard | `docs/05-our-architecture/06-dashboard/README.md` (read `purpose-local-vs-hosted.md` first) |
@@ -30,7 +36,7 @@ pnpm exec lefthook install   # git hooks
 
 ## Workspace at a glance
 
-- `packages/` — 15 libraries (TS + Python mixed; SDKs, CLI, MCP server, dashboard, brand, plugins, providers)
+- `packages/` — 16 libraries (TS + Python mixed; SDKs, CLI, MCP server, dashboard, brand, plugins, providers)
 - `apps/` — landing (`onemem.ai`), docs (Mintlify), hosted-dashboard (`app.onemem.ai`)
 - `contracts/onemem/` — Sui Move package
 - `services/` — Rust services (Nautilus relayer, stretch)

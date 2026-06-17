@@ -1,5 +1,10 @@
 # Coding Agent Setup — OneMem
 
+> Current note, 2026-06-17: this is a historical setup record from the
+> pre-Context-Engineering phase. Active Codex routing now lives in `AGENTS.md`
+> and `.thoughts/`. Keep this file for provenance, but do
+> not treat Sahil-era skill names or old app stack notes as current instructions.
+
 **Status:** Locked 2026-05-26 per approved build-prep plan.
 
 **Posture:** lean per Abu's explicit preference ("don't make it too strict"). Built on top of Abu's existing `sahil-*` skill collection (which is itself 2026-best-practice for hackathon-scope) + 4 non-negotiables + minimal CLAUDE.md files + Lefthook for the few automated checks that genuinely pay off.
@@ -13,7 +18,7 @@ These rules live in root `CLAUDE.md` + are referenced by every coding session. E
 1. **TDD** — write failing test FIRST, then code to green, then refactor. Per `superpowers:test-driven-development`. Abu's mandate; not optional.
 2. **Verify before claiming done** — run `pnpm test && pnpm lint` (or language equivalent) and confirm clean output before reporting any task complete. Per `superpowers:verification-before-completion`.
 3. **Git worktrees for any multi-commit work** — per `superpowers:using-git-worktrees`. Keeps main branch clean during multi-step work.
-4. **Playwright MCP, not WebFetch, for UI research** — per saved feedback memory. Screenshots are the source of truth for visual decisions.
+4. **Codex Chrome plugin for local UI research** — per current Abu feedback. Screenshots and browser interaction are the source of truth for visual decisions.
 
 ---
 
@@ -43,7 +48,7 @@ If you're editing `packages/<name>/` — check `packages/<name>/CLAUDE.md` for p
 1. **TDD always.** Write failing test → make it pass → refactor. No exceptions. Use `superpowers:test-driven-development` skill.
 2. **Verify before claiming done.** Run `pnpm test && pnpm lint && pnpm typecheck` (or `pytest && ruff check && pyright` for Python). Confirm clean output. Then report.
 3. **Git worktrees for multi-commit work.** Use `superpowers:using-git-worktrees`. Don't pollute main during a multi-step build.
-4. **Playwright MCP for any UI research.** Never WebFetch a page expecting visual fidelity — it strips colors, layout, fonts.
+4. **Codex Chrome plugin for any local UI research.** Never WebFetch a page expecting visual fidelity — it strips colors, layout, fonts.
 
 ## Stack at a glance
 
@@ -210,10 +215,10 @@ Vite + React 19 + Tailwind + shadcn + Radix Themes + `@mysten/dapp-kit-react`. S
 - Publish via Changesets
 ```
 
-### `packages/plugin-claude-code/CLAUDE.md`
+### `packages/plugin-claude-code/skills/onemem-claude-code/SKILL.md`
 
 ```markdown
-# OneMem Claude Code Plugin — Coding Context
+# OneMem For Claude Code
 
 Native Claude Code plugin + MCP. Coexists with claude-mem (Apache-2.0; verified) — different storage backend, same hook events.
 

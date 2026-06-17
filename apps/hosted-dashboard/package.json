@@ -6,19 +6,22 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "build": "echo \"@onemem/hosted-dashboard: build stub — real build added when this packages pillar lands\"",
+    "build": "next build",
     "start": "next start",
     "dev": "next dev -p 3001",
+    "test": "vitest run --passWithNoTests --pool=forks --poolOptions.forks.minForks=1 --poolOptions.forks.maxForks=1",
+    "browser:smoke": "node scripts/browser-smoke.mjs",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@onemem/brand": "workspace:*",
-    "@onemem/dashboard": "workspace:*",
-    "@onemem/sdk-ts": "workspace:*",
+    "@mysten-incubation/memwal": "^0.0.7",
     "@mysten/dapp-kit": "^0.16.0",
     "@mysten/enoki": "^0.6.0",
     "@mysten/sui": "^2.17.0",
+    "@onemem/brand": "workspace:*",
+    "@onemem/dashboard": "workspace:*",
+    "@onemem/sdk-ts": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
@@ -27,6 +30,8 @@
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.0"
+    "playwright-core": "^1.60.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
   }
 }

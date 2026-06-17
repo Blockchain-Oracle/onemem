@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "onemem": {
+      "command": "npx",
+      "args": ["-y", "@onemem/mcp@latest"],
+      "env_vars": [
+        "SUI_NETWORK",
+        "ONEMEM_PRIVATE_KEY",
+        "ONEMEM_CREDENTIALS_PATH",
+        "ONEMEM_ACCOUNT_ID",
+        "ONEMEM_DELEGATE_KEY",
+        "ONEMEM_EMBEDDING_API_KEY",
+        "ONEMEM_MEMWAL_NAMESPACE",
+        "MEMWAL_PACKAGE_ID",
+        "MEMWAL_RELAYER_URL"
+      ]
+    }
+  }
+}

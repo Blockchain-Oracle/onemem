@@ -46,6 +46,12 @@ export interface SealConfig {
   readonly threshold?: number;
   /** Session-key TTL in minutes. */
   readonly sessionTtlMin?: number;
+  /**
+   * Verify each key server's on-chain object matches its reported public key
+   * before use. Enabling costs one extra round-trip per server. Defaults to
+   * `false`; enable for untrusted/custom key servers.
+   */
+  readonly verifyKeyServers?: boolean;
 }
 
 const strip0x = (hex: string): string => (hex.startsWith("0x") ? hex.slice(2) : hex);
@@ -98,7 +104,7 @@ export function createSealClient(
   return new SealClient({
     suiClient: suiClient as never,
     serverConfigs: servers.map((s) => ({ ...s, weight: 1 })),
-    verifyKeyServers: false,
+    verifyKeyServers: config.verifyKeyServers ?? false,
   });
 }
 
@@ -106,6 +112,14 @@ export function createSealClient(
 export class SealStore {
   private readonly threshold: number;
   private readonly ttlMin: number;
+  /**
+   * In-flight/resolved signed-SessionKey promise, reused across decrypts until
+   * the key expires. Holding the promise (not the resolved key) collapses
+   * concurrent decrypts onto a single mint+sign — the signature is the costly
+   * step. Cleared on decrypt failure so a poisoned key (revoked cap, rotated
+   * server) re-mints on the next call instead of wedging for the whole TTL.
+   */
+  private sessionKeyPromise: Promise<SessionKey> | null = null;
 
   constructor(
     private readonly seal: SealClient,
@@ -121,6 +135,35 @@ export class SealStore {
   /** The Seal identity for a namespace — all its blobs share it. */
   private identityFor(namespaceId: string): string {
     return strip0x(namespaceId);
+  }
+
+  /**
+   * A signed SessionKey, cached until expiry. Signing a personal message is the
+   * costly step, so we reuse the key across decrypts within its TTL and only
+   * re-mint (+re-sign) once it expires. Concurrent callers share the in-flight
+   * mint via the cached promise.
+   */
+  private async getSessionKey(): Promise<SessionKey> {
+    if (this.sessionKeyPromise) {
+      const existing = await this.sessionKeyPromise.catch(() => null);
+      if (existing && !existing.isExpired()) return existing;
+    }
+    const minted = this.mintSessionKey();
+    this.sessionKeyPromise = minted;
+    return minted;
+  }
+
+  /** Mint + sign a fresh SessionKey (one personal-message signature, no gas). */
+  private async mintSessionKey(): Promise<SessionKey> {
+    const sessionKey = await SessionKey.create({
+      address: this.signer.toSuiAddress(),
+      packageId: this.packageId,
+      ttlMin: this.ttlMin,
+      suiClient: this.suiClient as never,
+    });
+    const { signature } = await this.signer.signPersonalMessage(sessionKey.getPersonalMessage());
+    sessionKey.setPersonalMessageSignature(signature);
+    return sessionKey;
   }
 
   /** Encrypt plaintext for a namespace. No signature, no gas. */
@@ -167,17 +210,13 @@ export class SealStore {
         onlyTransactionKind: true,
       });
 
-      const sessionKey = await SessionKey.create({
-        address: this.signer.toSuiAddress(),
-        packageId: this.packageId,
-        ttlMin: this.ttlMin,
-        suiClient: this.suiClient as never,
-      });
-      const { signature } = await this.signer.signPersonalMessage(sessionKey.getPersonalMessage());
-      sessionKey.setPersonalMessageSignature(signature);
+      const sessionKey = await this.getSessionKey();
 
       return await this.seal.decrypt({ data: ciphertext, sessionKey, txBytes });
     } catch (error) {
+      // Drop the cached key so a poisoned session (rotated server, rejected
+      // signature) re-mints next call rather than failing for the whole TTL.
+      this.sessionKeyPromise = null;
       throw new SealDecryptError(
         `Seal decryption failed (namespace ${args.namespaceId}, cap ${args.capId}, kind ${args.capKind}) — wrong/inactive cap or key-server error`,
         args.namespaceId,

@@ -1,5 +1,10 @@
 # MCP Server — `@onemem/mcp` (Pillar 6)
 
+> Current note, 2026-06-17: this is a historical design document. Current tool
+> truth lives in `packages/mcp-server/src/index.ts` and
+> `packages/mcp-server/README.md`; current v0.1 exposes 6 prefixed tools, not
+> the 9-tool design below.
+
 Universal stdio MCP server. Ship once; consumed by every MCP-capable runtime: Cursor, Windsurf, Cline, OpenCode, VS Code Copilot, Codex CLI, Antigravity, Claude Desktop.
 
 This is **Pillar 6** in the inventory; lives in `03-runtimes/` because every runtime that's NOT a native plugin consumes this server.
@@ -62,7 +67,7 @@ onemem-mcp/
 
 ---
 
-## Tool surface (9 tools at v0.1)
+## Tool surface (historical 9-tool design)
 
 These map 1:1 to the SDK's memory + trace + namespace API.
 
@@ -189,12 +194,10 @@ Same shape as Cursor.
 ### Codex CLI (`~/.codex/config.toml`)
 
 ```toml
-[mcp.servers.onemem]
+[mcp_servers.onemem]
 command = "npx"
 args = ["-y", "@onemem/mcp@latest"]
-
-[mcp.servers.onemem.env]
-MCP_CLIENT_NAME = "codex"
+env = { MCP_CLIENT_NAME = "codex" }
 ```
 
 ### Claude Desktop (`claude_desktop_config.json`)
@@ -257,14 +260,16 @@ npx -y @onemem/mcp@latest login
 
 ## What runtimes can / can't do via MCP-only (vs native plugin)
 
-| Capability | Native plugin (Claude Code, OpenClaw, Hermes) | MCP-only (Cursor, Codex, etc) |
+| Capability | Native plugin (Claude Code, OpenClaw, Hermes, Codex optional hooks) | MCP-only (Cursor, Windsurf, Cline, OpenCode, VS Code Copilot, Antigravity) |
 |---|---|---|
 | Auto-capture every tool call (hook into PostToolUse) | ✅ | ❌ — only captures calls routed through OneMem MCP tools |
 | Auto-recall memory on every session start | ✅ | ❌ — user / agent must explicitly call `onemem_search_memory` |
 | Cross-runtime trace composition | ✅ | Partial — only OneMem-routed calls compose |
 | Verify / replay / share via slash commands | ✅ (in-chat) | ✅ (via MCP tool call from agent) |
 
-Important: this is a known coverage gap per the Cursor research. The dashboard surfaces it honestly with a per-runtime "coverage tier" badge.
+Important: Codex is no longer MCP-only because `packages/plugin-codex` bundles
+MCP plus optional trusted hooks. The hook path still needs live `/hooks` proof
+before claiming complete automatic Codex trace parity.
 
 ---
 

@@ -10,27 +10,52 @@ trace** (each agent run → a OneMem `TraceSession` of Merkle-chained
 OpenClaw discovers the plugin via `package.json` → `openclaw.extensions`. On
 `register(api)` it:
 1. calls `ocMemwal.register(api)` — all Walrus memory (recall + capture);
-2. registers OneMem trace hooks on the real OpenClaw events:
-   - `agent_start` → open a OneMem TraceSession (in-memory, keyed by session);
-   - `tool_execution_end` / `tool_call` → buffer the tool call (instant);
+2. registers OneMem trace hooks via `api.on(...)` on the real OpenClaw
+   lifecycle events:
+   - `session_start` → open a OneMem TraceSession (in-memory, keyed by
+     `ctx.sessionKey`);
+   - `after_tool_call` → buffer the tool call (instant);
    - `agent_end` → flush buffered calls as Seal-encrypted, Walrus-stored,
      Merkle-chained `ActionCall`s + close the session.
 
 All trace work is defensive — a OneMem failure never breaks the agent.
 
-## Configure (env)
+## Install (zero-config)
 
-`ONEMEM_NAMESPACE_ID` + `ONEMEM_RW_CAP_ID` (record target), `ONEMEM_PRIVATE_KEY`
-(else sui keystore), `SUI_NETWORK`. Without them, trace is inert (memory still
-works).
+```bash
+openclaw plugins install @onemem/oc-onemem   # 1) install
+npx @onemem/oc-onemem init                    # 2) one-line setup
+openclaw gateway run                          # 3) run — first agent turn auto-provisions
+```
+
+That's it. On the first agent run the plugin **auto-provisions** a OneMem
+namespace + ReadWrite cap and a signer, persisting them under `~/.onemem/` (same
+spirit as the OneMem MCP auto-creating its account). Nothing to copy.
+
+**Why `init`?** It grants the *one* thing OpenClaw's security model won't let a
+plugin self-enable: conversation-access for lifecycle hooks (a privacy opt-in, by
+design). `init` writes `plugins.entries.oc-onemem.{enabled, hooks.allowConversationAccess}`
++ allowlist. It honors `--dev`, `--profile <name>`, and `OPENCLAW_CONFIG_PATH`.
+
+The manifest also declares `activation.onCapabilities: ["hook"]`, which is what
+makes the agent runtime load the plugin in `full` mode so `api.on(...)` hooks
+dispatch. Traces are recorded by the **gateway** runtime, not a one-shot
+embedded run.
+
+### Overrides (optional)
+
+`api.pluginConfig` then env take precedence over auto-provisioning:
+`namespaceId`/`ONEMEM_NAMESPACE_ID`, `rwCapId`/`ONEMEM_RW_CAP_ID`,
+`network`/`SUI_NETWORK`, `privateKey`/`ONEMEM_PRIVATE_KEY`. The signer resolves
+as: `privateKey` → sui keystore → generated+persisted wallet.
 
 ## Status
 
-Built + typechecks/builds against the real `openclaw` (2026.6.6) + `oc-memwal`
-(0.0.4); OpenClaw's installer accepts the manifest. The live agent-turn e2e
-needs a **self-contained install** — OpenClaw's deep security scan rejects pnpm
-workspace symlinks, so it requires the plugin published (with `@onemem/sdk-ts`
-on npm) or installed from a deps-bundled tarball. Tracked for the npm-publish
-milestone.
+Live-verified end-to-end on Sui testnet (2026-06-14): an OpenClaw gateway agent
+turn produced TraceSession
+`0x2b38e255202579f91575075e13b966e15e9b80afdc6fe7f0716f29909fd934ee`
+(`agent_id=openclaw`, closed, Merkle-chained ActionCall, Walrus blob + Seal).
+Published to npm (with `@onemem/sdk-ts`) so it installs self-contained into an
+OpenClaw profile (OpenClaw's security scan rejects pnpm workspace symlinks).
 
 Spec: `docs/05-our-architecture/03-runtimes/openclaw-plugin.md`.

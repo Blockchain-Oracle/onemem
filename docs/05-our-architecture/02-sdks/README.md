@@ -1,5 +1,9 @@
 # Pillar 2 — Core SDKs (OneMem)
 
+> Current note, 2026-06-17: this is a historical design document. Current SDK
+> source and package READMEs are the implementation truth; use
+> `.thoughts/` for active planning.
+
 Two SDKs, identical surface: `@onemem/sdk-ts` (TypeScript) + `onemem-sdk-python` (Python). Every downstream pillar (runtimes, frameworks, CLI, dashboard) consumes one of these.
 
 ---
@@ -9,7 +13,7 @@ Two SDKs, identical surface: `@onemem/sdk-ts` (TypeScript) + `onemem-sdk-python`
 | File | Purpose |
 |---|---|
 | `README.md` | This file — design principles + nav |
-| `shared-api-surface.md` | **Load-bearing.** The methods that match across both SDKs (Mem0-style ergonomic + OneMem trace+namespace additions). Single source of truth for what the SDKs expose. |
+| `shared-api-surface.md` | Historical API design. Verify against current package source before using it as implementation truth. |
 | `sdk-typescript.md` | TS-specific implementation: package layout, deps, types, wraps `@mysten-incubation/memwal` |
 | `sdk-python.md` | Python-specific: package layout, deps, wraps `mysten-incubation-memwal-python` |
 | `relayer-integration.md` | How SDKs talk to MemWal relayer + Sui chain (manual Seal encryption flow) |
@@ -69,7 +73,7 @@ Two SDKs, identical surface: `@onemem/sdk-ts` (TypeScript) + `onemem-sdk-python`
 
 ---
 
-## Implementation status
+## Implementation status (historical design-phase snapshot)
 
 Updated by coding agent as work ships.
 

@@ -1,0 +1,39 @@
+---
+title: "Trace"
+description: "Merkle-chained action traces anchored on Sui"
+---
+
+# Trace
+
+A **TraceSession** is a run of your agent. Each tool / skill / MCP call inside it is an **`ActionCall`** — a node committed to Sui and Merkle-chained to its predecessor.
+
+## The chain
+
+Each call commits a `content_hash` derived from its tool name, namespace, input hash, and `prev_hash` (the previous call's content hash). Folding those hashes yields the session's `merkle_root`, stored on-chain when the session closes.
+
+```text
+call₀ (prev=0x00…) ─▶ call₁ (prev=hash₀) ─▶ call₂ (prev=hash₁) ─▶ … ─▶ merkle_root
+```
+
+Tampering with any call's content, order, or commitment breaks the fold — the recomputed root won't match the on-chain root.
+
+## Recording
+
+Recording is automatic via a plugin/provider, or explicit via the SDK:
+
+```ts
+const s = await onemem.traces.startSession({ namespaceId, rwCapId, agentId, environment });
+const c = await onemem.traces.appendCall({ sessionId: s.sessionId, toolName, toolNamespace, inputContent, encrypt: true });
+await onemem.traces.closeCall({ sessionId: s.sessionId, callId: c.callId, outputContent, status: "SUCCESS" });
+await onemem.traces.endSession({ sessionId: s.sessionId, status: "COMPLETED" });
+```
+
+Inputs/outputs are stored as Seal-encrypted Walrus blobs; only the hashes go on-chain.
+
+## Reading & replaying
+
+The dashboard's `/trace/[id]` view renders the Gantt timeline, the call tree, and per-call detail — all read from on-chain events. **Replay** reconstructs the run from chain + Walrus, independent of the original runtime.
+
+<Card title="Verify a chain" icon="shield-check" href="/concepts/verify">
+  Walk the chain and confirm the root yourself.
+</Card>

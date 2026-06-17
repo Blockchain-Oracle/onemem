@@ -1,5 +1,9 @@
 # Pillar 11 — Demo Apps + E2E Tests (OneMem)
 
+> Current note, 2026-06-17: this is a historical design document. Treat demo
+> folders as plans unless runnable code exists; verify current status in the
+> repo and `.thoughts/`.
+
 The 4 demos that exercise OneMem end-to-end. They drive the demo video, validate the integration story, and prove the cross-runtime composition wedge.
 
 ---

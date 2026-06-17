@@ -104,17 +104,50 @@ Verify drawer:
   3. UI shows progress bar; on success → chartreuse glow + Verified ✓ badge
 ```
 
-### `/share/[capability_id]`
+### `/share`
 
 ```
-On mount:
-  1. SWR fetches /api/capabilities/[id] (Sui RPC):
-     - Returns Capability object metadata
-  2. Render cap details + grant/revoke buttons
-  3. If user owns Admin cap on the namespace:
-     - Mint new cap → calls onemem-sdk → builds PTB → signs via dApp Kit
-     - Optionally sponsored via Enoki for the hosted deploy
+Local dashboard:
+  1. Read ONEMEM_NAMESPACE_ID / ONEMEM_ADMIN_CAP_ID from process env.
+  2. Fetch namespace and active capability state through read-only SDK event
+     queries.
+  3. Render executable CLI commands for share, capability inspection, and holder
+     self-revoke.
+
+Hosted dashboard:
+  1. User connects wallet / Enoki account through dApp Kit.
+  2. Browser loads hosted provisioning state from localStorage when available.
+  3. GET /api/share/history?namespaceId=...&network=... loads read-only
+     capability history from Sui events when a namespace ID is present.
+  4. User enters namespace ID, Admin cap ID, recipient address, and capability
+     kind.
+  5. POST /api/share/sponsored/prepare:
+     - validates share inputs
+     - builds only the named OneMem capability-mint transaction kind
+     - calls Enoki with exact move target and address allowlists
+  6. Browser signs returned sponsored bytes with useSignTransaction().
+  7. POST /api/share/sponsored/execute:
+     - executes the sponsored tx through Enoki
+     - waits for transaction effects
+     - returns only created capability IDs parsed from objectChanges
+  8. Browser refreshes `/api/share/history` so the minted capability is shown
+     from event evidence instead of browser-session state only.
 ```
+
+`/share/[capability_id]` is a hosted read-only recipient object view:
+
+```
+1. Parse capability ID from the route.
+2. Fetch the Sui object with type, content, and owner metadata.
+3. Derive NamespaceCapability kind from the Move object type.
+4. Read namespace_id from the Move object fields.
+5. Attempt to fetch MemoryNamespace metadata.
+6. Render owner comparison, namespace summary, Suiscan links, and the explicit
+   no-claim-transaction boundary.
+```
+
+Owner-driven admin revoke is not implemented in the current contract/app
+boundary.
 
 ---
 

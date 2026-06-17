@@ -1,0 +1,32 @@
+@import "../styles/cdr-tokens.css";
+@import "../styles/cdr-cards.css";
+@import "../styles/onemem.css";
+@import "../styles/landing.css";
+
+/* Defeat the late-injected `body{background:#fff}` reset so the cdr-kit theme
+   paints in both light and dark. */
+html {
+  background: var(--paper);
+}
+body {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+}
+
+/* Verify "turns green" affordances (the trace page ships these; the landing
+   needs its own copy for the hero/demo cards). */
+.verified-glow {
+  box-shadow: 0 0 0 1.5px var(--verify), 0 0 50px -10px var(--verify);
+  transition: box-shadow 600ms ease;
+}
+@keyframes verify-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--signal-soft);
+  }
+  70% {
+    box-shadow: 0 0 0 12px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}

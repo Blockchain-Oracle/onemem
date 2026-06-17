@@ -185,8 +185,7 @@ export class MemoryAPI {
           rwCapId: opts.rwCapId,
           toolName: "memwal_write",
           toolNamespace: "@onemem/sdk-ts",
-          walrusInputBlob: remembered.blob_id,
-          inputHash,
+          input: { walrusBlob: remembered.blob_id, hash: inputHash },
           label: "memory",
         });
         callId = emitted.callId;
@@ -231,6 +230,59 @@ export class MemoryAPI {
         relevance: Math.max(0, 1 - hit.distance),
       }));
     return { results };
+  }
+
+  /**
+   * List memory references from chain. MemWal 0.0.5 has no list endpoint, so the
+   * inventory is derived from on-chain `memwal_write` ActionCalls — a verifiable
+   * list of memory blobs (metadata only; plaintext stays Seal-encrypted on Walrus
+   * and decrypts client-side). Optionally scope by OneMem namespace.
+   */
+  async getAll(opts: { namespaceId?: string; limit?: number } = {}): Promise<
+    Array<{
+      walrusBlobId: string | null;
+      contentHash: string;
+      namespaceId: string;
+      callId: string;
+      capturedAt: number;
+    }>
+  > {
+    const packageId = this.client.addresses.packageId;
+    const out: Array<{
+      walrusBlobId: string | null;
+      contentHash: string;
+      namespaceId: string;
+      callId: string;
+      capturedAt: number;
+    }> = [];
+    const limit = opts.limit ?? 100;
+    // biome-ignore lint/suspicious/noExplicitAny: opaque cursor type
+    let cursor: any = null;
+    // biome-ignore lint/correctness/noConstantCondition: cursor-driven loop
+    while (true) {
+      const page = await this.client.client.queryEvents({
+        query: { MoveEventType: `${packageId}::events::ActionCallEmittedEvent` },
+        cursor,
+        order: "descending",
+        limit: 50,
+      });
+      for (const e of page.data) {
+        const f = e.parsedJson as Record<string, unknown> | undefined;
+        if (!f || f.tool_name !== "memwal_write") continue;
+        if (opts.namespaceId && f.namespace_id !== opts.namespaceId) continue;
+        out.push({
+          walrusBlobId: (f.walrus_input_blob as string) || null,
+          contentHash: `0x${Buffer.from((f.content_hash as number[]) ?? []).toString("hex")}`,
+          namespaceId: String(f.namespace_id ?? ""),
+          callId: String(f.call_id ?? ""),
+          capturedAt: Number(f.captured_at ?? 0),
+        });
+        if (out.length >= limit) return out;
+      }
+      if (!page.hasNextPage || !page.nextCursor) break;
+      cursor = page.nextCursor;
+    }
+    return out;
   }
 
   /** Wipe MemWal key material from memory. Call when done with the client. */

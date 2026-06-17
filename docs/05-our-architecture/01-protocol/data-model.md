@@ -21,7 +21,7 @@ Synthesized from:
 | `ActionCall` | Shared (dynamic-field child of TraceSession) | Per-tool-call attestation; Merkle-chained `(content_hash, prev_hash)` |
 
 Plus event types (see `events-and-attestation.md`):
-- `MemoryWritten`, `ActionCallEmitted`, `TraceSessionStarted`, `TraceSessionEnded`, `NamespaceShared`, `NamespaceRevoked`, `NamespaceCreated`, `NamespaceDeactivated`
+- `MemoryWritten`, `ActionCallEmitted`, `TraceSessionStarted`, `TraceSessionEnded`, `NamespaceCapabilityMintedEvent`, `NamespaceCapabilityRevokedEvent`, `NamespaceCreatedEvent`, `NamespaceDeactivatedEvent`
 
 ---
 
@@ -89,8 +89,6 @@ public struct MemoryNamespace has key {
 public struct NamespaceCapability<phantom KIND> has key, store {
     id: UID,
     namespace_id: ID,
-    granted_at: u64,
-    granted_by: address,
     // KIND is one of: ReadOnly, ReadWrite, Admin (phantom type params)
 }
 
@@ -106,7 +104,12 @@ public struct Admin has drop {}
 **Lifecycle:**
 - Minted via `onemem::namespace::mint_capability<KIND>(ns, cap, recipient, ctx)` — requires existing `&NamespaceCapability<Admin>`
 - Transferred via standard `transfer::public_transfer` (any address, gasless via Enoki sponsored-tx for the demo)
-- Revoked via `onemem::namespace::revoke_capability(ns, cap, target_cap_id, ctx)` — burns the cap object on-chain
+- Revoked via `onemem::namespace::revoke_capability<KIND>(cap)` — burns the holder-owned cap object on-chain
+
+Capability grant/revoke timing is event metadata, not object fields:
+`NamespaceCapabilityMintedEvent` carries `namespace_id`, `cap_id`, `kind_tag`,
+and `recipient`; `NamespaceCapabilityRevokedEvent` carries `namespace_id` and
+`cap_id`.
 
 **Surprise dimension:** sharing memory = capability transfer. Revocation = on-chain tx. Mem0 has team accounts (vendor-trusted); we have Sui caps (chain-enforced).
 

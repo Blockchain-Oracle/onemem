@@ -1,14 +1,14 @@
 [project]
 name = "onemem-elevenlabs"
 version = "0.1.0"
-description = "OneMem provider for ElevenLabs Conversational AI — verifiable trace for ElevenLabs voice agents"
+description = "OneMem provider for ElevenLabs Conversational AI — record voice-agent sessions as verifiable on-chain traces"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 authors = [{ name = "OneMem contributors" }]
-dependencies = [
-    "onemem-sdk-python",
-    "elevenlabs>=1.10",
-]
+# Pure-stdlib: the tracer wraps ElevenLabs Conversation callbacks + ClientTools
+# and shells out to the `onemem-trace` Node CLI (@onemem/sdk-ts) for the on-chain
+# write — no Python Sui/Walrus/Seal deps. elevenlabs is the host runtime (provided).
+dependencies = []
 
 [project.urls]
 Homepage = "https://onemem.ai"
@@ -19,6 +19,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["onemem_elevenlabs"]
-
-[tool.uv.sources]
-onemem-sdk-python = { workspace = true }

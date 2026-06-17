@@ -1,6 +1,13 @@
 # Pillar 5 — CLI (OneMem)
 
-`onemem` — the developer command-line for OneMem. Both Node (`@onemem/cli`) and Python (`onemem-cli`) implementations, identical command surface so users can pick whichever runtime they already have.
+> Current note, 2026-06-17: this is a historical design document. Current CLI
+> command truth lives in `packages/cli-ts/src/index.ts`,
+> `packages/cli-python/onemem_cli/main.py`, and package READMEs.
+
+`onemem` — the developer command-line for OneMem. The TS CLI
+(`@onemem/cli`) is the canonical write-capable CLI. The Python CLI
+(`onemem-cli`, binary `onemem-py`) is the read-only verifier/trace mirror for
+Python-first environments.
 
 ---
 
@@ -9,21 +16,27 @@
 | File | Purpose |
 |---|---|
 | `README.md` | This file — design principles |
-| `command-surface.md` | **Load-bearing.** Every command, sub-command, flag, exit code |
-| `output-design.md` | Color, table format, error format, JSON output |
-| `cli-typescript-impl.md` | `@onemem/cli` Node implementation (using commander.js) |
-| `cli-python-impl.md` | `onemem-cli` Python implementation (using typer) |
-| `login-flow.md` | Browser-based wallet login (mirrors MemWal MCP login) |
+| `command-surface.md` | **Load-bearing.** Current commands, subcommands, and flags |
+| `output-design.md` | Historical richer-output sketch; current package output is simpler |
+| `cli-typescript-impl.md` | Historical `@onemem/cli` implementation sketch; source is authoritative |
+| `cli-python-impl.md` | Historical Python parity sketch; current CLI uses Click read-only commands |
+| `login-flow.md` | Current TS browser-pairing callback contract |
 
 ---
 
 ## Design principles
 
-1. **Same command surface in both languages.** Identical commands, sub-commands, flags, exit codes, output format. Differences only at the install command level (`npm i -g @onemem/cli` vs `pip install onemem-cli`).
-2. **Mirrors Mem0's CLI pattern** where applicable + adds OneMem-specific commands (trace, verify, replay, namespace, dashboard).
-3. **Mirrors claude-mem's `install --runtime <id>` pattern** so users can wire OneMem into any runtime with one command.
+1. **TS canonical, Python read-only mirror.** TS owns provisioning, hosted login
+   pairing, namespace writes, and MemWal memory add/search. Python mirrors the
+   independently-verifiable read surface (`verify`, `trace`, `health`).
+2. **Only advertise commands that are registered in code.** Replay, dashboard,
+   logout, and unified runtime installers stay deferred until implemented.
+3. **Runtime wiring is package-owned for v0.1.** Runtime packages expose their
+   own install paths; `onemem install --runtime <id>` is a later convenience
+   command, not current behavior.
 4. **JSON output via `--json` flag** on every read command — for scripting.
-5. **Colored, table-formatted human output by default** — uses `chalk` (Node) / `rich` (Python).
+5. **Human output stays simple and test-backed.** Richer color/table/progress
+   design is historical unless package code and tests implement it.
 6. **Read commands fast (<500ms p95)** — direct relayer + chain calls, no waiting on Sui finality.
 7. **Write commands report on-chain tx digest + Walrus blob ID** so users can verify externally.
 8. **Apache-2.0 license.**
@@ -34,12 +47,12 @@
 
 | Component | Status |
 |---|---|
-| `@onemem/cli` skeleton | ⏳ pending |
-| Command surface implemented (Node) | ⏳ pending |
-| `onemem-cli` skeleton | ⏳ pending |
-| Command surface implemented (Python) | ⏳ pending |
-| Browser login flow | ⏳ pending |
-| `onemem install --runtime <id>` per-runtime configurators | ⏳ pending |
+| `@onemem/cli` package skeleton | Built. |
+| Command surface implemented (TS) | Built for current v0.1: verify, trace list/get/events, health, hosted login pairing, init, namespace share/revoke/capabilities, add, and search. |
+| `onemem-cli` package skeleton | Built. |
+| Command surface implemented (Python) | Built as read-only mirror: verify, trace list/get/events, and health. |
+| Browser login flow | Built in TS CLI + hosted `/cli-login` callback flow; live wallet popup remains manual proof. |
+| `onemem install --runtime <id>` per-runtime configurators | Deferred; runtime packages expose their own install paths. |
 
 ---
 

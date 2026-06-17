@@ -1,8 +1,12 @@
 {
   "name": "onemem",
   "version": "0.1.0",
-  "description": "OneMem — verifiable on-chain memory + action traces for Claude Code",
+  "description": "Verifiable agent action traces for Claude Code, backed by Sui, Walrus, Seal, and MemWal",
+  "author": {
+    "name": "OneMem"
+  },
   "homepage": "https://onemem.ai",
+  "repository": "https://github.com/Blockchain-Oracle/onemem",
   "license": "Apache-2.0",
-  "hooksFile": "hooks/hooks.json"
+  "keywords": ["memory", "trace", "verifiability", "walrus", "sui", "memwal", "hooks"]
 }

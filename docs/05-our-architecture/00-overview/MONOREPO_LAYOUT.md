@@ -145,7 +145,9 @@ packages/
     └── onemem_elevenlabs/
 ```
 
-**Count:** 15 packages at v0.1 (was 14 before adding `packages/brand/` per audit).
+**Historical count:** this design snapshot listed 15 packages at v0.1. The
+current repo has 16 package directories after adding `packages/plugin-codex/`.
+Use the root `README.md` and `packages/` tree for current counts.
 
 **Why mixed (TS + Python side-by-side):**
 
@@ -191,13 +193,14 @@ apps/
     │   ├── login/page.tsx                 # /login (Enoki + dApp Kit)
     │   ├── cli-login/page.tsx             # /cli-login (CLI callback target for `onemem login` flow)
     │   ├── onboarding/page.tsx            # /onboarding (first-time MemWalAccount mint via Enoki sponsored tx)
+    │   ├── share/page.tsx                 # /share owner-sponsored capability minting
+    │   ├── share/[capability_id]/page.tsx # /share/[id] recipient capability object view
     │   ├── verify/[session_id]/page.tsx   # /verify/[id] — PUBLIC chain verifier (no login; NEW v0.1 per audit)
     │   └── dashboard/                     # /dashboard/* (authenticated; re-exports @onemem/dashboard routes)
     │       ├── memories/page.tsx
     │       ├── apps/page.tsx
     │       ├── trace/[session_id]/page.tsx
     │       ├── sessions/[session_id]/page.tsx
-    │       ├── share/[capability_id]/page.tsx
     │       └── settings/page.tsx
     ├── walrus-sites/                      # Walrus Sites mirror deploy artifacts (NEW per audit)
     │   ├── sites-config.yaml              # Walrus Sites build + epoch config

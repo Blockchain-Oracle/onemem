@@ -1,6 +1,12 @@
 # CLI Python Implementation — `onemem-cli`
 
-Python implementation of the OneMem CLI. Same command surface as Node version (per `command-surface.md`); idiomatic Python.
+> Historical note, 2026-06-17: this file is a larger planned Python parity
+> sketch, not the current package shape. Current truth lives in
+> `command-surface.md` and `packages/cli-python/onemem_cli/main.py`. The current
+> Python CLI uses Click and mirrors only the read surface: verify, trace
+> list/get/events, and health.
+
+Python implementation sketch for the larger planned OneMem CLI.
 
 ---
 

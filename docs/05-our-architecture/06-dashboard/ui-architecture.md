@@ -4,7 +4,7 @@
 
 > **Audit update 2026-05-26.** Two corrections rolled in:
 > 1. Framework is **Next.js 15** (was 14 in this doc — corrected). Rationale + tradeoff analysis in `../00-overview/TOOLING_DECISIONS.md` "TS build (dashboard)" section.
-> 2. Two new routes live ONLY on the hosted shell — `/verify/[session_id]` (public chain verifier, no login) and `/onboarding` (first-time MemWalAccount mint). The local deploy at `localhost:4040` does NOT serve these. See `purpose-local-vs-hosted.md` for the authoritative local-vs-hosted split.
+> 2. Hosted-only routes live in the hosted shell — `/verify/[session_id]` (public chain verifier, no login), `/onboarding` (first-time provisioning), `/cli-login`, `/login`, and hosted `/share` sponsored capability minting. The local deploy at `localhost:4040` does NOT serve those hosted auth/sponsorship routes. See `purpose-local-vs-hosted.md` for the authoritative local-vs-hosted split.
 
 ---
 
@@ -28,7 +28,11 @@
 
 ## Routes (Next.js App Router)
 
-The `packages/dashboard/` package ships the shared routes (used by both local and hosted). The `apps/hosted-dashboard/` shell wraps with auth and adds hosted-only routes (`/login`, `/cli-login`, `/onboarding`, `/verify/[session_id]`). Per `purpose-local-vs-hosted.md`.
+The `packages/dashboard/` package ships the local/shared inspection routes. The
+`apps/hosted-dashboard/` shell wraps hosted auth/sponsorship surfaces and owns
+routes that require internet users, Enoki, wallet signing, or public
+verification (`/login`, `/cli-login`, `/onboarding`, `/share`,
+`/verify/[session_id]`). Per `purpose-local-vs-hosted.md`.
 
 ```
 # packages/dashboard/app/  (shared — local AND hosted serve these)
@@ -46,8 +50,8 @@ app/
 │   └── [session_id]/
 │       └── page.tsx                   # /sessions/[session_id]
 ├── share/
-│   └── [capability_id]/
-│       └── page.tsx                   # /share/[capability_id]
+│   ├── page.tsx                       # /share — local CLI-guided capability sharing
+│   └── ShareView.tsx
 ├── settings/
 │   └── page.tsx                       # /settings
 └── api/
@@ -67,6 +71,10 @@ hosted-app/
 ├── login/page.tsx                     # /login (Enoki + dApp Kit)
 ├── cli-login/page.tsx                 # /cli-login (CLI callback target)
 ├── onboarding/page.tsx                # /onboarding (first-time MemWalAccount mint via sponsored tx)
+├── share/page.tsx                     # /share (sponsored owner capability minting + event history)
+├── share/HostedShareView.tsx
+├── share/ShareHistoryPanel.tsx
+├── api/share/history/route.ts         # GET read-only Sui event-backed history
 └── verify/
     └── [session_id]/
         └── page.tsx                   # /verify/[session_id] — PUBLIC chain verifier; no login
@@ -252,8 +260,8 @@ components/
 │   ├── runtime-card.tsx               # Per-runtime status + pause + coverage badge
 │   └── runtime-installer.tsx          # 1-line install snippets
 ├── share/
-│   ├── share-form.tsx                 # NFT-gated namespace mint
-│   └── capability-card.tsx            # Active capability with revoke button
+│   ├── share-form.tsx                 # NamespaceCapability mint/share flow
+│   └── capability-card.tsx            # Active capability status card
 ├── ui/                                # shadcn-style primitives + brand-customized
 │   ├── button.tsx
 │   ├── input.tsx

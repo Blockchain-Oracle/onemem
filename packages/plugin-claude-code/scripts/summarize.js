@@ -6,11 +6,15 @@
 // Defensive: always exits 0.
 
 import {
+  clearBufferedToolCalls,
+  clearSessionState,
   drainToolCalls,
   loadClient,
   loadConfig,
+  readBufferedToolCalls,
   readHookInput,
   readSessionState,
+  traceCaptureEnabled,
 } from "./onemem-lib.mjs";
 
 const enc = (v) => new TextEncoder().encode(typeof v === "string" ? v : JSON.stringify(v ?? ""));
@@ -23,10 +27,16 @@ async function main() {
 
   const state = readSessionState(claudeSessionId);
   if (!state) return;
-  const calls = drainToolCalls(claudeSessionId);
+  const calls = readBufferedToolCalls(claudeSessionId);
+  if (!(await traceCaptureEnabled("claude-code"))) {
+    clearBufferedToolCalls(claudeSessionId);
+    clearSessionState(claudeSessionId);
+    return;
+  }
 
   const onemem = await loadClient(config);
   if (!onemem) return;
+  drainToolCalls(claudeSessionId);
 
   // Flush each buffered tool call as a verifiable ActionCall.
   const { CallStatus, SessionStatus } = await import("@onemem/sdk-ts");
@@ -39,16 +49,14 @@ async function main() {
       parentCallId,
       toolName: call.toolName,
       toolNamespace: "claude-code",
-      inputContent: enc(call.toolInput),
-      encrypt: true,
+      input: { content: enc(call.toolInput), encrypt: true },
     });
     await onemem.traces.closeCall({
       sessionId: state.onememSessionId,
       rwCapId: state.rwCapId,
       namespaceId: state.namespaceId,
       callId: emitted.callId,
-      outputContent: enc(call.toolResponse),
-      encrypt: true,
+      output: { content: enc(call.toolResponse), encrypt: true },
       status: CallStatus.Success,
     });
     parentCallId = emitted.callId;

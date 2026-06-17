@@ -56,6 +56,7 @@ yarn-debug.log*
 # Coverage
 coverage/
 .nyc_output/
+.browser-smoke/
 
 # Mise local cache
 .mise.local.toml

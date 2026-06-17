@@ -1,6 +1,9 @@
 # Coding Guardrails
 
-The detail behind root `CLAUDE.md` non-negotiable #8. Pulled out so CLAUDE.md stays light. Read this before opening a PR.
+Historical guardrail detail from the pre-Context-Engineering phase. Current
+agent routing lives in `AGENTS.md`; current gates live in
+`.thoughts/quality/2026-06-17-project-quality-profile.md`.
+This file remains useful for rationale and language-specific conventions.
 
 Grounded in: Sui Move best practices (docs.sui.io + Move Book code-quality checklist), TypeScript 2026 patterns (strict + typed catches + custom errors + Result), Python 2026 stack (Ruff + mypy + Pydantic + structlog), Pino structured logging.
 

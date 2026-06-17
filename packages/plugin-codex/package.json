@@ -1,0 +1,36 @@
+{
+  "name": "@onemem/codex-plugin",
+  "version": "0.1.0",
+  "description": "OneMem plugin for Codex - bundles verifiable memory MCP tools and optional lifecycle trace hooks",
+  "license": "Apache-2.0",
+  "type": "module",
+  "homepage": "https://github.com/Blockchain-Oracle/onemem/tree/main/packages/plugin-codex",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Blockchain-Oracle/onemem.git",
+    "directory": "packages/plugin-codex"
+  },
+  "bugs": {
+    "url": "https://github.com/Blockchain-Oracle/onemem/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    ".codex-plugin",
+    ".mcp.json",
+    "hooks",
+    "scripts",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "vitest run --passWithNoTests",
+    "lint": "biome check ."
+  },
+  "devDependencies": {
+    "@onemem/sdk-ts": "workspace:*",
+    "vitest": "^2.1.0"
+  }
+}

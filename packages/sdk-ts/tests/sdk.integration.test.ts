@@ -91,8 +91,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
         parentCallId: callIds[callIds.length - 1] ?? null,
         toolName: `tool-${i}`,
         toolNamespace: "vitest-it",
-        walrusInputBlob: `walrus:placeholder-${i}`,
-        inputHash: new Uint8Array([i, i + 1, i + 2]),
+        input: { walrusBlob: `walrus:placeholder-${i}`, hash: new Uint8Array([i, i + 1, i + 2]) },
       });
       callIds.push(callId);
     }
@@ -101,8 +100,10 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
         sessionId: session.sessionId,
         rwCapId: rw.capId,
         callId,
-        walrusOutputBlob: `walrus:output-${i}`,
-        outputHash: new Uint8Array([0xa0 + i, 0xb0 + i, 0xc0 + i]),
+        output: {
+          walrusBlob: `walrus:output-${i}`,
+          hash: new Uint8Array([0xa0 + i, 0xb0 + i, 0xc0 + i]),
+        },
         status: CallStatus.Success,
       });
     }
@@ -161,13 +162,13 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
       rwCapId: rw.capId,
       toolName: "Read",
       toolNamespace: "walrus-it",
-      inputContent: new TextEncoder().encode("real tool input bytes"),
+      input: { content: new TextEncoder().encode("real tool input bytes") },
     });
     await onemem.traces.closeCall({
       sessionId: session.sessionId,
       rwCapId: rw.capId,
       callId,
-      outputContent: new TextEncoder().encode("real tool output bytes"),
+      output: { content: new TextEncoder().encode("real tool output bytes") },
       status: CallStatus.Success,
     });
     await onemem.traces.endSession({
@@ -216,5 +217,20 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
       capKind: "ReadWrite",
     });
     expect(new TextDecoder().decode(decrypted)).toBe(new TextDecoder().decode(secret));
-  }, 180_000);
+
+    // A second decrypt reuses the cached (already-signed) SessionKey — it must
+    // still round-trip a second blob without re-signing.
+    const secret2 = new TextEncoder().encode(`second memory ${Date.now()}`);
+    const blob2 = await onemem
+      .requireWalrus()
+      .uploadBlob(await onemem.requireSeal().encrypt(secret2, ns.namespaceId));
+    const decrypted2 = await onemem
+      .requireSeal()
+      .decrypt(await onemem.requireWalrus().readBlob(blob2), {
+        namespaceId: ns.namespaceId,
+        capId: rw.capId,
+        capKind: "ReadWrite",
+      });
+    expect(new TextDecoder().decode(decrypted2)).toBe(new TextDecoder().decode(secret2));
+  }, 240_000);
 });

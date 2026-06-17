@@ -1,5 +1,10 @@
 # Pillar 7 + 8 — Dashboard (OneMem)
 
+> Current note, 2026-06-17: this is a historical design document. Current
+> dashboard implementation truth lives in `packages/dashboard/`,
+> `apps/hosted-dashboard/`, the package README, and the prototype discovery
+> report under `.thoughts/`.
+
 The OneMem dashboard. Same codebase serves the **local** install (`localhost:4040`, launched via `onemem dashboard`) and the **hosted** deploy (`app.onemem.ai`, Enoki-authenticated). Plus a **Walrus Sites mirror** for decentralized fallback.
 
 This is the **headline visual surface** — judges + users see this first.
@@ -20,7 +25,7 @@ This is the **headline visual surface** — judges + users see this first.
 | `route-apps.md` | `/apps` connected runtimes monitor + pause/permissions |
 | `route-trace.md` | `/trace/[session_id]` — **headline view** (tree + Gantt + Verify drawer + Replay modal) |
 | `route-sessions.md` | `/sessions/[session_id]` multi-trace replay |
-| `route-share.md` | `/share/[capability-id]` NFT-gated namespace mint |
+| `route-share.md` | `/share` owner capability mint and `/share/[capability_id]` recipient object view |
 | `route-settings.md` | `/settings` delegate keys + providers + runtimes |
 | `route-verify-public.md` | **NEW v0.1 addition** — `/verify/[session_id]` public chain-integrity verifier; no login; hosted-only route (defined per `purpose-local-vs-hosted.md`) |
 | `local-deploy.md` | `localhost:4040` specifics (Next.js standalone via `onemem dashboard` CLI command) |
@@ -54,23 +59,25 @@ This is the **headline visual surface** — judges + users see this first.
 
 | Component | Status |
 |---|---|
-| Next.js scaffold + Tailwind + shadcn + Radix Themes setup | ⏳ pending |
-| `@mysten/dapp-kit-react` wired | ⏳ pending |
-| SSE wiring | ⏳ pending |
-| `/` route | ⏳ pending |
-| `/memories` route | ⏳ pending |
-| `/apps` route | ⏳ pending |
-| `/trace/[id]` route (headline) | ⏳ pending |
-| `/sessions/[id]` route | ⏳ pending |
-| `/share/[id]` route | ⏳ pending |
-| `/settings` route | ⏳ pending |
-| `/login` route (hosted only) | ⏳ pending |
-| `/cli-login` route (hosted only) | ⏳ pending |
-| `/onboarding` route (hosted only) | ⏳ pending |
-| `/verify/[session_id]` route (hosted only, PUBLIC) | ⏳ pending |
-| Local deploy (`localhost:4040`) | ⏳ pending |
-| Hosted deploy (`app.onemem.ai`) | ⏳ pending |
-| Walrus Sites mirror | ⏳ pending |
+| Next.js scaffold + Tailwind + Radix Themes setup | Built in `packages/dashboard`; shadcn remains a design/component convention, not a generated dependency. |
+| dApp Kit / Enoki provider wiring | Built in `apps/hosted-dashboard` for hosted account surfaces; local dashboard remains credential-file oriented. |
+| SSE wiring | Built as `packages/dashboard/app/api/stream/route.ts`; live event breadth continues to evolve per route docs. |
+| `/` route | Built in `packages/dashboard/app/page.tsx`. |
+| `/memories` route | Built with provenance drawer and origin verification. |
+| `/apps` route | Built with runtime status and pause/trace controls. |
+| `/trace/[session_id]` route (headline) | Built with trace tree, content/decrypt tab, verify drawer, and replay modal. |
+| `/sessions` route | Built with grouped sessions, verify-all, replay, and export. |
+| `/share` route | Built locally for CLI-guided sharing and hosted for sponsored capability minting plus event-backed history. |
+| `/share/[capability_id]` recipient view | Built as read-only capability object inspection; no claim transaction in v0.1. |
+| `/settings` route | Built with credential and delegate lifecycle status. |
+| `/login` route (hosted only) | Built with Enoki/dApp Kit account state and missing-config honesty. |
+| `/cli-login` route (hosted only) | Built for CLI pairing, delegate key generation, callback validation flow, and missing-config honesty. |
+| `/onboarding` route (hosted only) | Built for sponsored namespace/RW-cap provisioning. |
+| `/verify/[session_id]` route (hosted only, PUBLIC) | Built as public chain verifier with Proven / Not proven boundary panels. |
+| Local deploy (`localhost:4040`) | Built as `@onemem/dashboard` with `build`, `start`, `dev`, and `browser:smoke` scripts. |
+| Hosted app shell | Built as `@onemem/hosted-dashboard` with hosted-only routes, API guardrails, production build, and browser smoke coverage. |
+| Hosted production deployment (`app.onemem.ai`) | External deploy step; current repo proves the app build/smoke, not live DNS deployment. |
+| Walrus Sites mirror | ⏳ pending deploy evidence. |
 
 ---
 

@@ -1,23 +1,25 @@
-/* OneMem brand tokens — sourced from docs/02-inspirations/BRAND_AND_SURFACES.md */
-/* Apply via: @import "@onemem/brand/tokens.css"; */
+/* OneMem brand tokens — the cdr-kit palette the designer shipped.
+   Canonical brand contract (the dashboard consumes cdr-kit's raw tokens directly
+   in packages/dashboard/styles/cdr-tokens.css; these onemem-prefixed aliases are
+   the stable, structure-test-enforced brand surface).
+   Apply via: @import "@onemem/brand/tokens.css"; */
 
 :root {
-  /* Color palette */
-  --onemem-lavender: #b08fff;        /* primary brand */
-  --onemem-chartreuse: #d4ff5e;      /* RESERVED for Verify affordances ONLY */
-  --onemem-cream: #faf8f5;           /* default surface */
-  --onemem-sui: #0090ff;             /* RESERVED for Suiscan links ONLY */
-  --onemem-ink: #1a1a1a;             /* primary text on cream */
-  --onemem-fog: #6b7280;             /* secondary text */
+  /* Reserved palette (oklch, light-first) */
+  --onemem-primary: oklch(0.52 0.20 268);   /* indigo — primary brand */
+  --onemem-verify:  oklch(0.58 0.15 152);   /* green — RESERVED for Verify/decrypted affordances ONLY */
+  --onemem-chain:   oklch(0.60 0.13 232);   /* sea-blue — RESERVED for on-chain explorer links ONLY */
+  --onemem-paper:   oklch(0.992 0.004 95);  /* default surface — warm near-white */
+  --onemem-ink:     oklch(0.235 0.013 65);  /* primary text */
 
   /* Typography stack */
-  --onemem-font-body: "Inter", system-ui, -apple-system, sans-serif;
-  --onemem-font-display: "Ratch", "General Sans", "Inter", system-ui, sans-serif;
-  --onemem-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --onemem-font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --onemem-font-body:    "Hanken Grotesk", system-ui, sans-serif;
+  --onemem-font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
   /* Radius scale */
-  --onemem-radius-sm: 6px;
-  --onemem-radius-md: 12px;
-  --onemem-radius-lg: 20px;
+  --onemem-radius-sm: 5px;
+  --onemem-radius-md: 9px;
+  --onemem-radius-lg: 14px;
   --onemem-radius-full: 9999px;
 }

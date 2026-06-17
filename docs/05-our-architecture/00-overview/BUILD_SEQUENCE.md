@@ -1,14 +1,24 @@
-# OneMem Build Sequence — 26-Day Timeline
+# OneMem Build Sequence
 
-**Today:** 2026-05-26. **Submission deadline:** 2026-06-21 (PT). **Demo Day:** 2026-07-20/21 (virtual). **Winners:** 2026-08-27. **Mainnet-by-Aug-27 = 100% prize upfront.**
+> Current note, 2026-06-17: this file began as the original 26-day hackathon
+> timeline. It is still useful for sequencing and historical intent, but it is
+> not the full live truth of the repo. For active agent routing, first read
+> `AGENTS.md`; for Context Engineering artifacts, use
+> `.thoughts/`.
+
+**Original timeline start:** 2026-05-26. **Submission deadline:** 2026-06-21 (PT). **Demo Day:** 2026-07-20/21 (virtual). **Winners:** 2026-08-27. **Mainnet-by-Aug-27 = 100% prize upfront.**
 
 26 days to ship v0.1 + record demo + deploy + submit. Tight but real.
 
 ---
 
-## Phase tracker — READ FIRST (the "what's next" source of truth)
+## Phase tracker — historical baseline
 
 **Autonomous loop.** After every completed chunk: research → TDD → verify → commit → flip checkbox + link commit SHA → start next chunk. Pause ONLY at MAJOR phase boundaries (pillar → pillar; code → mainnet deploy; pre-submission). Sub-stories within a pillar = just go.
+
+Do not treat unchecked boxes below as automatic implementation orders without
+checking code, tests, and the current Context Engineering artifacts. Several
+surfaces were built after this tracker was first written.
 
 - [x] **Phase 0** — Research (Sui Overflow handbook + 65-doc inspiration audit)
 - [x] **Phase 1** — Architecture (65 design docs across `docs/05-our-architecture/`)
@@ -28,8 +38,8 @@
   - [x] CI/CD live + green (repo public; logger rules enforced; pytest wired). Commits `658…`→`029833b`.
   - [ ] Pillar exit gate: PR #1 review (`pr-review-toolkit` done per-feature) + merge to main. Follow-ups tracked: #48 sui-in-CI, #50 union args, #51 Seal hardening.
 - [ ] **Phase 5 — Pillar 3: Per-runtime plugins** ← **NEXT** (Claude Code + OpenClaw + Hermes) + MCP server
-- [ ] **Phase 6 — Pillar 4: Framework providers** (Vercel AI + OpenAI Agents + CrewAI + LiveKit + ElevenLabs)
-- [ ] **Phase 7 — Pillar 5: CLI** (TS + Python)
+- [x] **Phase 6 — Pillar 4: Framework providers** (Vercel AI + OpenAI Agents + CrewAI + LiveKit + ElevenLabs) — all 5 trace cores built + 5-agent reviewed + unit-tested + **live testnet e2e** (Merkle-verified, ActionCalls decoded). Published: npm (@onemem/vercel-ai-provider 0.1.1, @onemem/openai-agents 0.1.2) + PyPI (onemem-crewai/livekit/elevenlabs + hermes-onemem 0.1.0).
+- [x] **Phase 7 — Pillar 5: CLI** (TS + Python) — TS `@onemem/cli` v0.1: verify / trace get·events·list / health / init (zero-config) / add·search (MemWal-gated); 21 tests. Python `onemem-cli` (`onemem-py`): read-only mirror verify / trace / health; 21 tests; output matches TS (same Merkle roots, live-verified). Both 5-agent reviewed + live testnet runs. Deferred: browser login (#83, needs hosted app) + runtime installers. Note: Python memory CLI is N/A until the Python SDK memory mirror exists (#60 reopened — was overclaimed).
 - [ ] **Phase 8 — Pillar 6: Dashboard** (`packages/dashboard` + `apps/hosted-dashboard` + public `/verify/[session_id]`)
 - [ ] **Phase 9 — Pillar 7: Marketing landing + docs site** (`apps/landing` + Mintlify `apps/docs`)
 - [ ] **Phase 10 — Pillar 8: Demos + e2e tests** (4 demo videos)

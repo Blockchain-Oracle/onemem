@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from ._rpc import SuiRpc
 from .generated.addresses import ACTIVE_NETWORK, OneMemAddresses, SuiNetwork, addresses_for
+from .memory import MemoryClient
 from .traces import VerifyResult, verify_session
 
 
@@ -26,10 +27,20 @@ class OneMem:
         network: SuiNetwork | None = None,
         rpc_url: str | None = None,
         addresses: OneMemAddresses | None = None,
+        memory_namespace: str | None = None,
     ) -> None:
         self.network: SuiNetwork = network or ACTIVE_NETWORK
         self.addresses: OneMemAddresses = addresses or addresses_for(self.network)
         self.rpc = SuiRpc(rpc_url or self.addresses.rpc_url)
+        self._memory_namespace = memory_namespace
+        self._memory: MemoryClient | None = None
+
+    @property
+    def memory(self) -> MemoryClient:
+        """Mem0-mirror add/search, shelling out to the ``onemem-memory`` bridge."""
+        if self._memory is None:
+            self._memory = MemoryClient(network=self.network, namespace=self._memory_namespace)
+        return self._memory
 
     def verify_session(self, session_id: str) -> VerifyResult:
         """Off-chain Merkle verification of a trace session (see traces.verify_session)."""

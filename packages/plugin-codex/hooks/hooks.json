@@ -1,0 +1,43 @@
+{
+  "description": "Optional OneMem Codex trace hooks. MCP memory tools work without trusting these hooks.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${PLUGIN_ROOT}/scripts/inject.js",
+            "statusMessage": "Loading OneMem",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${PLUGIN_ROOT}/scripts/observe.js",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${PLUGIN_ROOT}/scripts/summarize.js",
+            "statusMessage": "Finalizing OneMem trace",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

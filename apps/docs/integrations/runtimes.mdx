@@ -1,0 +1,57 @@
+---
+title: "Runtimes"
+description: "Instrument Claude Code, Codex, OpenClaw, and Hermes"
+---
+
+# Runtimes
+
+Native plugins and MCP integrations for coding-agent runtimes.
+
+## Claude Code
+
+```bash
+claude plugin marketplace add Blockchain-Oracle/onemem
+claude plugin install onemem@onemem
+```
+
+Hooks `SessionStart`, `PostToolUse`, and `SessionEnd` record a Merkle-chained
+TraceSession per session.
+
+## Codex
+
+OneMem ships a Codex plugin package at `packages/plugin-codex`. It bundles the
+OneMem MCP server for memory, search, replay, share, and verification tools.
+
+```bash
+codex plugin marketplace add Blockchain-Oracle/onemem --json
+codex plugin add onemem-codex@onemem --json
+```
+
+Optional Codex hook scripts are included and flush through the published
+`@onemem/sdk-ts@0.6.0` trace CLI, but full automatic Codex tool-call trace
+coverage is only claimed after a trusted `/hooks` session emits a verifiable
+on-chain OneMem `TraceSession`. MCP tools work without hook trust.
+
+## OpenClaw
+
+```bash
+openclaw plugins install @onemem/oc-onemem
+npx @onemem/oc-onemem init
+openclaw gateway run
+```
+
+Loads `@onemem/oc-onemem` in `registrationMode: "full"`; records tool calls + agent output via the gateway.
+
+## Hermes (Python)
+
+```bash
+pip install hermes-onemem
+```
+
+Subclasses Hermes's `MemoryProvider` ABC; buffers turns + tool calls + delegations and flushes one verifiable trace per run via the `onemem-trace` bridge.
+
+<Note>
+All runtime integrations are defensive: a OneMem failure should never break your
+agent. Trace-capable integrations buffer locally and avoid silent loss when an
+on-chain write cannot be confirmed.
+</Note>

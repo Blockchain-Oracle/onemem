@@ -1,147 +1,133 @@
-# Route: `/share/[capability_id]` — Dashboard
+# Route: `/share` — Dashboard
 
-NFT-gated namespace mint + capability transfer UX. Where "share my memory" becomes a Sui-native primitive.
-
----
-
-## When this route renders
-
-Two access modes:
-
-1. **Owner viewing their own caps:** `/share/[capability_id]` shows the cap they own + lets them revoke or transfer it
-2. **Recipient receiving a cap (via link):** they navigate to `/share/[capability_id]?token=<encrypted>` — the cap is then claimed into their wallet
+Namespace sharing is a Sui-native capability mint. A share is complete only when
+a real `NamespaceCapability<ReadOnly|ReadWrite>` object is minted and
+transferred to the recipient address.
 
 ---
 
-## Layout (owner mode)
+## Current Route Split
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│ Sidebar │ Topbar                                                      │
-├─────────┼────────────────────────────────────────────────────────────┤
-│         │  Capability 0xcap...                                        │
-│         │                                                             │
-│         │  Namespace: "research-team-2026" (SHARED)                   │
-│         │  Type: ReadWrite                                            │
-│         │  Granted to: 0xrecipient... ("alice.sui")                   │
-│         │  Granted by: you (0xowner...)                               │
-│         │  Granted at: 2026-05-26 14:30                               │
-│         │                                                             │
-│         │  Sui object: 0xcap... ↗ Suiscan                             │
-│         │                                                             │
-│         │  Status: ● Active                                           │
-│         │                                                             │
-│         │  Actions:                                                   │
-│         │  [Revoke this capability]                                   │
-│         │  [Generate sharing link to send by email/chat]              │
-│         │                                                             │
-│         │  Sharing link (active 7 days):                              │
-│         │  https://app.onemem.ai/share/0xcap?token=...     [Copy]    │
-│         │                                                             │
-│         │  Recipient activity (Sui events):                           │
-│         │  ├─ 14:32  First access (decrypt event on Walrus)           │
-│         │  ├─ 15:18  Decrypt event                                    │
-│         │  └─ 16:45  Decrypt event                                    │
-│         │                                                             │
-└─────────┴────────────────────────────────────────────────────────────┘
-```
+| Surface | Route | Current behavior |
+|---|---|---|
+| Local dashboard | `/share` in `packages/dashboard` | Shows public verifier links, configured namespace state, active capabilities, CLI share commands, and the v0.1 revoke boundary. |
+| Hosted dashboard | `/share` in `apps/hosted-dashboard` | Lets a connected account mint a sponsored ReadOnly or ReadWrite capability to a recipient address and review event-backed capability history for a namespace. |
+| Recipient landing | `/share/[capability_id]` in `apps/hosted-dashboard` | Public read-only capability object view. Reads `NamespaceCapability` kind, owner, namespace id, and namespace summary from Sui; no claim transaction. |
 
 ---
 
-## Layout (recipient mode — receiving a cap)
+## Hosted Owner Share Flow
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│  OneMem                                                               │
-│                                                                       │
-│  You've been granted access to a OneMem namespace                     │
-│                                                                       │
-│  ┌─────────────────────────────────────────────────────────────┐     │
-│  │ Namespace: "research-team-2026"                              │     │
-│  │ Type: ReadWrite                                              │     │
-│  │ Granted by: 0xowner... ("bob.sui")                           │     │
-│  │ Description: "Project memory for the research team"          │     │
-│  │                                                              │     │
-│  │ This capability gives you the ability to:                    │     │
-│  │  ✓ Read memories in this namespace                           │     │
-│  │  ✓ Write new memories                                        │     │
-│  │  ✓ Use this namespace in your AI coding agents               │     │
-│  │  ✗ Mint new capabilities (Admin only)                        │     │
-│  └─────────────────────────────────────────────────────────────┘     │
-│                                                                       │
-│              [Accept and add to my wallet]                            │
-│                                                                       │
-│              (You'll need a Sui wallet connected)                     │
-│                                                                       │
-└──────────────────────────────────────────────────────────────────────┘
+Owner opens app.onemem.ai/share
+  ↓
+Connects wallet / Enoki account through dApp Kit
+  ↓
+Page loads hosted provisioning state from browser storage when available
+  ↓
+GET /api/share/history?namespaceId=<namespace>&network=<network>
+  - validates namespace ID and supported network
+  - reads NamespaceCapabilityMintedEvent and NamespaceCapabilityRevokedEvent
+  - joins revoked rows by cap_id
+  - returns read-only history rows with tx digest/event sequence evidence
+  ↓
+Owner enters or confirms:
+  - namespace ID
+  - Admin cap ID
+  - recipient Sui address
+  - capability kind: ReadOnly or ReadWrite
+  ↓
+POST /api/share/sponsored/prepare
+  - validates sender, recipient, namespace, Admin cap, network, action
+  - builds only namespace::mint_capability_readonly or
+    namespace::mint_capability_readwrite transaction kind bytes
+  - calls Enoki with exact allowedMoveCallTargets and allowedAddresses
+  ↓
+Browser signs returned sponsored bytes with useSignTransaction()
+  ↓
+POST /api/share/sponsored/execute
+  - executes through Enoki
+  - waits for transaction effects
+  - parses the created NamespaceCapability object ID from objectChanges
+  ↓
+UI displays recipient, kind, capability ID, and transaction digest
+  ↓
+Capability history refreshes from events; no server-side share database is used
 ```
 
-On Accept:
-1. User connects wallet (if not already)
-2. Sui PTB: `namespace::mint_capability_<kind>` — but the cap is already minted; this is just claiming the transferred object into the wallet
-   (Actually: the cap should already be transferred when minted; this UX just confirms receipt)
-3. Hosted mode: Enoki sponsors the tx (gasless)
-4. Confirmation: "Capability added to your wallet. Use it via `onemem set-namespace 0x...`"
+No client route accepts arbitrary transaction bytes. The server builds only the
+named OneMem share actions.
 
 ---
 
-## Components
+## Capability Semantics
 
-| Component | Purpose |
-|---|---|
-| `<CapabilityCard>` | Owner's view of the cap |
-| `<ShareLinkGenerator>` | Encrypts cap-link token; generates URL; copy-to-clipboard |
-| `<RevokeConfirmDialog>` | Confirmation before burning the cap |
-| `<RecipientAcceptCard>` | Recipient's view of the cap |
-| `<RecipientActivityFeed>` | Sui event log for the cap's usage |
+| Kind | Recipient can | Recipient cannot |
+|---|---|---|
+| ReadOnly | Read/decrypt namespace content allowed by Seal policy | Write traces/memories or mint new capabilities |
+| ReadWrite | Read/decrypt and write traces/memories using the namespace | Mint new capabilities |
+| Admin | Mint/deactivate/reactivate namespace capabilities | Owned only by namespace admin; not minted by hosted `/share` |
 
 ---
 
-## Sharing link mechanics
+## Recipient Capability Link Flow
 
-The "link" doesn't actually contain the cap (caps are Sui objects, not data). Instead:
-- Owner generates a one-time-use link with an encrypted token
-- Token contains: `{cap_id, namespace_id, recipient_hint, expires_at, signature}`
-- Recipient visits the link → dashboard validates token → walks them through accepting
-- If recipient's wallet matches the cap's transfer target → cap already in their wallet
-- If they need a wallet → guide them to Enoki/zkLogin to mint one (gasless)
+```
+Recipient opens app.onemem.ai/share/<capability_id>
+  ↓
+Server reads the Sui object with showType + showContent + showOwner
+  ↓
+SDK derives:
+  - capability kind from NamespaceCapability<KIND>
+  - namespace ID from the Move object field
+  - owner kind/address from Sui object owner metadata
+  ↓
+Server attempts to read the MemoryNamespace summary
+  ↓
+Page renders capability owner, namespace metadata, Suiscan links,
+and an optional connected-account owner comparison
+```
 
-For v0.1: the cap is transferred at mint-time; the "share link" is just a deep link to `/share/[cap_id]` so the recipient knows what to expect. No token cryptography needed.
-
-For v0.2: deferred-transfer caps (mint-but-don't-transfer-yet) + claim-via-link for users who don't yet have a wallet.
+The minted capability already belongs to the owner shown by Sui. There is no
+separate hosted claim transaction in contract v0.1.
 
 ---
 
-## Revoke flow
+## Non-Implemented Boundaries
 
-User clicks "Revoke this capability":
+- Hosted recipient landing links are implemented as read-only capability object
+  views. Hosted claim/transfer execution is not implemented because the current
+  share mint already transfers ownership to the recipient address.
+- Owner-driven revoke is not supported by the v0.1 Move contract. The current
+  contract supports holder self-revoke by consuming the capability object the
+  holder owns.
+- Share history is not server-persisted by the hosted app. Hosted `/share`
+  reads Sui events through `GET /api/share/history` and the SDK history reader.
+- Public verifier links remain separate from namespace capability sharing.
 
+---
+
+## Local Dashboard Behavior
+
+The local dashboard stays command-oriented because it has no hosted Enoki
+sponsorship boundary. It shows executable commands:
+
+```bash
+onemem namespace share <namespace-id> <recipient-address> --cap ReadOnly --admin-cap <admin-cap-id>
+onemem namespace capabilities <namespace-id>
+onemem namespace revoke <capability-id>
 ```
-┌──────────────────────────────────────────────┐
-│ Revoke capability?                           │
-├──────────────────────────────────────────────┤
-│ This will permanently revoke 0xcap.          │
-│ The recipient (0xrecipient) will lose access │
-│ to all memories in this namespace.           │
-│                                              │
-│ This action is recorded on Sui and cannot    │
-│ be undone.                                   │
-│                                              │
-│      [Cancel]    [Revoke]                    │
-└──────────────────────────────────────────────┘
-```
 
-On confirm:
-1. Build PTB: `namespace::revoke_capability(ns, admin_cap, cap_to_revoke)`
-2. Sign via dApp Kit
-3. On success: cap object burned on chain; emits `NamespaceRevoked` event
-4. UI updates: status changes to "Revoked"; recipient activity feed shows revocation timestamp
+The revoke command is holder self-revoke. Revoking an Admin cap requires the CLI
+`--allow-admin` override.
 
 ---
 
 ## Cross-references
 
-- `ui-architecture.md`
+- `hosted-deploy.md` — hosted route/API surface
+- `purpose-local-vs-hosted.md` — why hosted owns account/recipient share flows
+- `data-flow.md` — dashboard data/API flow
 - `../01-protocol/access-control-and-sharing.md` — capability mechanics
-- `../02-sdks/shared-api-surface.md` — `namespace.share`, `namespace.revoke`
-- `../../01-sui-ecosystem/enoki-zklogin.md` — gasless tx mechanism
+- `../02-sdks/shared-api-surface.md` — namespace share/read methods
+- `../../01-sui-ecosystem/enoki-zklogin.md` — sponsored transaction mechanism

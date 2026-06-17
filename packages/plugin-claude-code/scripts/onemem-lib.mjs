@@ -9,7 +9,12 @@ import { appendFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const STATE_DIR = join(homedir(), ".onemem", "cc-sessions");
+const DEFAULT_STATE_DIR = join(homedir(), ".onemem", "cc-sessions");
+
+export function stateDir() {
+  const pluginData = process.env.CLAUDE_PLUGIN_DATA || process.env.PLUGIN_DATA;
+  return pluginData ? join(pluginData, "sessions") : DEFAULT_STATE_DIR;
+}
 
 /** Read the hook event JSON that Claude Code pipes on stdin. */
 export async function readHookInput() {
@@ -65,7 +70,7 @@ export async function loadClient(config) {
 }
 
 function statePath(claudeSessionId) {
-  return join(STATE_DIR, `${claudeSessionId}.json`);
+  return join(stateDir(), `${claudeSessionId}.json`);
 }
 
 export function readSessionState(claudeSessionId) {
@@ -77,32 +82,35 @@ export function readSessionState(claudeSessionId) {
 }
 
 export function writeSessionState(claudeSessionId, state) {
-  mkdirSync(STATE_DIR, { recursive: true });
+  mkdirSync(stateDir(), { recursive: true });
   writeFileSync(statePath(claudeSessionId), JSON.stringify(state), "utf8");
 }
 
 function bufferPath(claudeSessionId) {
-  return join(STATE_DIR, `${claudeSessionId}.buffer.jsonl`);
+  return join(stateDir(), `${claudeSessionId}.buffer.jsonl`);
+}
+
+export function clearSessionState(claudeSessionId) {
+  try {
+    rmSync(statePath(claudeSessionId));
+  } catch {
+    // best-effort cleanup
+  }
 }
 
 /** Append one buffered tool call (instant; flushed on-chain at SessionEnd). */
 export function bufferToolCall(claudeSessionId, call) {
-  mkdirSync(STATE_DIR, { recursive: true });
+  mkdirSync(stateDir(), { recursive: true });
   appendFileSync(bufferPath(claudeSessionId), `${JSON.stringify(call)}\n`, "utf8");
 }
 
-/** Read + clear the buffered tool calls for a session. */
-export function drainToolCalls(claudeSessionId) {
+/** Read buffered tool calls without deleting them. */
+export function readBufferedToolCalls(claudeSessionId) {
   let raw = "";
   try {
     raw = readFileSync(bufferPath(claudeSessionId), "utf8");
   } catch {
     return [];
-  }
-  try {
-    rmSync(bufferPath(claudeSessionId));
-  } catch {
-    // best-effort cleanup
   }
   return raw
     .split("\n")
@@ -115,4 +123,28 @@ export function drainToolCalls(claudeSessionId) {
       }
     })
     .filter(Boolean);
+}
+
+export function clearBufferedToolCalls(claudeSessionId) {
+  try {
+    rmSync(bufferPath(claudeSessionId));
+  } catch {
+    // best-effort cleanup
+  }
+}
+
+/** Read + clear the buffered tool calls for a session. */
+export function drainToolCalls(claudeSessionId) {
+  const calls = readBufferedToolCalls(claudeSessionId);
+  clearBufferedToolCalls(claudeSessionId);
+  return calls;
+}
+
+export async function traceCaptureEnabled(runtime) {
+  try {
+    const { shouldTraceRuntime } = await import("@onemem/sdk-ts/runtime");
+    return shouldTraceRuntime(runtime);
+  } catch {
+    return false;
+  }
 }

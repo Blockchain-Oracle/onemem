@@ -6,13 +6,20 @@
 //
 // Spec: docs/05-our-architecture/03-runtimes/claude-code-plugin.md
 
-import { loadClient, loadConfig, readHookInput, writeSessionState } from "./onemem-lib.mjs";
+import {
+  loadClient,
+  loadConfig,
+  readHookInput,
+  traceCaptureEnabled,
+  writeSessionState,
+} from "./onemem-lib.mjs";
 
 async function main() {
   const input = await readHookInput();
   const claudeSessionId = input.session_id;
   const config = loadConfig();
   if (!config || !claudeSessionId) return;
+  if (!(await traceCaptureEnabled("claude-code"))) return;
 
   const onemem = await loadClient(config);
   if (!onemem) return;

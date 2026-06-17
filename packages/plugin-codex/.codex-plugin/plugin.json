@@ -1,0 +1,29 @@
+{
+  "name": "onemem-codex",
+  "version": "0.1.0",
+  "description": "OneMem for Codex - verifiable memory tools plus optional Sui/Walrus trace hooks",
+  "author": {
+    "name": "OneMem"
+  },
+  "homepage": "https://onemem.ai",
+  "repository": "https://github.com/Blockchain-Oracle/onemem",
+  "license": "Apache-2.0",
+  "keywords": ["memory", "trace", "codex", "mcp", "sui", "walrus", "seal", "memwal"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "OneMem",
+    "shortDescription": "Verifiable memory and trace tools for Codex",
+    "longDescription": "Save, search, and verify portable OneMem memories through MCP. Optional lifecycle hooks can buffer Codex tool calls into verifiable Sui/Walrus traces when configured and trusted.",
+    "developerName": "OneMem",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Blockchain-Oracle/onemem/tree/main/packages/plugin-codex",
+    "defaultPrompt": [
+      "Search OneMem for prior context before implementing this.",
+      "Save this decision to OneMem memory.",
+      "Verify this OneMem trace session."
+    ],
+    "brandColor": "#4F46E5"
+  }
+}

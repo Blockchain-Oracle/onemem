@@ -28,7 +28,7 @@
 //   await onemem.traces.appendCall({
 //     sessionId, namespaceId, rwCapId,
 //     toolName: "Read", toolNamespace: "claude-code-builtin",
-//     walrusInputBlob: "walrus:abc", inputHash: new Uint8Array([1,2,3]),
+//     input: { walrusBlob: "walrus:abc", hash: new Uint8Array([1,2,3]) },
 //   });
 //
 //   await onemem.traces.endSession({
@@ -67,8 +67,22 @@ export {
   type SearchMemoryResult,
 } from "./memory.js";
 export {
+  capabilityKindFromObjectType,
+  type NamespaceCapabilityDetails,
+  type NamespaceCapabilityOwner,
+  type NamespaceCapabilityOwnerKind,
+  namespaceCapabilityFromSuiObject,
+  suiOwnerSummary,
+} from "./namespace-capabilities.js";
+export {
+  fetchNamespaceCapabilityHistory,
+  type NamespaceCapabilityHistoryRow,
+  type NamespaceCapabilityHistoryStatus,
+} from "./namespace-history.js";
+export {
   type CreateNamespaceArgs,
   type CreateNamespaceResult,
+  type NamespaceCapabilityKind,
   NamespacesAPI,
 } from "./namespaces.js";
 export {
@@ -83,6 +97,7 @@ export {
 } from "./seal.js";
 export {
   type AppendCallArgs,
+  type CallPayload,
   type CloseCallArgs,
   type EndSessionArgs,
   type StartSessionArgs,

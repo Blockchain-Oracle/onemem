@@ -1,23 +1,32 @@
 {
   "name": "@onemem/sdk-ts",
-  "version": "0.1.0",
+  "version": "0.6.0",
   "description": "OneMem TypeScript SDK — verifiable memory + trace SDK for AI agents on Sui + Walrus + Seal + MemWal",
   "license": "Apache-2.0",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js",
+      "require": "./dist/runtime.cjs"
     }
   },
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "bin"
   ],
   "scripts": {
     "build": "tsup",
@@ -42,8 +51,13 @@
     }
   },
   "devDependencies": {
+    "@types/node": "^22.19.21",
     "tsup": "^8.3.0",
     "typescript": "^5.7.0",
     "vitest": "^2.1.0"
+  },
+  "bin": {
+    "onemem-trace": "./bin/onemem-trace.mjs",
+    "onemem-memory": "./bin/onemem-memory.mjs"
   }
 }

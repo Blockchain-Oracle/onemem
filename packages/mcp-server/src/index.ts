@@ -11,15 +11,17 @@
 //   ONEMEM_EMBEDDING_API_KEY OpenAI/OpenRouter key for /manual embeddings
 //   MEMWAL_PACKAGE_ID, MEMWAL_RELAYER_URL
 //
-// Tools backed by MemWal 0.0.5 today: add_memory, search_memory (+ verify_trace,
-// trace_session, share_namespace). get/update/delete_memory + replay_session are
-// v0.2 (MemWal has no get/update/delete primitive) — intentionally not exposed.
+// Tools: add_memory, search_memory, verify_trace, trace_session, replay_session,
+// share_namespace (6). get/update/delete_memory are NOT exposed because MemWal
+// 0.0.5 has no get/update/delete primitive (verified) — they need a future
+// tombstone/versioning layer, not fakeable today.
 //
 // Spec: docs/05-our-architecture/03-runtimes/mcp-server.md
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { type MemoryConfig, OneMem, type SuiNetwork } from "@onemem/sdk-ts";
+import { memoryConfigFromCredentials } from "@onemem/sdk-ts/runtime";
 import { z } from "zod";
 
 import { resolveSigner } from "./signer.js";
@@ -164,6 +166,35 @@ export function buildServer(onemem: OneMem): McpServer {
   );
 
   server.registerTool(
+    "onemem_replay_session",
+    {
+      title: "Replay a trace session from chain",
+      description:
+        "Reconstruct a TraceSession from on-chain data: session metadata + ActionCalls in execution order. Per-call plaintext stays Seal-encrypted (decrypt is client-side). Read-only.",
+      inputSchema: { sessionId: z.string().describe("0x… TraceSession object id") },
+    },
+    async ({ sessionId }) => {
+      try {
+        const { session, calls } = await onemem.traces.replaySession(sessionId);
+        return ok({
+          sessionId,
+          status: session.status,
+          callCount: calls.length,
+          calls: calls.map((c, i) => ({
+            sequence: i,
+            callId: c.callId,
+            parentCallId: c.parentCallId,
+            contentHash: hex(c.contentHash),
+            timestampMs: Number(c.timestampMs),
+          })),
+        });
+      } catch (error) {
+        return fail(errMessage(error));
+      }
+    },
+  );
+
+  server.registerTool(
     "onemem_share_namespace",
     {
       title: "Share a namespace (mint + transfer a capability)",
@@ -193,17 +224,7 @@ export function buildServer(onemem: OneMem): McpServer {
 }
 
 function memoryConfigFromEnv(): MemoryConfig | undefined {
-  const e = process.env;
-  if (!e.ONEMEM_ACCOUNT_ID || !e.ONEMEM_DELEGATE_KEY || !e.ONEMEM_EMBEDDING_API_KEY) {
-    return undefined;
-  }
-  return {
-    delegateKey: e.ONEMEM_DELEGATE_KEY,
-    accountId: e.ONEMEM_ACCOUNT_ID,
-    embeddingApiKey: e.ONEMEM_EMBEDDING_API_KEY,
-    memwalPackageId: e.MEMWAL_PACKAGE_ID ?? "",
-    relayerUrl: e.MEMWAL_RELAYER_URL ?? "https://relayer.memory.walrus.xyz",
-  };
+  return memoryConfigFromCredentials();
 }
 
 async function main(): Promise<void> {

@@ -59,7 +59,7 @@ Routes:
 - `/memories` — search + filter + per-app provenance column (which runtime wrote it)
 - `/apps` — connected runtimes monitor, per-runtime pause, per-runtime permissions
 - `/trace/[session_id]` — **the headline view**: step-by-step tree of tool/skill/MCP calls with inputs/outputs/timing; Verify drawer (Walrus blob ID + Seal envelope hash + Sui txid); Replay button
-- `/share` — NFT-gated namespace mint + capability transfer
+- `/share` — Sui `NamespaceCapability` share tools and recipient capability view
 - `/settings` — delegate keys, providers, runtimes
 
 The dashboard is where the verifiability becomes legible — Verify drawer, Replay button, on-chain share/revoke.

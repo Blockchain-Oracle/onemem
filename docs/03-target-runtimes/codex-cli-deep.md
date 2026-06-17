@@ -4,6 +4,30 @@
 
 ---
 
+## OneMem implementation status
+
+Current package: `packages/plugin-codex`.
+
+OneMem now uses Codex's plugin model directly:
+
+- `.codex-plugin/plugin.json` exposes the plugin to Codex.
+- `.mcp.json` bundles the OneMem MCP server as the stable memory/search/verify
+  path.
+- `skills/onemem-codex/SKILL.md` tells Codex when to use OneMem memory and
+  trace tools.
+- `hooks/hooks.json` defines optional `SessionStart`, `PostToolUse`, and `Stop`
+  hooks for lifecycle trace capture.
+
+Important boundary: MCP tool availability does not require hook trust. Tool-call
+trace capture does require the user to review and trust plugin hooks through
+Codex's hook trust flow.
+
+Verification status as of 2026-06-17: repo-local hook simulations pass for
+`SessionStart`, `PostToolUse`, and `Stop`; live Codex TUI hook execution remains
+an explicit follow-up before claiming Claude Code parity.
+
+---
+
 ## Plugin manifest — `.codex-plugin/plugin.json`
 
 Verbatim, from the [build docs](https://developers.openai.com/codex/plugins/build):
@@ -278,37 +302,51 @@ From [agenticcontrolplane.com/blog/codex-cli-hooks-reference](https://agenticcon
 - **MCP tool calls have intermittent hook coverage** — same caveat as above. If OneMem's MCP server is the capture path, don't rely on `PostToolUse` to also fire; capture inside the MCP handler itself.
 - **`Stop`/`SubagentStop` decision semantics are inverted** — `decision: "block"` *continues* the loop instead of stopping it. Easy to flip if you reuse `PostToolUse` block logic.
 - **Plugin-local hooks vs global hooks** — [Issue #16430](https://github.com/openai/codex/issues/16430) reports the runtime only consistently executes global `~/.codex/hooks.json` even when plugin manifests declare hooks; verify on the current Codex version before shipping a plugin-only hook strategy.
-- **`plugin_hooks` feature flag** — per the wedge notes, some Codex builds gate plugin-declared hooks behind `[features] plugin_hooks = true` in `config.toml`. Install path must instruct users to enable it.
+- **Legacy `plugin_hooks` feature flag notes** — older wedge notes mentioned
+  some Codex builds gating plugin-declared hooks behind
+  `[features] plugin_hooks = true`. Current OpenAI docs describe enabled plugin
+  hooks as loading through the normal hook trust flow, so only mention the flag
+  when troubleshooting older local builds.
 - **CodeRabbit/codex-plugin-cc use `CLAUDE_PLUGIN_ROOT`** — not `PLUGIN_ROOT`. Use the Claude alias for cross-runtime portability; both resolve identically.
 
 ---
 
 ## OneMem implementation notes
 
-**v0.1 path (1 day): MCP transport.** Ship `@onemem/mcp` stdio server. User adds to `~/.codex/config.toml`:
+**Current v0.1 path: MCP-first Codex plugin.** `packages/plugin-codex` bundles
+`@onemem/mcp` through `.mcp.json`, plus a OneMem Codex skill and optional hooks.
+
+Users can still configure MCP manually:
 
 ```toml
 [mcp_servers.onemem]
 command = "npx"
-args = ["-y", "@onemem/mcp"]
+args = ["-y", "@onemem/mcp@latest"]
+env_vars = ["SUI_NETWORK", "ONEMEM_CREDENTIALS_PATH", "ONEMEM_ACCOUNT_ID", "ONEMEM_DELEGATE_KEY", "ONEMEM_EMBEDDING_API_KEY", "MEMWAL_PACKAGE_ID", "MEMWAL_RELAYER_URL"]
 ```
 
-Capture happens *inside* the MCP tool handlers (`add_memory`, `search_memory`) — no hook reliance, sidesteps the `apply_patch`/MCP coverage gap.
+Memory and verification operations happen inside MCP tool handlers. That remains
+the reliability baseline and does not depend on hook trust.
 
-**v0.2 path (3 days): native `.codex-plugin/plugin.json`.** Bundle MCP server + hook scripts. Wire:
+**Optional trace-hook path.** The current plugin includes:
 
-- `SessionStart` → `node hooks/session-start.mjs` → recall last-session summary via MemWal SDK, emit as `hookSpecificOutput.additionalContext`
-- `PostToolUse` (matcher `^shell$`) → `node hooks/post-tool.mjs` → emit `ActionCall` Move object + Walrus blob
-- `Stop` → `node hooks/stop.mjs` → compress session into summary blob + final on-chain attestation (timeout: 900s)
-- `SubagentStart` / `SubagentStop` → parent-child trace stitching via `subagent_id` → `parent_call_id`
+- `SessionStart` -> `node ${PLUGIN_ROOT}/scripts/inject.js`
+- `PostToolUse` -> `node ${PLUGIN_ROOT}/scripts/observe.js`
+- `Stop` -> `node ${PLUGIN_ROOT}/scripts/summarize.js`
 
-Install one-liner (v0.2):
+These hooks buffer quickly and only attempt on-chain trace writes when
+`ONEMEM_NAMESPACE_ID`, `ONEMEM_RW_CAP_ID`, signer credentials, and `SUI_NETWORK`
+are configured. The user must review and trust plugin hooks through `/hooks`.
+
+Future marketplace packaging:
 
 ```bash
 codex plugin marketplace add onemem/codex-plugin && codex /plugins   # then click install
 ```
 
-Distribution: publish to `openai/plugins` marketplace PR + standalone `onemem/codex-plugin` GitHub repo. Use `CLAUDE_PLUGIN_ROOT` in hook commands so the same scripts work if ported back to Claude Code.
+Distribution: publish to an official/self-hosted marketplace entry and decide
+whether the Codex plugin remains in this monorepo or becomes a standalone
+`onemem/codex-plugin` GitHub repo.
 
 Hook script shape (Node, paste-ready skeleton):
 

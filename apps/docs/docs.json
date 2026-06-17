@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "OneMem",
   "colors": {
-    "primary": "#B08FFF",
-    "light": "#D4FF5E",
-    "dark": "#0090FF"
+    "primary": "#4F46E5",
+    "light": "#16A34A",
+    "dark": "#0EA5E9"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -16,6 +16,18 @@
           {
             "group": "Get Started",
             "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Concepts",
+            "pages": ["concepts/memory", "concepts/trace", "concepts/verify"]
+          },
+          {
+            "group": "Integrations",
+            "pages": ["integrations/runtimes", "integrations/providers"]
+          },
+          {
+            "group": "Reference",
+            "pages": ["reference/cli", "reference/sdk"]
           }
         ]
       }
@@ -23,7 +35,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/onemem/onemem"
+      "github": "https://github.com/Blockchain-Oracle/onemem"
     }
   }
 }

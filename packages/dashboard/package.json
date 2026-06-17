@@ -16,21 +16,22 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "echo \"@onemem/dashboard: build stub — real build added when this packages pillar lands\"",
+    "build": "next build",
     "start": "next start -p ${PORT:-4040}",
     "dev": "next dev -p 4040",
     "test": "vitest run --passWithNoTests",
+    "browser:smoke": "node scripts/browser-smoke.mjs",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next out"
   },
   "dependencies": {
-    "@onemem/brand": "workspace:*",
-    "@onemem/sdk-ts": "workspace:*",
     "@mysten/dapp-kit": "^1.0.0",
     "@mysten/enoki": "^1.0.0",
     "@mysten/seal": "^1.1.0",
     "@mysten/sui": "^2.17.0",
+    "@onemem/brand": "workspace:*",
+    "@onemem/sdk-ts": "workspace:*",
     "@radix-ui/themes": "^3.2.0",
     "@tanstack/react-query": "^5.62.0",
     "next": "^15.1.0",
@@ -43,6 +44,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.0",
+    "playwright-core": "^1.60.0",
     "postcss": "^8.4.0",
     "typescript": "^5.7.0",
     "vitest": "^2.1.0"

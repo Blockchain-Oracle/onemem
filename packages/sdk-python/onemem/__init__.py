@@ -16,6 +16,7 @@ from ._rpc import SuiRpc, SuiRpcError
 from .client import OneMem
 from .generated.addresses import ACTIVE_NETWORK, OneMemAddresses, SuiNetwork, addresses_for
 from .hashing import ZERO_HASH, chain_hash
+from .memory import AddResult, Memory, MemoryClient, MemoryError
 from .traces import (
     EmittedEvent,
     VerifyResult,
@@ -24,12 +25,16 @@ from .traces import (
     verify_session,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "ACTIVE_NETWORK",
     "ZERO_HASH",
+    "AddResult",
     "EmittedEvent",
+    "Memory",
+    "MemoryClient",
+    "MemoryError",
     "OneMem",
     "OneMemAddresses",
     "SuiNetwork",

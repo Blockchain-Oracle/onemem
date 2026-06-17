@@ -1,6 +1,9 @@
 # Claude Code Plugin — `@onemem/claude-code-plugin`
 
-OneMem's Claude Code plugin. Native `.claude-plugin/plugin.json` + hooks + MCP slash commands. **Coexists with claude-mem** (different storage backend, same hook events fire on both; no conflict).
+> Current note, 2026-06-17: this is a historical design document with updated
+> package-reality notes. The implementation truth is `packages/plugin-claude-code/`.
+
+OneMem's Claude Code plugin. Native `.claude-plugin/plugin.json` + hooks. **Coexists with claude-mem** (different storage backend, same hook events fire on both; no conflict).
 
 Source-of-truth references:
 - `../../02-inspirations/claude-mem/HOOKS_AND_VIEWER_REFERENCE.md` — claude-mem hook contract (the reference pattern)
@@ -18,13 +21,9 @@ onemem-claude-code-plugin/
 ├── hooks/
 │   └── hooks.json
 ├── scripts/
-│   ├── observe.js                     # PostToolUse → SDK.trace.appendCall + closeCall
-│   ├── inject.js                      # SessionStart → SDK.search → preamble injection
-│   ├── summarize.js                   # Stop → end session + optional summary memory
-│   ├── learn-codebase.js              # slash command implementation
-│   └── compat-check.js                # called at Setup
-├── mcp/
-│   └── server.js                      # local stdio MCP exposing onemem_* tools
+│   ├── observe.js                     # PostToolUse → buffer locally
+│   ├── inject.js                      # SessionStart → open TraceSession
+│   └── summarize.js                   # SessionEnd → flush calls + close session
 ├── package.json
 └── README.md
 ```
@@ -55,24 +54,14 @@ Mirrors claude-mem's hook structure (per `HOOKS_AND_VIEWER_REFERENCE.md`). Same 
 ```json
 {
   "hooks": {
-    "Setup": [
-      { "matcher": "*", "hooks": [{ "type": "command", "command": "node ${PLUGIN_ROOT}/scripts/compat-check.js" }] }
-    ],
     "SessionStart": [
-      { "matcher": "startup|clear|compact", "hooks": [{ "type": "command", "command": "node ${PLUGIN_ROOT}/scripts/inject.js context" }] }
-    ],
-    "UserPromptSubmit": [
-      { "matcher": "*", "hooks": [{ "type": "command", "command": "node ${PLUGIN_ROOT}/scripts/inject.js session-init" }] }
-    ],
-    "PreToolUse": [
-      { "matcher": "Read", "hooks": [{ "type": "command", "command": "node ${PLUGIN_ROOT}/scripts/inject.js file-context" }] },
-      { "matcher": "*", "hooks": [{ "type": "command", "command": "node ${PLUGIN_ROOT}/scripts/observe.js pre" }] }
+      { "matcher": "", "hooks": [{ "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/inject.js" }] }
     ],
     "PostToolUse": [
-      { "matcher": "*", "hooks": [{ "type": "command", "command": "node ${PLUGIN_ROOT}/scripts/observe.js post" }] }
+      { "matcher": "", "hooks": [{ "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/observe.js" }] }
     ],
-    "Stop": [
-      { "matcher": "*", "hooks": [{ "type": "command", "command": "node ${PLUGIN_ROOT}/scripts/summarize.js" }] }
+    "SessionEnd": [
+      { "matcher": "", "hooks": [{ "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/summarize.js" }] }
     ]
   }
 }
@@ -83,6 +72,9 @@ Mirrors claude-mem's hook structure (per `HOOKS_AND_VIEWER_REFERENCE.md`). Same 
 ---
 
 ## Hook script contracts
+
+The snippets below are original design sketches, not current package source.
+Use `packages/plugin-claude-code/scripts/` for implementation details.
 
 Each hook script receives the Claude Code event payload via stdin (JSON) + standard env vars (`PLUGIN_ROOT`, `PLUGIN_DATA`, `CLAUDE_PLUGIN_ROOT`). Output JSON on stdout. Exit 0 = success, 1 = failure, 2 = blocking error, 3 = user-message-only (per claude-mem convention).
 
@@ -170,10 +162,10 @@ if (mode === "context" || mode === "session-init") {
 }
 ```
 
-### `scripts/summarize.js` (Stop)
+### `scripts/summarize.js` (SessionEnd)
 
 ```js
-// Stop → end session + optionally extract + write a session summary memory
+// SessionEnd → end session + optionally extract + write a session summary memory
 
 const event = await readStdinJson();
 const client = await getClient();

@@ -93,7 +93,7 @@ Per `03-runtimes/README.md` matrix:
 | Claude Code | Full (chartreuse edge) | Native plugin with PreToolUse / PostToolUse hooks |
 | OpenClaw | Full | Native plugin with agent.turn / agent.response hooks |
 | Hermes | Full | MemoryProvider ABC with sync_turn / handle_tool_call / on_delegation |
-| Codex CLI | Partial | MCP transport only (v0.1); native plugin v0.2 |
+| Codex CLI | Partial | `packages/plugin-codex` bundles MCP tools now; optional hooks require live trust before full coverage |
 | Cursor | Partial | No plugin SDK; only OneMem-routed MCP calls captured |
 | Windsurf | Partial | Same as Cursor |
 | OpenCode / Cline / VS Code Copilot | Partial | MCP-only |

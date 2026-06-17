@@ -32,7 +32,7 @@ Individual developers / users running AI coding agents on their own machine. Cla
 2. **Show me what my agents DID** — `/trace/[session_id]` renders the full action call tree for any session, with the Verify drawer that turns chartreuse on chain-integrity-verified
 3. **Show me what runtimes are connected** — `/apps` lists every installed plugin / MCP-served runtime with its coverage tier (full vs partial) and last-seen heartbeat
 4. **Replay a session from chain** — open `/trace/[id]` → Replay modal → step through the agent's actions reconstructed from Walrus + Sui
-5. **Share access via Sui capability transfer** — `/share/[capability_id]` mints + transfers a `NamespaceCapability` to another address
+5. **Share access via Sui capability transfer** — `/share` shows namespace/capability state and executable CLI share commands
 6. **Settings for delegate keys, providers, runtimes** — `/settings`
 
 ### Auth model
@@ -77,8 +77,9 @@ THREE distinct user groups (with different routes per group):
 | `/login` | public | Sign in via Enoki (Google) OR existing wallet (dApp Kit) |
 | `/cli-login?nonce=X&port=Y` | public + post-auth | Browser callback target for `onemem login` from the CLI. Mints delegate key, registers it on chain, POSTs creds back to `localhost:<port>`. |
 | `/onboarding` | post-auth | First-time-user flow: mint MemWalAccount (gasless via Enoki sponsored-tx) → mint first namespace → show CLI install commands per-runtime |
-| `/dashboard/*` | post-auth | Same routes as local (`/memories`, `/apps`, `/trace/[id]`, `/sessions/[id]`, `/share/[cap]`, `/settings`) — your stuff, but accessed via cloud session instead of credentials file |
-| `/share/[capability_id]?token=...` | mixed (public landing → post-auth to claim) | Recipient lands here from a share link. Sees what's being shared + signs in to claim. |
+| `/dashboard/*` | post-auth | Same inspection surfaces as local (`/memories`, `/apps`, `/trace/[id]`, `/sessions/[id]`, `/settings`) where hosted account context exists. |
+| `/share` | post-auth | Owner-initiated sponsored ReadOnly/ReadWrite capability minting to a recipient Sui address plus event-backed owner history. |
+| `/share/[capability_id]` | public + optional wallet comparison | Recipient capability object view. Reads the Sui `NamespaceCapability`, derives owner/kind/namespace metadata, and states that there is no claim transaction in v0.1. |
 | **`/verify/[session_id]`** | **public, no auth** | **The PUBLIC verification page.** Anyone in the world can paste a session ID + see "✓ Verified" badge for the Merkle chain integrity. Demonstrates verifiability to non-users. |
 
 ### Why hosted exists (the philosophical case)
@@ -296,7 +297,14 @@ The expected flow for a new user:
 
 The hosted dashboard's job ends at step 6. After that, the local dashboard is daily-use.
 
-But: any time the user needs to share a namespace with a teammate → goes back to hosted (or uses the CLI, which generates a share link to `app.onemem.ai/share/[cap]`). Any time someone gets a shared namespace → they hit hosted to claim. Any time someone verifies a public trace → they hit hosted's public `/verify/[id]`.
+But: any time the user needs to share a namespace with a teammate, they can use
+hosted `/share` for sponsored owner minting or the CLI for local signer-based
+minting. Hosted `/share` also loads event-backed capability history for the
+namespace so owners can see active/revoked caps without a hosted share database.
+Recipients can open `/share/[capability_id]` to inspect the capability object;
+a future claim/transfer transaction remains a protocol follow-up because v0.1
+shares already transfer the object during minting. Any time someone verifies a
+public trace, they hit hosted's public `/verify/[id]`.
 
 ---
 
@@ -304,14 +312,15 @@ But: any time the user needs to share a namespace with a teammate → goes back 
 
 | Component | Status |
 |---|---|
-| Local dashboard skeleton (`packages/dashboard/`) | ⏳ pending (Pillar 7 build) |
-| All 7 dashboard routes (shared between local + hosted) | ⏳ pending |
-| Hosted dashboard shell (`apps/hosted-dashboard/`) | ⏳ pending (Pillar 8 build) |
-| `/login` page (Enoki + dApp Kit) | ⏳ pending |
-| `/cli-login` callback page | ⏳ pending |
-| `/onboarding` flow | ⏳ pending |
-| **`/verify/[session_id]` public page (NEW v0.1 addition)** | ⏳ pending |
-| `/share/[capability_id]` recipient claim flow | ⏳ pending |
+| Local dashboard skeleton (`packages/dashboard/`) | Built; local route coverage continues to evolve |
+| Shared/local dashboard routes | Built incrementally; verify current code before using older status tables |
+| Hosted dashboard shell (`apps/hosted-dashboard/`) | Built with Enoki/dApp Kit providers |
+| `/login` page (Enoki + dApp Kit) | Built |
+| `/cli-login` callback page | Built |
+| `/onboarding` flow | Built for sponsored namespace/RW-cap provisioning |
+| Hosted `/share` owner capability minting/history | Built for sponsored ReadOnly/ReadWrite capability creation and event-backed owner history |
+| **`/verify/[session_id]` public page (NEW v0.1 addition)** | Built |
+| `/share/[capability_id]` recipient capability view | Built as read-only object inspection; claim transfer remains pending |
 | Walrus Sites mirror deploy | ⏳ pending |
 
 ---
@@ -323,7 +332,7 @@ But: any time the user needs to share a namespace with a teammate → goes back 
 - `data-flow.md` — how dashboard reads from Sui/Walrus/MemWal/SSE
 - `design-system.md` — brand application (cream surface + lavender + chartreuse Verify-only + Sui blue Suiscan-only)
 - `route-trace.md` — `/trace/[id]` headline route (Verify drawer used in both local AND public `/verify/[id]`)
-- `route-share.md` — `/share/[cap]` flow (recipient lands here from share link)
+- `route-share.md` — local `/share`, hosted `/share`, recipient capability view, and no-claim boundary
 - `local-deploy.md` — local-specific deploy detail (`localhost:4040`, CLI-launched)
 - `hosted-deploy.md` — hosted-specific deploy detail (`app.onemem.ai`, Enoki/zkLogin)
 - `walrus-sites-mirror.md` — decentralized fallback for hosted

@@ -163,14 +163,11 @@ module onemem::namespace {
         ctx: &mut TxContext,
     ) { /* ... */ }
 
-    /// Entry: revoke a previously-minted capability by burning it.
-    /// Requires &NamespaceCapability<Admin> AND ownership of the target cap.
+    /// Revoke a capability by burning the holder-owned object.
+    /// This is holder self-revoke, not Admin-driven revoke of someone else's cap.
     public entry fun revoke_capability<KIND>(
-        ns: &MemoryNamespace,
-        admin: &NamespaceCapability<Admin>,
-        cap_to_revoke: NamespaceCapability<KIND>,
-        ctx: &mut TxContext,
-    ) { /* burns cap_to_revoke + emits NamespaceRevoked event */ }
+        cap: NamespaceCapability<KIND>,
+    ) { /* burns cap + emits NamespaceCapabilityRevokedEvent */ }
 
     /// Entry: deactivate namespace (soft delete; new writes rejected).
     public entry fun deactivate(
@@ -346,7 +343,7 @@ Shared helpers for the version-as-dynamic-field pattern. See `upgrade-strategy.m
 | `namespace::mint_capability_readonly` | `&Admin` | Mint + transfer a ReadOnly cap to another address |
 | `namespace::mint_capability_readwrite` | `&Admin` | Mint + transfer a ReadWrite cap |
 | `namespace::mint_capability_admin` | `&Admin` | Mint + transfer an Admin cap (rare; only delegation) |
-| `namespace::revoke_capability` | `&Admin` + target cap | Burn a previously-minted cap |
+| `namespace::revoke_capability` | owned cap object | Holder self-revoke by burning a previously-minted cap |
 | `namespace::deactivate` | `&Admin` | Soft-delete; new writes rejected |
 | `namespace::reactivate` | `&Admin` | Re-enable writes |
 | `trace::start_session` | `&ReadWrite` (or higher) | Begin a trace session |

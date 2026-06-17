@@ -1,6 +1,12 @@
 # Shared API Surface — OneMem SDKs
 
-**Load-bearing file.** The canonical API contract. `@onemem/sdk-ts` and `onemem-sdk-python` BOTH expose this exact surface. Method names, parameter shapes, return types match across both languages.
+> Current note, 2026-06-17: this is a historical API design, not the live SDK
+> contract. Current TypeScript truth lives in `packages/sdk-ts/src/`; current
+> Python truth lives in `packages/sdk-python/onemem/`. Do not assume TS/Python
+> full parity without checking those packages.
+
+Original intent: `@onemem/sdk-ts` and `onemem-sdk-python` expose matching
+memory, trace, and namespace concepts with language-idiomatic names.
 
 ---
 

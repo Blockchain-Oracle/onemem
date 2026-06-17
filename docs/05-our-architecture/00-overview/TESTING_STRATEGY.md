@@ -1,6 +1,10 @@
 # Testing Strategy
 
-How we test OneMem so "solid is solid" — and so we find breakage *as we build*, not at the end. Detail behind root `CLAUDE.md` non-negotiables #2 and #3.
+How we test OneMem so "solid is solid" — and so we find breakage *as we build*, not at the end.
+
+> Current note, 2026-06-17: this is the historical two-tier testing policy.
+> Current command gates live in
+> `.thoughts/quality/2026-06-17-project-quality-profile.md`.
 
 ## Two tiers
 

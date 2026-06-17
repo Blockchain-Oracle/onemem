@@ -85,7 +85,7 @@ public fun assert_writes_to<KIND>(cap: &NamespaceCapability<KIND>, ns: &MemoryNa
 | `trace::close_call` | `&NamespaceCapability<ReadWrite>` or `<Admin>` |
 | `trace::end_session` | `&NamespaceCapability<ReadWrite>` or `<Admin>` |
 | `namespace::mint_capability_*` | `&NamespaceCapability<Admin>` |
-| `namespace::revoke_capability` | `&NamespaceCapability<Admin>` |
+| `namespace::revoke_capability` | owned `NamespaceCapability<KIND>` consumed by holder |
 | `namespace::deactivate` / `::reactivate` | `&NamespaceCapability<Admin>` |
 | `namespace::create` | None (anyone can create their own namespace; gets initial Admin cap) |
 
@@ -120,22 +120,24 @@ The headline-worthy demo moment: "share memory with my teammate = one Sui tx, ga
 
 3. **Recipient uses the cap immediately** — any subsequent `trace::*` or read flow that requires this cap works.
 
-4. **Owner revokes anytime:**
+4. **Holder self-revokes when they own the capability object:**
    ```typescript
    const tx = new Transaction();
    tx.moveCall({
      target: `${PKG}::namespace::revoke_capability`,
+     typeArguments: [`${PKG}::namespace::ReadWrite`],
      arguments: [
-       tx.object(namespaceId),
-       tx.object(adminCapId),
-       tx.object(capabilityIdToRevoke),  // must be the actual cap object
+       tx.object(capabilityIdToRevoke),  // must be owned by the signer
      ],
    });
    ```
 
-   **Note:** revocation requires the cap object itself (not just its ID). In practice this means the owner needs the recipient to surrender it, OR the owner can wait for `Seal SessionKey` TTL to expire, OR the owner can deactivate the entire namespace (`namespace::deactivate`) to lock out all caps simultaneously.
+   **Note:** v0.1 does not support owner-driven revocation of someone else's
+   cap. Revocation consumes the capability object, so only the holder can
+   self-revoke. Owners can still deactivate/reactivate the namespace globally
+   with an Admin cap.
 
-5. **Dashboard surfaces:** `/share/[capability-id]` route renders the cap status (active / revoked / pending transfer), recipient address, granted timestamp, "Revoke" button.
+5. **Dashboard surfaces:** hosted `/share/[capability-id]` renders the Sui capability object view: kind, owner, namespace id, namespace summary when available, and Suiscan links. It does not render owner-driven revoke or a claim transaction in v0.1.
 
 ### Gasless via Enoki
 
@@ -151,7 +153,7 @@ This is the surprise moment for the demo: sharing memory is a Web3-native primit
 |---|---|---|
 | Who controls access? | Mem0 server-side ACL | Sui object ownership |
 | Revocation | API call to Mem0; trust Mem0 to enforce | On-chain tx; verifiable forever |
-| Audit trail of share/revoke | Mem0 internal log (not public) | Sui events (`NamespaceShared` / `NamespaceRevoked`) — public, light-client-verifiable |
+| Audit trail of share/revoke | Mem0 internal log (not public) | Sui events (`NamespaceCapabilityMintedEvent` / `NamespaceCapabilityRevokedEvent`) — public, light-client-verifiable |
 | Cross-vendor portability | Lock-in: can't take your team out of Mem0 | Caps are Sui objects; portable across apps that consume OneMem |
 | Cost to share | $79+/mo subscription tier for team features | Gas only (~$0.001 sponsored via Enoki) |
 | Revoke latency | API call; eventual consistency | Sui consensus (~1 second mainnet) |
@@ -164,7 +166,7 @@ The "Mem0 has team accounts, we have Sui caps" comparison goes on the marketing 
 
 | Threat | Mitigation |
 |---|---|
-| Compromised delegate key writes garbage | Owner can revoke the cap; existing chain entries are integrity-preserved (Merkle chain shows compromised period) |
+| Compromised delegate key writes garbage | Owner can deactivate the namespace globally; v0.1 holder self-revoke only burns caps already owned by the signer. Existing chain entries are integrity-preserved (Merkle chain shows compromised period) |
 | Seal key servers collude → decrypt without authorization | Threshold scheme: requires `M-of-N` key servers; pick `N` from independent operators |
 | Replay attack: recipient re-uses an old cap after revoke | Revocation burns the cap object; subsequent calls fail `assert_writes_to` |
 | Owner deactivates namespace but leaks Walrus blob IDs | Blobs stay readable on Walrus until epoch expiry; only NEW writes are blocked. Owners can also explicitly delete blobs via `walrus delete` (Walrus v1.33+ default) |
@@ -186,7 +188,7 @@ The "Mem0 has team accounts, we have Sui caps" comparison goes on the marketing 
 
 - `data-model.md` — struct definitions (`MemoryNamespace`, `NamespaceCapability`)
 - `move-contract.md` — entry functions (mint/revoke/deactivate)
-- `events-and-attestation.md` — `NamespaceShared` / `NamespaceRevoked` events
+- `events-and-attestation.md` — `NamespaceCapabilityMintedEvent` / `NamespaceCapabilityRevokedEvent` events
 - `../../01-sui-ecosystem/seal-deep-dive.md` — Seal mechanics + `seal_approve` convention
 - `../../01-sui-ecosystem/enoki-zklogin.md` — sponsored-tx mechanics for gasless sharing
 - `../../02-inspirations/memwal-incubation/README.md` — MemWal's `seal_approve` (per-account, not per-namespace); we extend

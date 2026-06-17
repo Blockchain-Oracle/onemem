@@ -1,8 +1,75 @@
 ---
 title: "Quickstart"
-description: "Install OneMem in your AI agent runtime"
+description: "Record and verify your first on-chain agent trace in under a minute"
 ---
 
 # Quickstart
 
-Quickstart content lands in Pillar 7. See `docs/05-our-architecture/07-marketing-and-docs/docs-architecture.md`.
+## 1. Install the CLI
+
+```bash
+npm install -g @onemem/cli
+```
+
+## 2. Provision (zero-config)
+
+`init` resolves a signer (env key → Sui keystore → a generated, persisted wallet) and provisions a namespace + ReadWrite cap on testnet — no browser, no manual setup.
+
+```bash
+onemem init
+```
+
+It prints the namespace + cap and the env vars any runtime can use:
+
+```text
+✓ OneMem ready
+  namespace   0x18451c…
+  rwCap       0xcaa865…
+```
+
+## 3. Instrument your runtime
+
+Pick your stack — each is one line. Traces start recording automatically.
+
+<CodeGroup>
+```bash Claude Code
+claude plugin marketplace add Blockchain-Oracle/onemem
+claude plugin install onemem@onemem
+```
+
+```bash Hermes (Python)
+pip install hermes-onemem
+```
+
+```ts Vercel AI SDK
+import { withOneMem } from "@onemem/vercel-ai-provider";
+const model = withOneMem(openai("gpt-4o"));
+```
+
+```ts OpenAI Agents
+import { attachOneMem } from "@onemem/openai-agents";
+attachOneMem(runner);
+```
+</CodeGroup>
+
+## 4. Verify
+
+After your agent runs, verify any session — from the terminal or the public web page.
+
+```bash
+onemem verify <session-id>
+```
+
+```text
+✓ VERIFIED
+  agent      my-agent (production)
+  status     Completed
+  calls      12
+  merkleRoot 0x2ec8c2…
+```
+
+Or share `app.onemem.ai/verify/<session-id>` — anyone can confirm the chain, no login.
+
+<Card title="How verification works" icon="shield-check" href="/concepts/verify">
+  What the green check actually proves.
+</Card>

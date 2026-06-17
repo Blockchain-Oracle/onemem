@@ -23,15 +23,26 @@ end, producing one tamper-evident trace you can verify or share.
 - `ONEMEM_PRIVATE_KEY` — `suiprivkey1…` signer (else the sui keystore's first key).
 - `SUI_NETWORK` — `testnet` (default) | `mainnet` | …
 
-## Install
+## Install From The Public Repository Marketplace
 
 ```bash
-# from a checkout (dev): point Claude Code at this plugin dir
-claude plugin add /absolute/path/to/packages/plugin-claude-code
+claude plugin marketplace add Blockchain-Oracle/onemem
+claude plugin install onemem@onemem
 ```
 
 Verified end-to-end on testnet: a SessionStart→PostToolUse→SessionEnd lifecycle
 produces a `verifySession`-passing on-chain trace
 (`tests/plugin.integration.test.ts`).
+
+This GitHub marketplace path requires `.claude-plugin/marketplace.json` and
+`packages/plugin-claude-code/` to be present on the repository branch Claude Code
+fetches.
+
+## Install From A Local Checkout During Development
+
+```bash
+claude plugin marketplace add /absolute/path/to/onemem
+claude plugin install onemem@onemem
+```
 
 Spec: `docs/05-our-architecture/03-runtimes/claude-code-plugin.md`.

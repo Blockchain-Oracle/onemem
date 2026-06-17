@@ -1,12 +1,42 @@
 ---
 title: "OneMem"
-description: "Verifiable cross-runtime memory + action traces for AI agents"
+description: "Verifiable, cross-runtime memory + action traces for AI agents on Sui + Walrus + Seal"
 ---
 
 # OneMem
 
-OneMem gives AI agents a verifiable, on-chain memory and action-trace layer. Built on Sui + Walrus + Seal + MemWal. Apache-2.0.
+OneMem is **Etherscan for AI agents**. It gives any agent two things its runtime can't:
 
-This documentation is a skeleton — full content lands in Pillar 7.
+1. **Verifiable memory** — every memory is a Seal-encrypted blob on Walrus, access-controlled by an on-chain namespace. Portable across runtimes, decryptable only by delegate-key holders.
+2. **Verifiable action trace** — every tool / skill / MCP call is a Merkle-chained `ActionCall` anchored on Sui. Anyone can replay it, and anyone can **verify** it — no login, no trust in us.
 
-See `docs/05-our-architecture/07-marketing-and-docs/docs-architecture.md` for the docs site spec.
+Built on the Walrus-track stack: **Sui** (anchoring) · **Walrus** (blob storage) · **Seal** (threshold encryption) · **MemWal** (memory relayer).
+
+## Why it matters
+
+<CardGroup cols={3}>
+  <Card title="Memory is portable" icon="brain">
+    One namespace works across Claude Code, Hermes, Cursor, CrewAI and more — switch tools without losing context.
+  </Card>
+  <Card title="Actions are auditable" icon="list-check">
+    Every call is captured with its inputs, outputs, and a content hash — reconstructable from chain alone.
+  </Card>
+  <Card title="Everything is provable" icon="shield-check">
+    Share a public verification link. The recipient walks the Merkle chain and confirms the root themselves.
+  </Card>
+</CardGroup>
+
+## The trust model
+
+OneMem uses Seal's **`/manual`** flow: content is encrypted client-side before it touches the relayer, so **the relayer never sees plaintext**. The on-chain commit chain is public; the blob contents stay private. Verification walks the public chain — it proves *integrity*, not contents.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Install OneMem and record your first verifiable trace in under a minute.
+  </Card>
+  <Card title="Verify a trace" icon="badge-check" href="/concepts/verify">
+    Understand what verification proves — and what it doesn't.
+  </Card>
+</CardGroup>

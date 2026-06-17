@@ -1,5 +1,9 @@
 # Pillar 9 + 10 — Marketing Landing + Docs Site (OneMem)
 
+> Current note, 2026-06-17: this is a historical design document. Current
+> implementation truth lives in `apps/landing/`, `apps/docs/`, and active
+> Context Engineering artifacts under `.thoughts/`.
+
 The user-facing front door (`onemem.ai`) + the developer reference (`docs.onemem.ai`).
 
 ---

@@ -8,13 +8,38 @@
 //   findByName(owner, name)           → registry.lookup() (read-only)
 //   shareReadOnly(ns, recipient)      → mint RO cap for recipient
 //   shareReadWrite(ns, recipient)     → mint RW cap for recipient
+//   revokeCapability(cap)             → holder self-revoke; consumes cap object
 //   deactivate(ns) / reactivate(ns)   → admin-gated soft delete
 
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 
 import type { OneMem } from "./client.js";
+import {
+  capabilityKindFromObjectType,
+  type NamespaceCapabilityDetails,
+  namespaceCapabilityFromSuiObject,
+} from "./namespace-capabilities.js";
+import {
+  fetchNamespaceCapabilityHistory,
+  type NamespaceCapabilityHistoryRow,
+} from "./namespace-history.js";
 import type { NamespaceKind } from "./types/move.js";
+
+export type NamespaceCapabilityKind = "ReadOnly" | "ReadWrite" | "Admin";
+export {
+  capabilityKindFromObjectType,
+  type NamespaceCapabilityDetails,
+  type NamespaceCapabilityOwner,
+  type NamespaceCapabilityOwnerKind,
+  namespaceCapabilityFromSuiObject,
+  suiOwnerSummary,
+} from "./namespace-capabilities.js";
+export {
+  fetchNamespaceCapabilityHistory,
+  type NamespaceCapabilityHistoryRow,
+  type NamespaceCapabilityHistoryStatus,
+} from "./namespace-history.js";
 
 export interface CreateNamespaceArgs {
   readonly name: string;
@@ -49,8 +74,7 @@ export class NamespacesAPI {
       ],
     });
 
-    const result = await this.client.client.signAndExecuteTransaction({
-      signer: this.client.signer,
+    const result = await this.client.execute({
       transaction: tx,
       options: { showObjectChanges: true, showEvents: true },
     });
@@ -143,18 +167,22 @@ export class NamespacesAPI {
       ],
     });
 
-    const result = await this.client.client.signAndExecuteTransaction({
-      signer: this.client.signer,
+    const result = await this.client.execute({
       transaction: tx,
       options: { showObjectChanges: true },
     });
 
     const capType = `${packageId}::namespace::NamespaceCapability<${packageId}::namespace::${phantomKind}>`;
-    // biome-ignore lint/suspicious/noExplicitAny: SuiObjectChange typing
-    const cap = (result.objectChanges as any[] | undefined)?.find(
-      (c: any) => c.type === "created" && c.objectType === capType,
-    );
-    if (!cap || cap.type !== "created") {
+    const cap = (
+      result.objectChanges as
+        | Array<{
+            type?: string;
+            objectType?: string;
+            objectId?: string;
+          }>
+        | undefined
+    )?.find((c) => c.type === "created" && c.objectType === capType);
+    if (!cap || cap.type !== "created" || !cap.objectId) {
       throw new Error(
         `${fn} did not return the expected capability. ` +
           `objectChanges: ${JSON.stringify(result.objectChanges, null, 2)}`,
@@ -179,6 +207,124 @@ export class NamespacesAPI {
     return this.toggle("reactivate", args);
   }
 
+  /** Read a NamespaceCapability's phantom kind from its object type. */
+  async getCapabilityKind(capId: string): Promise<NamespaceCapabilityKind> {
+    const obj = await this.client.client.getObject({
+      id: capId,
+      options: { showType: true },
+    });
+    const objectType = obj.data?.type;
+    if (!objectType) {
+      throw new Error(`No NamespaceCapability found at ${capId}`);
+    }
+    return capabilityKindFromObjectType(objectType);
+  }
+
+  /** Read a NamespaceCapability's kind, namespace, and Sui owner metadata. */
+  async getCapability(capId: string): Promise<NamespaceCapabilityDetails> {
+    const obj = await this.client.client.getObject({
+      id: capId,
+      options: { showType: true, showContent: true, showOwner: true },
+    });
+    return namespaceCapabilityFromSuiObject(capId, obj.data);
+  }
+
+  /**
+   * Holder self-revoke. Consumes a capability object owned by the signer.
+   * This is not owner-driven revocation of someone else's cap.
+   */
+  async revokeCapability(args: {
+    capId: string;
+    kind?: NamespaceCapabilityKind;
+  }): Promise<{ txDigest: string; kind: NamespaceCapabilityKind }> {
+    const { packageId } = this.client.addresses;
+    const kind = args.kind ?? (await this.getCapabilityKind(args.capId));
+    const tx = new Transaction();
+    tx.moveCall({
+      target: `${packageId}::namespace::revoke_capability`,
+      typeArguments: [`${packageId}::namespace::${kind}`],
+      arguments: [tx.object(args.capId)],
+    });
+    const result = await this.client.execute({
+      transaction: tx,
+      options: { showEvents: true },
+    });
+    return { txDigest: result.digest, kind };
+  }
+
+  /** List namespaces created by an owner (from NamespaceCreatedEvent). Read-only. */
+  async list(
+    owner: string,
+  ): Promise<Array<{ namespaceId: string; name: string; kind: number; createdAt: number }>> {
+    const { packageId } = this.client.addresses;
+    const out: Array<{ namespaceId: string; name: string; kind: number; createdAt: number }> = [];
+    // biome-ignore lint/suspicious/noExplicitAny: opaque cursor type across @mysten/sui versions
+    let cursor: any = null;
+    while (true) {
+      const page = await this.client.client.queryEvents({
+        query: { MoveEventType: `${packageId}::namespace::NamespaceCreatedEvent` },
+        cursor,
+        order: "descending",
+        limit: 50,
+      });
+      for (const e of page.data) {
+        const f = e.parsedJson as Record<string, unknown> | undefined;
+        if (!f || f.owner !== owner) continue;
+        out.push({
+          namespaceId: String(f.namespace_id ?? ""),
+          name: String(f.name ?? ""),
+          kind: Number(f.namespace_kind ?? 0),
+          createdAt: Number(f.created_at ?? 0),
+        });
+      }
+      if (!page.hasNextPage || !page.nextCursor) break;
+      cursor = page.nextCursor;
+    }
+    return out;
+  }
+
+  /** Active capabilities for a namespace (minted minus revoked). Read-only. */
+  async getCapabilities(
+    namespaceId: string,
+  ): Promise<Array<{ capId: string; kind: number; recipient: string }>> {
+    const history = await this.getCapabilityHistory(namespaceId);
+    return history
+      .filter((row) => row.active)
+      .map((row) => ({ capId: row.capId, kind: row.kind, recipient: row.recipient }));
+  }
+
+  /** Capability mint/revoke history for a namespace, derived from Sui events. */
+  async getCapabilityHistory(namespaceId: string): Promise<NamespaceCapabilityHistoryRow[]> {
+    const { packageId } = this.client.addresses;
+    return fetchNamespaceCapabilityHistory(this.client.client, packageId, namespaceId);
+  }
+
+  /** Read a MemoryNamespace's on-chain fields (no signer needed). */
+  async get(namespaceId: string): Promise<{
+    id: string;
+    owner: string;
+    name: string;
+    kind: number;
+    active: boolean;
+  }> {
+    const obj = await this.client.client.getObject({
+      id: namespaceId,
+      options: { showContent: true },
+    });
+    const content = obj.data?.content;
+    if (!content || content.dataType !== "moveObject") {
+      throw new Error(`No MemoryNamespace found at ${namespaceId}`);
+    }
+    const f = content.fields as Record<string, unknown>;
+    return {
+      id: namespaceId,
+      owner: String(f.owner ?? ""),
+      name: String(f.name ?? ""),
+      kind: Number(f.kind ?? 0),
+      active: f.active !== false,
+    };
+  }
+
   private async toggle(
     fn: "deactivate" | "reactivate",
     args: { namespaceId: string; adminCapId: string },
@@ -189,10 +335,7 @@ export class NamespacesAPI {
       target: `${packageId}::namespace::${fn}`,
       arguments: [tx.object(args.namespaceId), tx.object(args.adminCapId)],
     });
-    const result = await this.client.client.signAndExecuteTransaction({
-      signer: this.client.signer,
-      transaction: tx,
-    });
+    const result = await this.client.execute({ transaction: tx });
     return { txDigest: result.digest };
   }
 }

@@ -1,152 +1,297 @@
-// /verify/[session_id] — PUBLIC chain verifier (no login, no signer).
-// Anyone can paste a session id and independently verify the Merkle chain.
-// Spec: docs/05-our-architecture/06-dashboard/route-verify-public.md
-
-import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
-import { addressesFor, type VerifyResult, verifyTraceChain } from "@onemem/sdk-ts";
+import { Icon } from "@/components/Icon";
+import { loadPublicVerifySession, rootPreview, shortId } from "@/lib/public-verify";
 
 export const dynamic = "force-dynamic";
 
-type Params = { session_id: string };
+type Params = Promise<{ session_id: string }>;
 
-const C = {
-  cream: "#faf8f5",
-  ink: "#1a1a1a",
-  fog: "#6b7280",
-  lavender: "#b08fff",
-  chartreuse: "#d4ff5e",
-  sui: "#0090ff",
-  mono: '"JetBrains Mono", ui-monospace, "SF Mono", monospace',
-  body: '"Inter", system-ui, -apple-system, sans-serif',
-};
+const PROVEN = [
+  "The recorded call sequence is intact and unmodified.",
+  "Each call's hash links to the previous call in the Merkle chain.",
+  "The re-derived root matches the TraceSession root anchored on Sui.",
+];
 
-function hex(bytes: Uint8Array): string {
-  return `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
-}
+const NOT_PROVEN = [
+  "Plaintext input or output contents; Walrus blobs can remain Seal-encrypted.",
+  "That the agent really completed a real-world action outside the trace.",
+  "Agent intent, business correctness, or whether the chosen tool was appropriate.",
+];
 
-async function verify(sessionId: string): Promise<VerifyResult | { error: string }> {
+export default async function PublicVerifyPage({ params }: { params: Params }) {
+  const { session_id } = await params;
+  let data: Awaited<ReturnType<typeof loadPublicVerifySession>> | null = null;
+  let error: string | null = null;
+
   try {
-    const addr = addressesFor("testnet");
-    const client = new SuiJsonRpcClient({ network: "testnet", url: addr.rpcUrl });
-    return await verifyTraceChain(client, addr.packageId, sessionId);
+    data = await loadPublicVerifySession(session_id);
   } catch (e) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    error = e instanceof Error ? e.message : String(e);
   }
+
+  const ok = data?.verify.ok ?? false;
+
+  return (
+    <main className="container" style={{ maxWidth: 920, padding: "44px 24px 80px" }}>
+      <header style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
+        <Icon name="cube" size={20} />
+        <span style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: "1.2rem" }}>
+          OneMem
+        </span>
+        <span className="badge badge-chain" style={{ marginLeft: 6 }}>
+          <span className="dot" />
+          public verifier
+        </span>
+      </header>
+
+      {error || !data ? (
+        <div className="card" style={{ padding: 28 }}>
+          <span className="badge badge-grey">
+            <Icon name="xCircle" size={14} />
+            Unavailable
+          </span>
+          <h1 style={{ fontSize: 24, marginTop: 14 }}>Session not found</h1>
+          <p style={{ color: "var(--danger)", marginTop: 8 }}>{error}</p>
+          <p className="muted" style={{ marginTop: 12, fontSize: ".92rem" }}>
+            This public page only verifies an existing on-chain TraceSession. It does not require
+            login or wallet access.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 18 }}>
+          <section
+            className={`card trace-shell${ok ? " verified-glow" : ""}`}
+            style={{ padding: 28 }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: 18,
+              }}
+            >
+              <div>
+                <span className="eyebrow">
+                  <span className="tick">✦</span>
+                  Trace verification
+                </span>
+                <h1 style={{ fontSize: 30, marginTop: 10 }}>
+                  {ok ? "This trace is verified." : "Verification failed."}
+                </h1>
+                <p className="mono" style={{ color: "var(--ink-2)", marginTop: 6, fontSize: 13 }}>
+                  {shortId(data.sessionId, 16, 10)}
+                </p>
+              </div>
+              <span
+                className={`badge ${ok ? "badge-verify" : "badge-grey"}`}
+                style={ok ? { animation: "verify-pulse 1.4s ease-out 2" } : undefined}
+              >
+                <Icon name={ok ? "shield" : "xCircle"} size={14} />
+                {ok ? "Verified" : "Broken"}
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                gap: 14,
+                marginTop: 22,
+              }}
+            >
+              <Meta label="Agent" value={data.agentId || "unknown"} />
+              <Meta label="Environment" value={data.environment || "unknown"} />
+              <Meta label="Status" value={data.statusLabel} />
+              <Meta label="Calls verified" value={String(data.verify.callCount)} />
+            </div>
+
+            <div className="receipt" style={{ marginTop: 22 }}>
+              <ReceiptRow label="Expected root (on-chain)" value={rootPreview(data.expectedRoot)} />
+              <ReceiptRow
+                label="Computed root (re-derived)"
+                value={rootPreview(data.computedRoot)}
+              />
+              <ReceiptRow label="Root match" value={ok ? "yes" : "no"} tone={ok ? "ok" : "bad"} />
+              <ReceiptRow
+                label="Evidence rows displayed"
+                value={`${data.calls.length} / ${data.verify.callCount}`}
+                tone={data.callEvidenceMatchesVerifier ? "ok" : "warn"}
+              />
+            </div>
+
+            {!data.callEvidenceMatchesVerifier ? (
+              <div className="verify-mini" style={{ marginTop: 14 }}>
+                <span className="vm-ic">
+                  <Icon name="info" size={16} />
+                </span>
+                <span>
+                  Verification used the full chain result, but this page displayed{" "}
+                  {data.calls.length} matching event rows for {data.verify.callCount} verified
+                  calls. The trace integrity result above remains the source of truth.
+                </span>
+              </div>
+            ) : null}
+
+            <a
+              className="xlink"
+              href={data.suiscan}
+              target="_blank"
+              rel="noreferrer"
+              style={{ marginTop: 14, display: "inline-flex" }}
+            >
+              View TraceSession on Suiscan <Icon name="external" size={14} />
+            </a>
+          </section>
+
+          <section className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 20, display: "flex", alignItems: "center", gap: 9 }}>
+              <Icon name="info" size={18} />
+              What this proves, and what it does not
+            </h2>
+            <p className="muted" style={{ fontSize: ".92rem", marginTop: 8 }}>
+              Credibility comes from a narrow claim: this page checks chain integrity only.
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                gap: 14,
+                marginTop: 16,
+              }}
+            >
+              <ProofList title="Proven" icon="checkCircle" items={PROVEN} tone="ok" />
+              <ProofList title="Not proven" icon="xCircle" items={NOT_PROVEN} tone="muted" />
+            </div>
+          </section>
+
+          <section className="card" style={{ padding: 24 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+              }}
+            >
+              <h2 style={{ fontSize: 20 }}>Call Evidence</h2>
+              <span className="badge badge-grey">{data.calls.length} rows</span>
+            </div>
+            <div style={{ display: "grid", gap: 1, marginTop: 14 }}>
+              {data.calls.length > 0 ? (
+                data.calls.map((call) => (
+                  <div
+                    key={`${call.sequence}-${call.callId}`}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "44px minmax(0, 1fr) minmax(140px, auto)",
+                      gap: 12,
+                      alignItems: "center",
+                      padding: "10px 12px",
+                      border: "1px solid var(--line)",
+                      background: "var(--card)",
+                    }}
+                  >
+                    <span style={{ color: ok ? "var(--verify)" : "var(--ink-3)" }}>
+                      <Icon name={ok ? "checkCircle" : "xCircle"} size={16} />
+                    </span>
+                    <span className="mono" style={{ fontSize: ".85rem", minWidth: 0 }}>
+                      {call.sequence}. {call.label}
+                    </span>
+                    <span className="mono faint" style={{ fontSize: ".76rem", textAlign: "right" }}>
+                      {shortId(call.callId, 10, 6)}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="muted" style={{ fontSize: ".9rem" }}>
+                  No emitted call rows were available for display. The verifier result above is
+                  still computed from the SDK verifier, not from this empty UI list.
+                </p>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+    </main>
+  );
 }
 
-function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        gap: 16,
-        padding: "10px 0",
-        borderBottom: "1px solid #eee",
-      }}
-    >
-      <span style={{ color: C.fog, fontSize: 14 }}>{label}</span>
-      <span
-        style={{
-          fontFamily: mono ? C.mono : C.body,
-          fontSize: 13,
-          color: C.ink,
-          wordBreak: "break-all",
-          textAlign: "right",
-        }}
-      >
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{label}</span>
+      <span style={{ fontWeight: 600 }}>{value}</span>
+    </div>
+  );
+}
+
+function ReceiptRow({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "ok" | "warn" | "bad";
+}) {
+  const color =
+    tone === "ok"
+      ? "var(--verify)"
+      : tone === "warn"
+        ? "var(--warn)"
+        : tone === "bad"
+          ? "var(--danger)"
+          : "var(--ink)";
+  return (
+    <div className="rcp-row">
+      <span className="rk">{label}</span>
+      <span className="rv mono" style={{ color }}>
         {value}
       </span>
     </div>
   );
 }
 
-export default async function PublicVerifyPage({ params }: { params: Promise<Params> }) {
-  const { session_id } = await params;
-  const result = await verify(session_id);
-  const ok = "ok" in result && result.ok;
-  const errored = "error" in result;
-
+function ProofList({
+  title,
+  icon,
+  items,
+  tone,
+}: {
+  title: string;
+  icon: string;
+  items: readonly string[];
+  tone: "ok" | "muted";
+}) {
+  const color = tone === "ok" ? "var(--verify)" : "var(--ink-3)";
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: C.cream,
-        color: C.ink,
-        fontFamily: C.body,
-        padding: "48px 20px",
-      }}
-    >
-      <div style={{ maxWidth: 680, margin: "0 auto" }}>
-        <p style={{ color: C.lavender, fontWeight: 700, letterSpacing: 1, margin: 0 }}>OneMem</p>
-        <h1 style={{ fontSize: 30, margin: "6px 0 4px" }}>Trace verification</h1>
-        <p style={{ color: C.fog, marginTop: 0 }}>
-          Independent, on-chain Merkle verification — no account, no trust in us.
-        </p>
-
-        <div
-          style={{
-            marginTop: 28,
-            borderRadius: 20,
-            padding: 28,
-            background: "#fff",
-            border: `2px solid ${ok ? C.chartreuse : errored ? "#f3f4f6" : "#ffd5d5"}`,
-            boxShadow: ok ? `0 0 0 6px ${C.chartreuse}33` : "none",
-          }}
-        >
-          {errored ? (
-            <p style={{ margin: 0, color: C.fog }}>
-              Could not verify: {(result as { error: string }).error}
-            </p>
-          ) : (
-            <>
-              <span
-                style={{
-                  fontSize: 24,
-                  fontWeight: 800,
-                  color: ok ? C.ink : "#b00020",
-                  background: ok ? C.chartreuse : "transparent",
-                  padding: ok ? "4px 14px" : 0,
-                  borderRadius: 9999,
-                }}
-              >
-                {ok ? "Verified ✓" : "Verification failed ✗"}
-              </span>
-              <div style={{ marginTop: 20 }}>
-                <Row label="Session" value={session_id} mono />
-                <Row label="Calls in chain" value={String((result as VerifyResult).callCount)} />
-                <Row
-                  label="On-chain Merkle root"
-                  value={hex((result as VerifyResult).expectedMerkleRoot)}
-                  mono
-                />
-                <Row
-                  label="Recomputed root"
-                  value={hex((result as VerifyResult).computedMerkleRoot)}
-                  mono
-                />
-                {!ok && (result as VerifyResult).brokenAt !== null && (
-                  <Row
-                    label="Chain breaks at call #"
-                    value={String((result as VerifyResult).brokenAt)}
-                  />
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        <p style={{ marginTop: 18 }}>
-          <a
-            href={`https://suiscan.xyz/testnet/object/${session_id}`}
-            style={{ color: C.sui, fontSize: 14 }}
-            target="_blank"
-            rel="noreferrer"
-          >
-            View on Suiscan →
-          </a>
-        </p>
+    <div style={{ border: "1px solid var(--line)", borderRadius: "var(--r-md)", padding: 16 }}>
+      <h3
+        style={{
+          color,
+          fontSize: 14,
+          textTransform: "uppercase",
+          letterSpacing: ".06em",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Icon name={icon} size={16} />
+        {title}
+      </h3>
+      <div style={{ display: "grid", gap: 9, marginTop: 12 }}>
+        {items.map((item) => (
+          <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+            <span style={{ color, marginTop: 2 }}>
+              <Icon name={tone === "ok" ? "check" : "x"} size={14} />
+            </span>
+            <span className="muted" style={{ fontSize: ".9rem" }}>
+              {item}
+            </span>
+          </div>
+        ))}
       </div>
-    </main>
+    </div>
   );
 }

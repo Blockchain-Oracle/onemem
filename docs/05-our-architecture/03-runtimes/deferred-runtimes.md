@@ -37,16 +37,6 @@ onemem-antigravity-plugin/
 
 ---
 
-## Codex native plugin (v0.2)
-
-Covered in `codex-cli-integration.md` §"v0.2: Native plugin (deferred)". Brief recap:
-- 10-event lifecycle hook coverage
-- Requires user to enable `[features].plugin_hooks = true` (distribution friction)
-- 3 known footguns documented
-- Ships when Codex's plugin-local hook execution becomes more reliable (currently buggy per OpenAI/codex#16430)
-
----
-
 ## Cursor native plugin (NOT planned)
 
 **Why never:** Cursor explicitly has no plugin SDK beyond inherited VS Code extensions. MCP is the ONLY integration path. Cursor's `02-inspirations/...` deep-dive confirms this. We don't ship a Cursor "plugin" because there's nothing to plug into.
@@ -87,7 +77,8 @@ Users still on Gemini CLI today can use `@onemem/mcp` via MCP config.
 ## Cross-references
 
 - `README.md` (this folder) — main runtime matrix
-- `codex-cli-integration.md` — Codex v0.1 (MCP) + v0.2 (native) detail
+- `codex-cli-integration.md` — current Codex plugin package with MCP baseline
+  and optional trusted hooks
 - `mcp-server.md` — `@onemem/mcp` covering all MCP-only runtimes
 - `../../03-target-runtimes/antigravity-deep.md` — Antigravity research
 - `../../03-target-runtimes/codex-cli-deep.md` — Codex research

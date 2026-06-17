@@ -243,7 +243,7 @@ pre-push:
 1. Developer makes a change, runs `pnpm changeset add` → describes change + bumps version
 2. PR includes the changeset file
 3. On merge to main: GitHub Action runs `pnpm changeset version` (bumps versions) + `pnpm changeset publish` (publishes to registries)
-4. Python packages publish via parallel custom script: `python scripts/publish-python.py` (reads same changeset metadata)
+4. Python packages publish via `bash scripts/publish-all.sh python` after npm publish succeeds. The script builds each Python package, runs `uv publish`, and fails the release on real upload errors; it does not currently parse changeset metadata.
 
 ### CI/CD: **GitHub Actions**
 

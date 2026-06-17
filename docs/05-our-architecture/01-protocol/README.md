@@ -1,5 +1,9 @@
 # Pillar 1 — Move Protocol (OneMem)
 
+> Current note, 2026-06-17: this is a historical design document. Verify current
+> implementation status against `contracts/onemem/`, tests, and
+> `.thoughts/` before treating status tables as live.
+
 The on-chain layer. Sui Move package deployed to mainnet by Day 8 of the build window. Everything else (SDKs, plugins, dashboard) consumes the package IDs + type definitions from this layer.
 
 ---
@@ -72,9 +76,10 @@ Per the design-rules in the parent README:
 
 ---
 
-## Implementation status
+## Implementation status (historical design-phase snapshot)
 
-Updated by the coding agent as work ships. (No code yet — design phase.)
+Originally intended to be updated during the design phase. Use current code and
+Context Engineering artifacts for live status.
 
 | Component | Status |
 |---|---|

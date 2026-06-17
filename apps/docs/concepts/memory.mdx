@@ -1,0 +1,49 @@
+---
+title: "Memory"
+description: "How OneMem stores verifiable, encrypted, portable agent memory"
+---
+
+# Memory
+
+A memory is a piece of text your agent wants to remember. OneMem stores it as a **Seal-encrypted blob on Walrus**, indexed for vector recall by **MemWal**, and (optionally) anchored on Sui as an `ActionCall` so the write itself is verifiable.
+
+## Writing
+
+```ts
+const res = await onemem.memory.add("Maya's wallet is 0x9d11…a72c", {
+  sessionId, onememNamespaceId, rwCapId, // optional: also emit an on-chain ActionCall
+});
+// → { memoryId, walrusBlobId, suiTxDigest?, attestation }
+```
+
+The plaintext is hashed (`sha256`) for the on-chain content hash, then encrypted **client-side** via Seal `/manual` before upload — the relayer never sees it.
+
+## Searching
+
+```ts
+const { results } = await onemem.memory.search("where does Maya bank", { topK: 5 });
+// → [{ text, walrusBlobId, relevance }]
+```
+
+Recall runs vector search on MemWal and returns decrypted hits (for delegate-key holders), ranked by `relevance = 1 − distance`.
+
+## Listing
+
+The dashboard's **Memories** view lists your memories by reading the on-chain `memwal_write` ActionCalls — a verifiable inventory derived from chain, independent of any single relayer.
+
+<Note>
+MemWal 0.0.5 supports `add` and `search`. Update/delete/version-history are not yet first-class in MemWal; memories are effectively append-only today.
+</Note>
+
+## Configuration
+
+Memory needs a MemWal account + delegate key + an embedding key:
+
+```ts
+OneMem.create({
+  network: "testnet", signer,
+  memory: { delegateKey, accountId, embeddingApiKey, memwalPackageId, relayerUrl },
+});
+```
+
+Provision the account with `scripts/setup-memwal.mts` (or the hosted onboarding flow).

@@ -1,12 +1,15 @@
 {
   "name": "@onemem/cli",
   "version": "0.1.0",
-  "description": "OneMem CLI — sign in, mint namespaces, launch dashboard, inspect traces from the terminal",
+  "description": "OneMem CLI — verify, inspect, and provision verifiable agent memory + traces from the terminal",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
     "onemem": "./bin/onemem"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "files": [
     "dist",
@@ -15,7 +18,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "echo \"@onemem/cli: build stub — real build added when this packages pillar lands\"",
+    "build": "tsup",
     "test": "vitest run --passWithNoTests",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
@@ -23,11 +26,11 @@
   },
   "dependencies": {
     "@onemem/sdk-ts": "workspace:*",
-    "commander": "^12.1.0",
-    "open": "^10.1.0",
-    "execa": "^9.5.0"
+    "@mysten/sui": "^2.17.0",
+    "commander": "^12.1.0"
   },
   "devDependencies": {
+    "@types/node": "^22.19.21",
     "tsup": "^8.3.0",
     "typescript": "^5.7.0",
     "vitest": "^2.1.0"

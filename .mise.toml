@@ -4,7 +4,8 @@ pnpm = "10.33.0"
 python = "3.12"
 uv = "latest"
 rust = "stable"
-# sui = "latest"   # mise does not currently ship a first-party sui plugin; install via brew (`brew install sui`) or release binaries
+# sui: install locally via `brew install sui` (no prebuilt arm64 mise asset → mise would build from source).
+# CI installs the pinned prebuilt linux binary directly (see .github/workflows/ci.yml). Keep the version in sync.
 
 [env]
 ONEMEM_REPO_ROOT = "{{config_root}}"

@@ -23,7 +23,9 @@ const SEAL_PLACEHOLDER = "0x0000000000000000000000000000000000000000000000000000
 function deployer(): Ed25519Keypair {
   const path = `${homedir()}/.sui/sui_config/sui.keystore`;
   const entries = JSON.parse(readFileSync(path, "utf8")) as string[];
-  return Ed25519Keypair.fromSecretKey(Buffer.from(entries[0]!, "base64").subarray(1));
+  const first = entries[0];
+  if (!first) throw new Error("Sui keystore is empty");
+  return Ed25519Keypair.fromSecretKey(Buffer.from(first, "base64").subarray(1));
 }
 
 /** Run a hook script the way Claude Code does: pipe event JSON to stdin. */

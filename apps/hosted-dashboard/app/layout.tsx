@@ -1,15 +1,24 @@
-// Root layout placeholder for app.onemem.ai. Implemented in Pillar 6 per docs/05-our-architecture/06-dashboard/hosted-deploy.md
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { HostedProviders } from "@/components/HostedProviders";
+import { ThemeScript } from "@/components/ThemeScript";
+import "@mysten/dapp-kit/dist/index.css";
+import "./globals.css";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "OneMem",
-  description: "Verifiable AI agent memory + action traces",
+  description: "Verifiable AI agent memory + action traces — verify any session on-chain.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
+      <body>
+        <HostedProviders>{children}</HostedProviders>
+      </body>
     </html>
   );
 }

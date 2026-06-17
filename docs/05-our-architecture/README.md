@@ -1,5 +1,10 @@
 # OneMem Architecture — README
 
+> Current note, 2026-06-17: this folder is a historical architecture/design
+> archive. It remains useful for rationale, but its status tables are not the
+> current implementation source of truth. Start active work from `AGENTS.md` and
+> `.thoughts/wiki/index.md`.
+
 This folder is the **design phase** of OneMem. Each sub-group is organized per build component ("per stuff" — UI, CLI, SDKs, plugins, etc.) so a coding agent can pick up any single doc and ship that component without reading the whole folder.
 
 **Sequencing:** read in order 00 → 01 → 02 → ... unless you know exactly which component you're implementing, in which case jump straight to that sub-group.
@@ -23,7 +28,7 @@ This folder is the **design phase** of OneMem. Each sub-group is organized per b
 
 ---
 
-## Status table (live)
+## Status table (historical design-phase snapshot)
 
 | Sub-group | Status | Notes |
 |---|---|---|
@@ -60,11 +65,14 @@ Every architecture doc in this folder references material from these neighboring
 - `../06-references/CANONICAL_URLS.md` — fast URL lookup
 - `../06-references/SUI_OVERFLOW_2026_HANDBOOK.md` — canonical handbook (track problem statements, must-have checklists)
 
-### From the parent folder (living wedge docs)
-- `../../WEDGE_V2.md` — current wedge framing
-- `../../MEM0_DEEP_DIVE.md` — Mem0 architecture + 30+ integrations
-- `../../DEEP_DIVE.md` — MemWal source + oc-memwal teardown + Hermes ABC + audit competitor landscape
-- `../../TRACE_AND_PROVIDERS.md` — Mem0 provider patterns + `ActionCall` / `TraceSession` data model draft
+### Missing parent-folder research docs
+
+The original design pass referenced parent-folder files such as
+`WEDGE_V2.md`, `MEM0_DEEP_DIVE.md`, `DEEP_DIVE.md`, and
+`TRACE_AND_PROVIDERS.md`. Those files are not present in this repo checkout.
+Use the copied/split material under `docs/00-goal/`, `docs/01-sui-ecosystem/`,
+`docs/02-inspirations/`, `docs/03-target-runtimes/`, and
+`docs/04-framework-providers/` instead.
 
 ---
 

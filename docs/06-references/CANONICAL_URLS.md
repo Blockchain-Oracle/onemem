@@ -193,4 +193,8 @@ Fast-lookup index of every URL that matters during architecture + build. Grouped
 - `../03-target-runtimes/README.md` — plugin surface matrix
 - `../04-framework-providers/README.md` — provider integration matrix
 - `../05-our-architecture/*` — design phase (not yet started)
-- Parent folder: `WEDGE_V2.md`, `TRACE_AND_PROVIDERS.md`, `MEM0_DEEP_DIVE.md`, `DEEP_DIVE.md`, `WEDGE_REFINEMENT.md`, `FINAL_WEDGE.md`, `scores.json`, `idea.md`
+- Original parent-folder research files referenced by older docs:
+  `WEDGE_V2.md`, `TRACE_AND_PROVIDERS.md`, `MEM0_DEEP_DIVE.md`,
+  `DEEP_DIVE.md`, `WEDGE_REFINEMENT.md`, `FINAL_WEDGE.md`, `scores.json`,
+  `idea.md`. These are not present in this repo checkout; use the split
+  `docs/` archive and `.thoughts/` instead.

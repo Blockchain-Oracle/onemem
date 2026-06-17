@@ -1,6 +1,6 @@
 # Hosted Deploy — `app.onemem.ai`
 
-The OneMem dashboard hosted at `app.onemem.ai`. Same Next.js 15 codebase as the local deploy (via `packages/dashboard/`) wrapped by `apps/hosted-dashboard/` with Enoki/zkLogin auth, sponsored-tx, and four hosted-only routes: `/login`, `/cli-login`, `/onboarding`, and the **public** `/verify/[session_id]` chain verifier.
+The OneMem dashboard hosted at `app.onemem.ai`. Same Next.js 15 codebase as the local deploy (via `packages/dashboard/`) wrapped by `apps/hosted-dashboard/` with Enoki/zkLogin auth, sponsored-tx, and hosted-owned routes: `/login`, `/cli-login`, `/onboarding`, `/share`, `/share/[capability_id]`, and the **public** `/verify/[session_id]` chain verifier.
 
 > **Audit context 2026-05-26.** Hosted serves five specific jobs, NOT "for judges" — onboarding, CLI-login callback, cross-device view, shared-namespace access, and public chain verification. Authoritative purpose split + what hosted DOES NOT do (no billing, no usage quotas, no API keys, no Intercom) is in `purpose-local-vs-hosted.md`. The public `/verify/[session_id]` page is a NEW v0.1 surface specced in `route-verify-public.md`.
 
@@ -16,6 +16,8 @@ The OneMem dashboard hosted at `app.onemem.ai`. Same Next.js 15 codebase as the 
 | Login UI | None | `/login` page with Google sign-in |
 | `/cli-login` route | N/A | Present (CLI login callback) |
 | `/onboarding` route | N/A | Present (first-time MemWalAccount mint via sponsored tx) |
+| `/share` route | CLI-guided local capability sharing | Account-gated sponsored ReadOnly/ReadWrite capability minting plus read-only event-backed owner history |
+| `/share/[capability_id]` route | N/A | Public read-only capability object view; no hosted claim tx |
 | `/verify/[session_id]` route | N/A | Present and **public — no login required** (per `route-verify-public.md`) |
 | Hosting | Spawned by `onemem dashboard` | Vercel (or Cloudflare Workers) |
 | Domain | `localhost:4040` | `app.onemem.ai` |
@@ -173,7 +175,7 @@ Per `purpose-local-vs-hosted.md` — we deliberately reject the Mem0-cloud SaaS 
 - `route-verify-public.md` — public `/verify/[session_id]` page spec
 - `local-deploy.md` — sibling local deploy (same shared codebase)
 - `walrus-sites-mirror.md` — decentralized fallback
-- `../00-overview/MONOREPO_LAYOUT.md` — `apps/hosted-dashboard/` folder structure with the four hosted-only routes
+- `../00-overview/MONOREPO_LAYOUT.md` — `apps/hosted-dashboard/` folder structure with hosted-only routes
 - `../00-overview/TOOLING_DECISIONS.md` — Next.js 15 + Enoki + sponsored-tx stack
 - `../05-cli/login-flow.md` — CLI side of `/cli-login` flow
 - `../../01-sui-ecosystem/enoki-zklogin.md` — Enoki + zkLogin mechanics

@@ -1,5 +1,10 @@
 # OneMem Product Inventory — 12 Pillars (Frozen)
 
+> Current note, 2026-06-17: this is a frozen original scope inventory, not the
+> current implementation status source. Check current code, package READMEs, and
+> `.thoughts/` before treating any status or command list
+> here as live.
+
 This is the canonical inventory. **Frozen 2026-05-26.** Every architecture doc references back to this file. If a feature isn't listed here, it's not in v0.1 scope — add it explicitly with a sub-task or push to v0.2.
 
 ---
@@ -131,7 +136,7 @@ This is the canonical inventory. **Frozen 2026-05-26.** Every architecture doc r
 - `/apps` — per-runtime monitor + per-runtime pause + permissions
 - `/trace/[session_id]` — **headline view**: tree + Gantt + collapsible nodes + Verify drawer + Replay modal
 - `/sessions/[session_id]` — multi-trace session replay
-- `/share/[capability-id]` — NFT-gated namespace mint UX
+- `/share/[capability-id]` — Sui `NamespaceCapability` recipient object view
 - `/settings` — delegate keys, providers, runtimes
 
 **v0.1 data flow:** SSE stream (event types `connected | initial_load | new_action_call | new_trace_session | new_attestation | processing_status`); REST API at `/api/*` mirrored from claude-mem's 62-endpoint pattern (subset; we don't need all 62 at v0.1).

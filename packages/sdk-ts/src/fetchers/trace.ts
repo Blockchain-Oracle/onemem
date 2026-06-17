@@ -68,7 +68,7 @@ export interface EmittedEventRow {
 interface RawEmittedFields {
   session_id: string;
   call_id: string;
-  parent_call_id?: { vec: string[] };
+  parent_call_id?: string | { vec?: string[] } | null;
   content_hash: number[];
   prev_hash: number[];
 }
@@ -97,7 +97,7 @@ export async function fetchActionCallEmittedEvents(
       all.push({
         timestampMs: BigInt(ts),
         callId: fields.call_id,
-        parentCallId: optStr(fields.parent_call_id?.vec),
+        parentCallId: optStrAny(fields.parent_call_id),
         contentHash: new Uint8Array(fields.content_hash),
         prevHash: new Uint8Array(fields.prev_hash),
       });
@@ -106,6 +106,53 @@ export async function fetchActionCallEmittedEvents(
     cursor = page.nextCursor;
   }
   return all;
+}
+
+export interface OpenedSessionRow {
+  sessionId: string;
+  agentId: string;
+  environment: string;
+  namespaceId: string;
+  timestampMs: bigint;
+}
+
+/** List TraceSessionOpenedEvents (most recent first), optionally scoped. */
+export async function fetchOpenedSessions(
+  client: SuiJsonRpcClient,
+  packageId: string,
+  opts: { namespaceId?: string; agentId?: string; limit?: number } = {},
+): Promise<OpenedSessionRow[]> {
+  const eventType = `${packageId}::events::TraceSessionOpenedEvent`;
+  const out: OpenedSessionRow[] = [];
+  const limit = opts.limit ?? 50;
+  // biome-ignore lint/suspicious/noExplicitAny: cursor pagination type is opaque across @mysten/sui versions
+  let cursor: any = null;
+  // biome-ignore lint/correctness/noConstantCondition: cursor-driven loop
+  while (true) {
+    const page = await client.queryEvents({
+      query: { MoveEventType: eventType },
+      cursor,
+      order: "descending",
+      limit: 50,
+    });
+    for (const e of page.data) {
+      const f = e.parsedJson as Record<string, unknown> | undefined;
+      if (!f) continue;
+      if (opts.namespaceId && f.namespace_id !== opts.namespaceId) continue;
+      if (opts.agentId && f.agent_id !== opts.agentId) continue;
+      out.push({
+        sessionId: String(f.session_id ?? ""),
+        agentId: String(f.agent_id ?? ""),
+        environment: String(f.environment ?? ""),
+        namespaceId: String(f.namespace_id ?? ""),
+        timestampMs: BigInt((e.timestampMs as string | undefined) ?? "0"),
+      });
+      if (out.length >= limit) return out;
+    }
+    if (!page.hasNextPage || !page.nextCursor) break;
+    cursor = page.nextCursor;
+  }
+  return out;
 }
 
 function optBig(vec: string[] | undefined): bigint | null {
@@ -117,4 +164,13 @@ function optBig(vec: string[] | undefined): bigint | null {
 function optStr(vec: string[] | undefined): string | null {
   if (!vec || vec.length === 0) return null;
   return vec[0] ?? null;
+}
+
+/**
+ * Read an optional ID/string that Sui serializes differently by context:
+ * a bare string (event payloads), `{ vec: [...] }` (object fields), or null.
+ */
+function optStrAny(value: string | { vec?: string[] } | null | undefined): string | null {
+  if (typeof value === "string") return value.length > 0 ? value : null;
+  return optStr(value?.vec);
 }

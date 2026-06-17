@@ -28,6 +28,19 @@ export interface StartSessionArgs {
   readonly sdkVersion: string;
 }
 
+/**
+ * A trace call's payload — raw content XOR a pre-uploaded blob. Modelled as a
+ * discriminated union so illegal states (blob without hash, content + blob both
+ * set) are unrepresentable rather than caught at runtime:
+ *   - `{ content }`     → uploaded to Walrus; hash defaults to sha256(content).
+ *                         Set `encrypt` to Seal-encrypt before upload (the hash
+ *                         still covers the PLAINTEXT). Requires Walrus configured.
+ *   - `{ walrusBlob, hash }` → already on Walrus; you supply the integrity hash.
+ */
+export type CallPayload =
+  | { readonly content: Uint8Array; readonly hash?: Uint8Array; readonly encrypt?: boolean }
+  | { readonly walrusBlob: string; readonly hash: Uint8Array };
+
 export interface AppendCallArgs {
   readonly sessionId: string;
   readonly namespaceId: string;
@@ -35,14 +48,7 @@ export interface AppendCallArgs {
   readonly parentCallId?: string | null;
   readonly toolName: string;
   readonly toolNamespace: string;
-  /** Raw tool input. If given, it's uploaded to Walrus and its blob ID stored on-chain; `inputHash` defaults to sha256(content). Requires Walrus configured. */
-  readonly inputContent?: Uint8Array;
-  /** Pre-uploaded Walrus blob ID. Provide this OR `inputContent`. */
-  readonly walrusInputBlob?: string;
-  /** On-chain integrity hash. Required if passing `walrusInputBlob`; auto-derived from `inputContent` otherwise. */
-  readonly inputHash?: Uint8Array;
-  /** Encrypt `inputContent` with Seal (for this namespace) before Walrus upload. Requires Seal configured. */
-  readonly encrypt?: boolean;
+  readonly input: CallPayload;
   readonly label?: string | null;
 }
 
@@ -50,15 +56,8 @@ export interface CloseCallArgs {
   readonly sessionId: string;
   readonly rwCapId: string;
   readonly callId: string;
-  /** Raw tool output. If given, uploaded to Walrus; `outputHash` defaults to sha256(content). */
-  readonly outputContent?: Uint8Array;
-  /** Pre-uploaded Walrus blob ID. Provide this OR `outputContent`. */
-  readonly walrusOutputBlob?: string;
-  /** On-chain integrity hash. Required if passing `walrusOutputBlob`; auto-derived from `outputContent` otherwise. */
-  readonly outputHash?: Uint8Array;
-  /** Encrypt `outputContent` with Seal before upload. Requires `namespaceId` + Seal configured. */
-  readonly encrypt?: boolean;
-  /** Namespace for Seal encryption — required when `encrypt` is set on closeCall. */
+  readonly output: CallPayload;
+  /** Namespace for Seal encryption — required when `output` is `{ content, encrypt: true }`. */
   readonly namespaceId?: string;
   readonly status: CallStatus;
 }
@@ -69,7 +68,7 @@ export interface EndSessionArgs {
   readonly status: SessionStatus;
 }
 
-/** Thrown when an emit/close call is given neither raw content nor a blob+hash pair. */
+/** Thrown when a call requests `encrypt` but omits the `namespaceId` Seal needs. */
 export class TracePayloadError extends Error {
   constructor(message: string) {
     super(message);
@@ -91,35 +90,25 @@ export class TracesAPI {
   constructor(private readonly client: OneMem) {}
 
   /**
-   * Resolve a call payload to (blobId, hash). If raw `content` is given it's
-   * uploaded to Walrus and the hash defaults to sha256(content) — tying the
-   * on-chain integrity hash to the exact stored bytes. Otherwise a
-   * pre-uploaded blob ID + explicit hash must be supplied.
+   * Resolve a {@link CallPayload} to (blobId, hash). For the `content` variant
+   * the bytes are uploaded to Walrus and the hash defaults to sha256(content) —
+   * tying the on-chain integrity hash to the exact stored bytes; encryption (if
+   * requested) stores ciphertext while the hash still covers the plaintext. For
+   * the `walrusBlob` variant the caller-supplied blob ID + hash pass through.
    */
-  private async resolveBlob(
-    content: Uint8Array | undefined,
-    blobId: string | undefined,
-    hash: Uint8Array | undefined,
-    which: "input" | "output",
-    encryptForNamespace?: string,
+  private async resolvePayload(
+    payload: CallPayload,
+    encryptForNamespace: string | undefined,
   ): Promise<{ blob: string; hash: Uint8Array }> {
-    if (content !== undefined) {
-      // Hash the PLAINTEXT (so a cap holder can decrypt the blob + re-hash to
-      // verify); store ciphertext when encryption is requested.
-      const plaintextHash = hash ?? sha256(content);
+    if ("content" in payload) {
+      const plaintextHash = payload.hash ?? sha256(payload.content);
       const toStore = encryptForNamespace
-        ? await this.client.requireSeal().encrypt(content, encryptForNamespace)
-        : content;
+        ? await this.client.requireSeal().encrypt(payload.content, encryptForNamespace)
+        : payload.content;
       const uploadedId = await this.client.requireWalrus().uploadBlob(toStore);
       return { blob: uploadedId, hash: plaintextHash };
     }
-    if (blobId === undefined || hash === undefined) {
-      const field = which === "input" ? "walrusInputBlob" : "walrusOutputBlob";
-      throw new TracePayloadError(
-        `${which} payload missing: pass ${which}Content (uploaded to Walrus) or both ${field} + ${which}Hash`,
-      );
-    }
-    return { blob: blobId, hash };
+    return { blob: payload.walrusBlob, hash: payload.hash };
   }
 
   async startSession(args: StartSessionArgs): Promise<{ sessionId: string; txDigest: string }> {
@@ -137,16 +126,19 @@ export class TracesAPI {
       ],
     });
 
-    const result = await this.client.client.signAndExecuteTransaction({
-      signer: this.client.signer,
+    const result = await this.client.execute({
       transaction: tx,
       options: { showObjectChanges: true },
     });
 
     const sessionType = `${packageId}::trace::TraceSession`;
-    // biome-ignore lint/suspicious/noExplicitAny: SuiObjectChange typing
-    const session = (result.objectChanges as any[] | undefined)?.find(
-      (c: any) => c.type === "created" && c.objectType === sessionType,
+    const session = (
+      result.objectChanges as
+        | Array<{ type: string; objectType?: string; objectId?: string }>
+        | undefined
+    )?.find(
+      (change): change is { type: "created"; objectType: string; objectId: string } =>
+        change.type === "created" && change.objectType === sessionType,
     );
     if (!session || session.type !== "created") {
       throw new Error(
@@ -162,12 +154,13 @@ export class TracesAPI {
 
   async appendCall(args: AppendCallArgs): Promise<{ callId: string; txDigest: string }> {
     const { packageId } = this.client.addresses;
-    const { blob, hash } = await this.resolveBlob(
-      args.inputContent,
-      args.walrusInputBlob,
-      args.inputHash,
-      "input",
-      args.encrypt ? args.namespaceId : undefined,
+    const wantsEncrypt = "content" in args.input && args.input.encrypt === true;
+    if (wantsEncrypt && !args.namespaceId) {
+      throw new TracePayloadError("appendCall with input.encrypt=true requires namespaceId");
+    }
+    const { blob, hash } = await this.resolvePayload(
+      args.input,
+      wantsEncrypt ? args.namespaceId : undefined,
     );
     const tx = new Transaction();
     tx.moveCall({
@@ -186,8 +179,7 @@ export class TracesAPI {
       ],
     });
 
-    const result = await this.client.client.signAndExecuteTransaction({
-      signer: this.client.signer,
+    const result = await this.client.execute({
       transaction: tx,
       options: { showObjectChanges: true, showEvents: true },
     });
@@ -213,15 +205,13 @@ export class TracesAPI {
 
   async closeCall(args: CloseCallArgs): Promise<{ txDigest: string }> {
     const { packageId } = this.client.addresses;
-    if (args.encrypt && !args.namespaceId) {
-      throw new TracePayloadError("closeCall with encrypt=true requires namespaceId");
+    const wantsEncrypt = "content" in args.output && args.output.encrypt === true;
+    if (wantsEncrypt && !args.namespaceId) {
+      throw new TracePayloadError("closeCall with output.encrypt=true requires namespaceId");
     }
-    const { blob, hash } = await this.resolveBlob(
-      args.outputContent,
-      args.walrusOutputBlob,
-      args.outputHash,
-      "output",
-      args.encrypt ? args.namespaceId : undefined,
+    const { blob, hash } = await this.resolvePayload(
+      args.output,
+      wantsEncrypt ? args.namespaceId : undefined,
     );
     const tx = new Transaction();
     tx.moveCall({
@@ -236,10 +226,7 @@ export class TracesAPI {
         tx.object(SUI_CLOCK_OBJECT_ID),
       ],
     });
-    const result = await this.client.client.signAndExecuteTransaction({
-      signer: this.client.signer,
-      transaction: tx,
-    });
+    const result = await this.client.execute({ transaction: tx });
     return { txDigest: result.digest };
   }
 
@@ -255,10 +242,7 @@ export class TracesAPI {
         tx.object(SUI_CLOCK_OBJECT_ID),
       ],
     });
-    const result = await this.client.client.signAndExecuteTransaction({
-      signer: this.client.signer,
-      transaction: tx,
-    });
+    const result = await this.client.execute({ transaction: tx });
     return { txDigest: result.digest };
   }
 
@@ -286,6 +270,25 @@ export class TracesAPI {
   async getCalls(sessionId: string) {
     const events = await this.fetchEmittedEvents(sessionId);
     return events.sort((a, b) => Number(a.timestampMs - b.timestampMs));
+  }
+
+  /** List recent TraceSessions (from opened events), newest first. Optionally scope by namespace/agent. */
+  async listSessions(opts: { namespaceId?: string; agentId?: string; limit?: number } = {}) {
+    const { fetchOpenedSessions } = await import("./fetchers/trace.js");
+    return fetchOpenedSessions(this.client.client, this.client.addresses.packageId, opts);
+  }
+
+  /**
+   * Reconstruct a session from chain: the TraceSession object + its ActionCalls
+   * in execution order. This is the metadata replay (verifiable from chain alone);
+   * per-call plaintext is Seal-decrypted client-side with a SessionKey.
+   */
+  async replaySession(sessionId: string) {
+    const [session, calls] = await Promise.all([
+      this.getSession(sessionId),
+      this.getCalls(sessionId),
+    ]);
+    return { session, calls };
   }
 
   /** Fetch + decode a TraceSession object. Implementation lives in fetchers/ to keep this file under the 400-line cap. */

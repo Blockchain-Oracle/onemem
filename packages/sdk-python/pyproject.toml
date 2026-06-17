@@ -1,6 +1,6 @@
 [project]
 name = "onemem-sdk-python"
-version = "0.1.0"
+version = "0.2.0"
 description = "OneMem Python SDK — verifiable memory + trace SDK for AI agents on Sui + Walrus + Seal + MemWal"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
@@ -14,7 +14,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://onemem.ai"
 Documentation = "https://docs.onemem.ai"
-Repository = "https://github.com/onemem/onemem"
+Repository = "https://github.com/Blockchain-Oracle/onemem"
 
 [build-system]
 requires = ["hatchling"]

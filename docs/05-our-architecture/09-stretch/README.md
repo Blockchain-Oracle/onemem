@@ -1,5 +1,9 @@
 # Pillar 12 + v0.2 Vision — Stretch (OneMem)
 
+> Current note, 2026-06-17: this remains roadmap and design-space material
+> unless current code or a Context Engineering artifact explicitly promotes a
+> piece into active implementation scope.
+
 Day 23+ stretch goals (Nautilus TEE relayer) + v0.2+ vision material that's teased in the landing page but NOT built at v0.1.
 
 This folder exists so the vision is documented + the build sequence has a clear "if time permits" target.

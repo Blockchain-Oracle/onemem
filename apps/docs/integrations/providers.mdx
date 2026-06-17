@@ -1,0 +1,60 @@
+---
+title: "Framework providers"
+description: "Vercel AI SDK, OpenAI Agents, CrewAI, LiveKit, ElevenLabs"
+---
+
+# Framework providers
+
+Wrap your framework's model/agent/session and OneMem records each run as a verifiable on-chain trace. Provider wrappers are defensive by default: they buffer, flush off the host's critical path, and keep package-specific publish and live-test proof separate from the integration API.
+
+## JavaScript / TypeScript
+
+<CodeGroup>
+```ts Vercel AI SDK
+import { withOneMem } from "@onemem/vercel-ai-provider";
+const model = withOneMem(openai("gpt-4o"), { agentId: "my-agent" });
+```
+
+```ts OpenAI Agents
+import { attachOneMem } from "@onemem/openai-agents";
+attachOneMem(runner, { agentId: "my-agent" });
+```
+</CodeGroup>
+
+## Python
+
+<CodeGroup>
+```python CrewAI
+from crewai import Crew
+from onemem_crewai import OneMemTracer
+
+tracer = OneMemTracer(agent_id="crew")
+crew = Crew(
+    agents=[...],
+    tasks=[...],
+    step_callback=tracer.step,
+    task_callback=tracer.task,
+)
+crew.kickoff()
+tracer.flush()
+```
+
+```python LiveKit
+from onemem_livekit import OneMemTracer
+OneMemTracer(agent_id="voice").attach(session)
+```
+
+```python ElevenLabs
+from onemem_elevenlabs import OneMemTracer
+tracer = OneMemTracer(agent_id="voice")
+conv = Conversation(client, agent_id, requires_auth=True,
+                    client_tools=tracer.wrap_tools(ClientTools()),
+                    **tracer.callbacks())
+```
+</CodeGroup>
+
+The Python providers shell out to the `onemem-trace` Node CLI for the on-chain write (Walrus/Seal are JS-only), so no Python Sui deps are required.
+
+<Note>
+Every provider is fire-and-forget and never breaks the host run. JS providers guard their listeners; Python providers flush off-thread and retain on unconfirmed writes.
+</Note>

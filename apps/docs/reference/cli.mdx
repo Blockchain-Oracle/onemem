@@ -1,0 +1,45 @@
+---
+title: "CLI reference"
+description: "The onemem command-line tool"
+---
+
+# CLI reference
+
+```bash
+npm install -g @onemem/cli   # onemem
+pipx install onemem-cli       # onemem-py (read-only mirror)
+```
+
+Global flags: `--json` (machine output), `--network <testnet|mainnet|devnet|local>`.
+
+## Commands
+
+| Command | What it does | Needs |
+|---|---|---|
+| `onemem verify <session-id>` | Re-verify a TraceSession's Merkle chain from chain data | nothing (read-only) |
+| `onemem trace list` | Recent sessions | nothing |
+| `onemem trace get <id>` | Session metadata (agent, status, calls) | nothing |
+| `onemem trace events <id>` | The decoded ActionCall chain | nothing |
+| `onemem health` | Check RPC + package reachability | nothing |
+| `onemem login` | Pair this terminal with a hosted dashboard callback | hosted dashboard callback |
+| `onemem init` | Provision (or reuse) a namespace + ReadWrite cap — zero config | a Sui signer |
+| `onemem namespace share <namespace-id> <recipient>` | Mint + transfer a ReadOnly or ReadWrite namespace capability | signer + Admin cap |
+| `onemem namespace revoke <cap-id>` | Self-revoke a capability you hold | signer that owns the cap |
+| `onemem namespace capabilities <namespace-id>` | List active capabilities from namespace events | nothing (read-only) |
+| `onemem add <text>` | Store a memory + emit a verifiable ActionCall | signer + MemWal config |
+| `onemem search <query>` | Vector-recall memories | signer + MemWal config |
+
+## Examples
+
+```bash
+onemem init
+onemem verify 0x06668df1cfbb31...b79f
+onemem --json trace events 0x06668df1...b79f
+```
+
+The read-only commands (`verify`, `trace *`, `health`) need **no signer** — anyone can verify. `init` resolves a signer (env key → Sui keystore → generated wallet) and provisions on-chain.
+`add`/`search` need the signer plus MemWal configuration, and namespace share/revoke commands require the relevant capability objects.
+
+<Note>
+The Python `onemem-py` mirrors the read surface (`verify`, `trace`, `health`) over the Python SDK. Its output matches the TS CLI (same Merkle roots).
+</Note>

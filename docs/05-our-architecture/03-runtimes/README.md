@@ -1,5 +1,9 @@
 # Pillar 3 — Per-Runtime Native Plugins (OneMem)
 
+> Current note, 2026-06-17: this is a historical design document. Current
+> runtime/package READMEs and source are the implementation truth; use
+> `.thoughts/` for active planning.
+
 OneMem ships a plugin or MCP integration for every coding-agent runtime users actually use. Native plugins where the runtime supports them (deeper hooks, better UX); MCP transport everywhere else.
 
 ---
@@ -12,9 +16,9 @@ OneMem ships a plugin or MCP integration for every coding-agent runtime users ac
 | `claude-code-plugin.md` | `@onemem/claude-code-plugin` — native plugin + MCP; coexists with claude-mem |
 | `openclaw-plugin.md` | `@onemem/oc-onemem` — uses `@mysten-incubation/oc-memwal` underneath; adds trace + dashboard sync |
 | `hermes-plugin.md` | `hermes-onemem` PyPI standalone implementing `MemoryProvider` ABC |
-| `codex-cli-integration.md` | Codex via MCP transport at v0.1; native plugin design for v0.2 |
+| `codex-cli-integration.md` | `@onemem/codex-plugin` — bundled MCP memory tools plus optional trusted Codex hooks |
 | `mcp-server.md` | `@onemem/mcp` — the universal MCP server (Pillar 6) consumed by Cursor / Windsurf / Cline / OpenCode / VS Code Copilot / Antigravity / Codex |
-| `deferred-runtimes.md` | Per-runtime native plugins deferred to v0.2 (Codex native, Antigravity native) |
+| `deferred-runtimes.md` | Per-runtime native plugins still deferred to v0.2+ (currently Antigravity native) |
 
 ---
 
@@ -25,7 +29,7 @@ OneMem ships a plugin or MCP integration for every coding-agent runtime users ac
 | **Claude Code** | Native plugin + MCP | More slash commands | `../../02-inspirations/claude-mem/` + `../../03-target-runtimes/README.md` |
 | **OpenClaw** | Native plugin (uses `oc-memwal` underneath) | Feature-parity expansion | `../../02-inspirations/memwal-incubation/README.md` |
 | **Hermes Agent** | Standalone PyPI provider | Multi-provider composition | `../../03-target-runtimes/README.md` + `../../../TRACE_AND_PROVIDERS.md` §2 |
-| **Codex CLI** | Via `@onemem/mcp` | Native `.codex-plugin/plugin.json` plugin | `../../03-target-runtimes/codex-cli-deep.md` |
+| **Codex CLI** | Native Codex plugin with bundled `@onemem/mcp`; optional trusted hooks | Marketplace packaging + live hook proof | `../../03-target-runtimes/codex-cli-deep.md` |
 | **Cursor** | Via `@onemem/mcp` | (No native plugin SDK exists) | `../../03-target-runtimes/cursor-mcp-deep.md` |
 | **Windsurf** | Via `@onemem/mcp` | (No native plugin SDK) | (similar to Cursor) |
 | **OpenCode** | Via `@onemem/mcp` | TBD | (MCP-capable only) |
@@ -33,7 +37,8 @@ OneMem ships a plugin or MCP integration for every coding-agent runtime users ac
 | **VS Code Copilot** | Via `@onemem/mcp` | TBD | (MCP-capable only) |
 | **Antigravity** | Via `@onemem/mcp` | Native plugin once Google stabilizes SDK | `../../03-target-runtimes/antigravity-deep.md` |
 
-**Coverage at v0.1: 10 runtimes** (3 native + 7 via MCP server).
+**Coverage at v0.1: 10 runtimes** (4 native/plugin packages when counting
+Codex's MCP-first plugin + MCP server coverage for the rest).
 
 ---
 
@@ -56,8 +61,8 @@ The trace pillar (Pillar 1) defines `ActionCall` with PENDING → SUCCESS/FAILUR
 | Action | Claude Code | OpenClaw | Hermes | Codex | Cursor/etc (MCP) |
 |---|---|---|---|---|---|
 | Session begins | `SessionStart` → `trace.startSession()` | (no explicit session start; first `agent.turn` triggers it) | `initialize` → `trace.startSession()` | `SessionStart` → `trace.startSession()` | first `add_memory` MCP call lazily creates a session |
-| Tool call starts | `PreToolUse` → `trace.appendCall(PENDING)` | `agent.turn` → (collect tool calls during turn) | `handle_tool_call` → `trace.appendCall(PENDING)` | `PreToolUse` → `trace.appendCall(PENDING)` | (MCP tools wrap calls themselves; emit on tool entry) |
-| Tool call completes | `PostToolUse` → `trace.closeCall(SUCCESS)` | `agent.response` → `trace.closeCall(SUCCESS)` for each tool call in turn | (on return) → `trace.closeCall(SUCCESS)` | `PostToolUse` → `trace.closeCall(SUCCESS)` | (MCP tools wrap completion) |
+| Tool call starts | `PreToolUse` → `trace.appendCall(PENDING)` | `agent.turn` → (collect tool calls during turn) | `handle_tool_call` → `trace.appendCall(PENDING)` | no pending-open in current v0.1 hook path | (MCP tools wrap calls themselves; emit on tool entry) |
+| Tool call completes | `PostToolUse` → `trace.closeCall(SUCCESS)` | `agent.response` → `trace.closeCall(SUCCESS)` for each tool call in turn | (on return) → `trace.closeCall(SUCCESS)` | `PostToolUse` buffers completed calls; `Stop` flushes/appends/closes | (MCP tools wrap completion) |
 | Memory write (semantic) | hook intercepts user's explicit memory intent | `agent.response` extracts facts → `client.add()` | `sync_turn` extracts facts → `client.add()` | similar to Claude Code | explicit MCP tool: `add_memory` |
 | Memory recall | `PreToolUse(Read)` injection (mirror claude-mem pattern) | `before_prompt_build` → `client.search()` | `prefetch` → `client.search()` | `PreToolUse` injection | explicit MCP tool: `search_memory` |
 | Session ends | `Stop` → `trace.endSession()` | (no explicit end; session implicit) | `on_session_end` → `trace.endSession()` | `Stop` → `trace.endSession()` | (session ends on user-explicit MCP call or after timeout) |
@@ -98,9 +103,10 @@ This is the canonical mapping. Per-runtime docs reference back to this matrix.
 
 | Plugin | Status |
 |---|---|
-| `@onemem/claude-code-plugin` | ⏳ pending |
-| `@onemem/oc-onemem` (OpenClaw) | ⏳ pending |
-| `hermes-onemem` (Hermes PyPI) | ⏳ pending |
-| `@onemem/mcp` (universal MCP server) | ⏳ pending |
-| Codex via MCP wired | ⏳ pending |
-| Cursor / Windsurf / Antigravity via MCP docs | ⏳ pending |
+| `@onemem/claude-code-plugin` | Built; package tests pass; trusted live hook smoke remains separate proof |
+| `@onemem/oc-onemem` (OpenClaw) | Built; runtime-policy tests pass |
+| `hermes-onemem` (Hermes PyPI) | Built; package tests pass |
+| `@onemem/mcp` (universal MCP server) | Built and JSON-RPC verified |
+| `@onemem/codex-plugin` | Built; package tests pass; live hook proof pending |
+| Codex via MCP wired | Built through `packages/plugin-codex/.mcp.json` and manual config path |
+| Cursor / Windsurf / Antigravity via MCP docs | Universal MCP path documented; native runtime work deferred |

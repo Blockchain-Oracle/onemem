@@ -1,14 +1,14 @@
 [project]
 name = "onemem-crewai"
 version = "0.1.0"
-description = "OneMem provider for CrewAI — verifiable memory + trace for multi-agent crews"
+description = "OneMem provider for CrewAI — record crew runs as verifiable on-chain action traces"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 authors = [{ name = "OneMem contributors" }]
-dependencies = [
-    "onemem-sdk-python",
-    "crewai>=0.60",
-]
+# Pure-stdlib: the tracer receives CrewAI's callback objects and shells out to
+# the `onemem-trace` Node CLI (@onemem/sdk-ts) for the on-chain write — no
+# Python Sui/Walrus/Seal deps. crewai is the host runtime (provided), not a dep.
+dependencies = []
 
 [project.urls]
 Homepage = "https://onemem.ai"
@@ -19,6 +19,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["onemem_crewai"]
-
-[tool.uv.sources]
-onemem-sdk-python = { workspace = true }

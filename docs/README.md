@@ -1,5 +1,10 @@
 # OneMem Context Folder
 
+> Current note, 2026-06-17: this is a historical research/context archive from
+> the first architecture pass. It remains useful source material, but active
+> Context Engineering artifacts now live in `.thoughts/`
+> and the repo entrypoint for agents is `AGENTS.md`.
+
 **Purpose:** load-bearing reference material for architecture design + implementation.
 
 This folder is the *agent-consumable inspiration library* for OneMem. When we start designing the architecture or writing code, every relevant production reference is one read away — Mem0's provider patterns, claude-mem's viewer architecture, MemWal's source layout, Walrus + Seal + Sui patterns from the MystenLabs/sui repo, trace-viewer UX from LangSmith/Langfuse/Phoenix, plus the broader memory-systems + Web3-verifiable-AI landscape.
@@ -10,16 +15,20 @@ This folder is the *agent-consumable inspiration library* for OneMem. When we st
 
 ## How to use this folder
 
+For current work, first read `AGENTS.md`, then the relevant artifact in
+`.thoughts/`. Use this folder when you need the older
+research trail or architecture rationale.
+
 | When you're doing… | Read first | Then drill into… |
 |---|---|---|
 | Understanding the goal | `00-goal/GOAL.md` | nothing — goal is the entry |
-| Designing the Move contract | `01-sui-ecosystem/move-patterns-for-onemem.md` + `01-sui-ecosystem/memwal-deep-dive.md` | `05-our-architecture/move-contract.md` (WIP) |
-| Designing the JS/TS SDK | `02-inspirations/mem0/api-surface.md` + `02-inspirations/memwal-incubation/ts-sdk.md` | `05-our-architecture/sdk-design.md` (WIP) |
-| Designing the Python SDK | `02-inspirations/mem0/api-surface.md` + `02-inspirations/memwal-incubation/python-sdk.md` | `05-our-architecture/sdk-design.md` (WIP) |
-| Designing the trace data model | `02-inspirations/langsmith-langfuse/*.md` | `05-our-architecture/data-model.md` (WIP) |
-| Designing the dashboard UX | `02-inspirations/mem0/dashboard.md` + `02-inspirations/claude-mem/ui-viewer.md` + `02-inspirations/langsmith-langfuse/*.md` | `05-our-architecture/dashboard-design.md` (WIP) |
-| Per-runtime plugin design | `03-target-runtimes/<runtime>.md` | `05-our-architecture/plugin-design.md` (WIP) |
-| Per-framework provider design | `04-framework-providers/<framework>.md` | `05-our-architecture/integration-pattern.md` (WIP) |
+| Designing the Move contract | `01-sui-ecosystem/move-patterns-for-onemem.md` + `01-sui-ecosystem/memwal-deep-dive.md` | `05-our-architecture/01-protocol/` |
+| Designing the JS/TS SDK | `02-inspirations/mem0/README.md` + `02-inspirations/memwal-incubation/README.md` | `05-our-architecture/02-sdks/` |
+| Designing the Python SDK | `02-inspirations/mem0/README.md` + `02-inspirations/memwal-incubation/README.md` | `05-our-architecture/02-sdks/` |
+| Designing the trace data model | `02-inspirations/langsmith-langfuse/*.md` | `05-our-architecture/01-protocol/data-model.md` |
+| Designing the dashboard UX | `02-inspirations/BRAND_AND_SURFACES.md` + `02-inspirations/langsmith-langfuse/*.md` | `05-our-architecture/06-dashboard/` |
+| Per-runtime plugin design | `03-target-runtimes/README.md` | `05-our-architecture/03-runtimes/` |
+| Per-framework provider design | `04-framework-providers/README.md` | `05-our-architecture/04-frameworks/` |
 | Looking at competitors / landscape | `02-inspirations/MEMORY_SYSTEMS_COMPARISON.md` + `02-inspirations/other-memory-systems/WEB3_VERIFIABLE_AI_LANDSCAPE.md` | — |
 | Looking at Sui ecosystem docs | `01-sui-ecosystem/SUI_DOC_TREE.md` | per-topic deep dives in `01-sui-ecosystem/` |
 
@@ -110,30 +119,26 @@ context/
 | `02-inspirations/langsmith-langfuse/` | 🔄 in flight | Research agent populating now |
 | `03-target-runtimes/` | ✅ source material in `DEEP_DIVE.md` §2+§3 + `TRACE_AND_PROVIDERS.md` §2 (parent folder); needs sub-file split |
 | `04-framework-providers/` | ✅ source material in `MEM0_DEEP_DIVE.md` §2 + `TRACE_AND_PROVIDERS.md` §1 (parent folder); needs sub-file split |
-| `05-our-architecture/` | ⏳ pending | Written AFTER all inspiration is loaded — that's the design phase |
-| `06-references/` | ⏳ pending | URL lists; written last |
+| `05-our-architecture/` | historical archive | Written during the design phase; verify against current code |
+| `06-references/` | historical/archive | URL lists and external references |
 
 ---
 
-## Living documents in the parent folder (read alongside this folder)
+## Missing parent-folder research docs
 
-These predate the context folder structure. They are the "raw research" the context folder is being distilled from. Keep them — they're the source of truth.
-
-- `../WEDGE_REFINEMENT.md` — first pivot from generic "cross-tool MCP" to "MemWal-Bridge"
-- `../DEEP_DIVE.md` — 6-target research (MemWal source, oc-memwal teardown, Hermes plugin, claude-mem UI, audit landscape, names)
-- `../MEM0_DEEP_DIVE.md` — Mem0 architecture, 30+ integrations, dashboard inventory, ship velocity
-- `../TRACE_AND_PROVIDERS.md` — Mem0 provider patterns + trace pillar design
-- `../FINAL_WEDGE.md` — superseded by WEDGE_V2.md
-- `../WEDGE_V2.md` — current wedge (Pillar 2 reframed as trace+replay)
-- `../scores.json` — multiplicative-floor scoring (0.92 latest)
-- `../idea.md` — original greenfield candidate
+The original design pass referenced parent-folder files such as
+`WEDGE_REFINEMENT.md`, `DEEP_DIVE.md`, `MEM0_DEEP_DIVE.md`,
+`TRACE_AND_PROVIDERS.md`, `FINAL_WEDGE.md`, `WEDGE_V2.md`, `scores.json`, and
+`idea.md`. Those files are not present in this repo checkout. Use this copied
+and split `docs/` archive for historical source material, and use `.thoughts/`
+for active Context Engineering decisions.
 
 ---
 
 ## What this folder is NOT
 
-- ❌ A decision memo (those live in `../WEDGE_V2.md`)
-- ❌ A risk analysis (those live in `../FINAL_WEDGE.md` and `../WEDGE_V2.md`)
+- ❌ A current decision memo (active decisions live in `.thoughts/`)
+- ❌ A current risk analysis (active gaps live in `.thoughts/wiki/context-engineering-status.md`)
 - ❌ A pitch deck (TBD post-context-loading)
 - ❌ Architecture decisions (those go in `05-our-architecture/` AFTER inspiration is loaded)
 - ❌ A wedge framing or competitor analysis — this folder is for **complementary inspiration**, not for "how we beat X"

@@ -2,10 +2,11 @@
 
 OneMem ships into every coding-agent runtime that supports plugins or MCP. We use **native plugins** where they exist (deepest hooks; best UX) and **MCP transport** as the universal fallback.
 
-**Source-of-truth files:**
-- `../../DEEP_DIVE.md` §3 — Hermes Agent ABC + plugin discovery
-- `../../TRACE_AND_PROVIDERS.md` §2 — Hermes Mem0 reference impl + paste-ready OneMem shape
-- `../../WEDGE_REFINEMENT.md` "Per-runtime plugin integration model" — Claude Code / OpenClaw / Codex / Gemini hook contracts (verbatim)
+**Current source-of-truth files:**
+- Runtime package READMEs under `packages/plugin-*` and `packages/mcp-server/`.
+- Runtime source under `packages/plugin-*` and `packages/mcp-server/src/`.
+- Active status in `.thoughts/wiki/context-engineering-status.md`.
+- Historical design context under `docs/05-our-architecture/03-runtimes/`.
 
 ---
 
@@ -16,7 +17,7 @@ OneMem ships into every coding-agent runtime that supports plugins or MCP. We us
 | **Claude Code** | ✅ `.claude-plugin/plugin.json` | ✅ stdio | PreToolUse / PostToolUse / SessionStart / UserPromptSubmit / Stop | No (multi-plugin) | claude-mem (77.6k ⭐) coexists; Mem0 plugin exists | **v0.1** (native plugin + MCP) | 3 days |
 | **OpenClaw** | ✅ `openclaw.json` + `extensions: [...]` | ❌ uses native slot | `before_prompt_build` / `agent_end` + `registerTool` / `registerCli` / `registerService` | YES (typed slot, mutually exclusive) | `@mysten-incubation/oc-memwal` (Mysten, polished) + Mem0 OpenClaw plugin | **v0.1** (native plugin USING oc-memwal underneath as storage adapter) | 2 days |
 | **Hermes Agent** (Nous, 164k ⭐) | ✅ Python `MemoryProvider` ABC (standalone PyPI; "no in-tree providers" policy) | ❌ Python-only | `prefetch / queue_prefetch / sync_turn / on_turn_start / on_session_end / on_session_switch / on_delegation / on_memory_write / handle_tool_call / shutdown` + `get_tool_schemas / system_prompt_block` | YES (`memory_provider` config) | Bundled: builtin, honcho, mem0, supermemory, byterover, hindsight, holographic, openviking, retaindb | **v0.1** (standalone `hermes-onemem` PyPI) | 2-3 days |
-| **Codex CLI** | ✅ `.codex-plugin/plugin.json` + `hooks/hooks.json` | ✅ stdio | 10 events: SessionStart / SubagentStart / PreToolUse / PermissionRequest / PostToolUse / PreCompact / PostCompact / UserPromptSubmit / SubagentStop / Stop | No | None known | **v0.1 via MCP** (native plugin v0.2; requires user `plugin_hooks = true` opt-in) | 1 day (MCP); 3 days (native) |
+| **Codex CLI** | ✅ `.codex-plugin/plugin.json` + `hooks/hooks.json` | ✅ stdio | 10 events: SessionStart / SubagentStart / PreToolUse / PermissionRequest / PostToolUse / PreCompact / PostCompact / UserPromptSubmit / SubagentStop / Stop | No | Built-in Codex Memories / Chronicle local files (not a plugin) | **v0.1 plugin package** (`packages/plugin-codex`: bundled MCP baseline + optional trusted hooks) | Built; live hook proof pending |
 | **Cursor** | ❌ no plugin SDK | ✅ `.cursor/mcp.json` | MCP only | n/a | Mem0 MCP, claude-mem (via install flag) | **v0.1 via MCP** | 1 day |
 | **Windsurf** | ❌ no plugin SDK | ✅ `.windsurf/mcp.json` | MCP only | n/a | Mem0 MCP | **v0.1 via MCP** | 1 day |
 | **Gemini CLI** → **Antigravity** | ✅ `~/.gemini/settings.json` hooks | ✅ MCP | 10 events: SessionStart / SessionEnd / BeforeAgent / AfterAgent / BeforeModel / AfterModel / BeforeToolSelection / BeforeTool / AfterTool / PreCompress / Notification. Hooks output strict JSON via stdout. Exit code 2 = block. | No | None known | **v0.2** (Gemini sunsetting to Antigravity; build against Antigravity once stable) | Defer |
@@ -24,7 +25,8 @@ OneMem ships into every coding-agent runtime that supports plugins or MCP. We us
 | **VS Code (Copilot)** | ❌ MCP only | ✅ | MCP only | n/a | None — gap | **v0.2** | Trivial via MCP |
 | **Cline** | ❌ MCP only | ✅ | MCP only | n/a | OpenMemory MCP (sunsetting) | **v0.2** | Trivial via MCP |
 
-**v0.1 = 4 runtimes** (Claude Code + OpenClaw + Hermes + Codex via MCP). v0.2 expands coverage via the existing MCP server.
+**v0.1 = 4 runtime packages** (Claude Code + OpenClaw + Hermes + Codex).
+Other MCP-capable runtimes use the existing MCP server.
 
 ---
 
@@ -73,26 +75,29 @@ OneMem ships into every coding-agent runtime that supports plugins or MCP. We us
 - The bundled `Mem0MemoryProvider` is 893 byte README + 173 byte manifest + 14 KB implementation — our equivalent is ~1 day of work because the ABC does most of the design
 
 ### Codex CLI (`.codex-plugin/plugin.json`)
-- Plugin manifest with `"hooks": "./hooks/hooks.json"` declaration
-- 10 lifecycle events (same as Claude Code + SubagentStart/SubagentStop + PreCompact/PostCompact + PermissionRequest)
-- TOML config (`~/.codex/config.toml`):
-  ```toml
-  [features]
-  hooks = true
-  plugin_hooks = true   # off by default — distribution friction
-  
-  [[hooks.PreToolUse]]
-  command = "..."
-  matcher = "Bash|apply_patch|.*"
-  timeout = 600
-  ```
-- Env vars: `PLUGIN_ROOT`, `PLUGIN_DATA`, legacy `CLAUDE_PLUGIN_ROOT` (compat)
-- Trust model: non-managed hooks require explicit user review (recorded against hook hash)
-- **OneMem Codex plugin v0.1 = MCP transport** (`@onemem/mcp` server consumed via Codex's MCP support). v0.2 = full native plugin with hook capture for the trace pillar.
+- Current package: `packages/plugin-codex`.
+- Plugin manifest points at `./skills/` and `./.mcp.json`.
+- Bundled MCP server is the stable memory/search/verify/share path.
+- Optional hooks live at `hooks/hooks.json`; Codex auto-loads that default path.
+- Current optional hook set: `SessionStart`, `PostToolUse`, and `Stop`.
+- Env vars: `PLUGIN_ROOT`, `PLUGIN_DATA`, legacy `CLAUDE_PLUGIN_ROOT` and
+  `CLAUDE_PLUGIN_DATA` compatibility aliases.
+- Trust model: non-managed hooks require explicit user review and trust before
+  they run.
+- **OneMem Codex plugin v0.1 = MCP-first plugin package.** Full Claude Code
+  parity requires live Codex hook proof after `/hooks` trust.
+- **Codex Memories compatibility:** Codex now has built-in local Memories and
+  Chronicle. OneMem does not write `~/.codex/memories`; it is the verifiable,
+  portable, encrypted cross-runtime memory/trace layer exposed through MCP.
 
 ### Cursor / Windsurf (MCP only)
 - Both consume MCP via `.cursor/mcp.json` / `.windsurf/mcp.json`
-- OneMem ships as a stdio MCP server with: `add_memory`, `search_memory`, `get_memory`, `update_memory`, `delete_memory`, `replay_session`, `verify_trace`, `share_namespace`
+- OneMem ships as a stdio MCP server with:
+  `onemem_add_memory`, `onemem_search_memory`, `onemem_verify_trace`,
+  `onemem_trace_session`, `onemem_replay_session`, and
+  `onemem_share_namespace`.
+- `get/update/delete_memory` remain deferred because the current MemWal memory
+  primitive does not expose those operations.
 - Same MCP server serves Codex CLI, OpenCode, Cline, VS Code Copilot, Antigravity
 
 ### Gemini CLI → Antigravity (defer to v0.2)
@@ -113,7 +118,7 @@ For the trace pillar, the same `ActionCall` Sui object gets emitted from differe
 | Claude Code | `PreToolUse` opens call; `PostToolUse` closes with outputs | tool_name, inputs, outputs, started_at, ended_at |
 | OpenClaw | `agent.turn` opens; `agent.response` closes | same |
 | Hermes | `handle_tool_call` opens; on return closes; `on_delegation` adds parent_call_id when crossing agents | tool_name, inputs, outputs, parent_call_id |
-| Codex | `PreToolUse` + `PostToolUse` (same as Claude Code) | same |
+| Codex | `PostToolUse` buffers completed tool calls; `Stop` flushes, appends, closes calls, and ends the session | tool_name, inputs, outputs, success/failure |
 | Vercel AI SDK (framework, not runtime) | `wrapGenerate` / `wrapStream` middleware | tool_name, inputs, outputs |
 | LangChain (framework) | `BaseCallbackHandler` subclass `on_tool_start` / `on_tool_end` | same |
 
@@ -128,14 +133,16 @@ All converge into the same `ActionCall` Move object — cross-runtime trace stit
 | Claude Code | Anthropic plugin marketplace + GitHub + npm | Manifest submission; ~1-7 day review (verify Day-1) |
 | OpenClaw | `openclaw plugins install <pkg>` from npm | Direct npm publish |
 | Hermes | `pip install hermes-onemem` from PyPI | Direct PyPI publish; optional Nous plugin listing (don't gate v0.1 on it) |
-| Codex | MCP via `~/.codex/config.toml` — manual user config | None gating |
+| Codex | Codex plugin marketplace/local manifest with bundled MCP; manual `~/.codex/config.toml` remains a fallback | Local marketplace or public marketplace listing |
 | Cursor / Windsurf / Antigravity | MCP via `.cursor/mcp.json` etc. — `npx mcp-add` one-liner | None gating |
 
 ---
 
 ## Cross-references
 
-- Claude-mem plugin manifest example: `02-inspirations/claude-mem/README.md`
-- OpenClaw oc-memwal plugin teardown: `02-inspirations/memwal-incubation/README.md` + `../../DEEP_DIVE.md` §2
-- Hermes ABC + Mem0 reference impl: `../../DEEP_DIVE.md` §3 + `../../TRACE_AND_PROVIDERS.md` §2
-- Codex / Gemini hook contracts: `../../WEDGE_REFINEMENT.md` "Per-runtime plugin integration model"
+- Claude Code plugin package: `packages/plugin-claude-code/README.md`
+- OpenClaw plugin package: `packages/plugin-openclaw/README.md`
+- Hermes plugin package: `packages/plugin-hermes/README.md`
+- Codex plugin package: `packages/plugin-codex/README.md`
+- MCP server package: `packages/mcp-server/README.md`
+- Historical runtime designs: `docs/05-our-architecture/03-runtimes/`

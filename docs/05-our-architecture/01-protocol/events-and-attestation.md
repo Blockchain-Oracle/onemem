@@ -20,10 +20,10 @@ This is the file that makes the verifiability story actually credible.
 
 All defined in `module onemem::events`:
 
-### 1. `NamespaceCreated`
+### 1. `NamespaceCreatedEvent`
 
 ```move
-public struct NamespaceCreated has copy, drop {
+public struct NamespaceCreatedEvent has copy, drop {
     namespace_id: ID,
     owner: address,
     name: String,
@@ -35,48 +35,44 @@ public struct NamespaceCreated has copy, drop {
 
 Emitted by `namespace::create`. Authenticated.
 
-### 2. `NamespaceShared` (capability minted + transferred)
+### 2. `NamespaceCapabilityMintedEvent` (capability minted + transferred)
 
 ```move
-public struct NamespaceShared has copy, drop {
+public struct NamespaceCapabilityMintedEvent has copy, drop {
     namespace_id: ID,
-    capability_id: ID,
-    capability_kind: u8,  // 0 = ReadOnly, 1 = ReadWrite, 2 = Admin
-    granted_to: address,
-    granted_by: address,
-    granted_at: u64,
+    cap_id: ID,
+    kind_tag: u8,  // 0 = ReadOnly, 1 = ReadWrite, 2 = Admin
+    recipient: address,
 }
 ```
 
-Emitted by `namespace::mint_capability_*`. Authenticated.
+Emitted by `namespace::create` for the initial Admin cap and by
+`namespace::mint_capability_*` for recipient caps. The event does not store
+`granted_by` or a contract timestamp; indexers use Sui event metadata
+(`timestampMs`, tx digest, event sequence) for history timing/evidence.
 
-### 3. `NamespaceRevoked` (capability burned)
+### 3. `NamespaceCapabilityRevokedEvent` (capability burned)
 
 ```move
-public struct NamespaceRevoked has copy, drop {
+public struct NamespaceCapabilityRevokedEvent has copy, drop {
     namespace_id: ID,
-    capability_id: ID,
-    capability_kind: u8,
-    revoked_by: address,
-    revoked_at: u64,
+    cap_id: ID,
 }
 ```
 
-Emitted by `namespace::revoke_capability`. Authenticated.
+Emitted by `namespace::revoke_capability`. The revoke event only identifies the
+namespace and cap. Readers join it against the minted event by `cap_id` to
+recover kind/recipient and use Sui event metadata for revoke timing/evidence.
 
-### 4. `NamespaceDeactivated` / `NamespaceReactivated`
+### 4. `NamespaceDeactivatedEvent` / `NamespaceReactivatedEvent`
 
 ```move
-public struct NamespaceDeactivated has copy, drop {
+public struct NamespaceDeactivatedEvent has copy, drop {
     namespace_id: ID,
-    deactivated_by: address,
-    deactivated_at: u64,
 }
 
-public struct NamespaceReactivated has copy, drop {
+public struct NamespaceReactivatedEvent has copy, drop {
     namespace_id: ID,
-    reactivated_by: address,
-    reactivated_at: u64,
 }
 ```
 
@@ -263,7 +259,7 @@ For namespace lifecycle events (`Created`, `Shared`, `Revoked`, `Deactivated`), 
 
 Per `../../02-inspirations/claude-mem/HOOKS_AND_VIEWER_REFERENCE.md`, the dashboard subscribes via SSE. The SSE server filters Sui events by:
 - `package_id == ONEMEM_PACKAGE_ID`
-- `event_type IN (ActionCallEmitted, ActionCallClosed, TraceSessionStarted, TraceSessionEnded, NamespaceCreated, NamespaceShared, NamespaceRevoked, MemoryWritten)`
+- `event_type IN (ActionCallEmitted, ActionCallClosed, TraceSessionStarted, TraceSessionEnded, NamespaceCreatedEvent, NamespaceCapabilityMintedEvent, NamespaceCapabilityRevokedEvent, MemoryWritten)`
 
 Per-user filtering: SSE server applies `event.namespace_id IN (user's owned + shared namespaces)`.
 

@@ -17,4 +17,9 @@ Walks you through which packages changed and how (major/minor/patch), then write
 
 ## Python packages
 
-Python packages (`onemem-sdk-python`, `hermes-onemem`, etc.) are published to PyPI via a parallel custom script in `scripts/publish-all.sh`, NOT via Changesets directly. They still get a Markdown note here for visibility; the script reads the note metadata.
+Python packages (`onemem-sdk-python`, `hermes-onemem`, etc.) are published to
+PyPI via `bash scripts/publish-all.sh python`, NOT via Changesets directly.
+Changeset notes are still useful release context, but the current script does
+not parse changeset metadata; it builds and publishes the Python package list
+defined in the script and lets `uv publish` skip already-present identical PyPI
+files or fail on real publish errors.

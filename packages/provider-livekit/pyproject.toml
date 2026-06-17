@@ -1,14 +1,14 @@
 [project]
 name = "onemem-livekit"
 version = "0.1.0"
-description = "OneMem provider for LiveKit Agents — verifiable trace for voice agents"
+description = "OneMem provider for LiveKit Agents — record voice-agent sessions as verifiable on-chain traces"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 authors = [{ name = "OneMem contributors" }]
-dependencies = [
-    "onemem-sdk-python",
-    "livekit-agents>=0.10",
-]
+# Pure-stdlib: the tracer listens to LiveKit AgentSession events and shells out
+# to the `onemem-trace` Node CLI (@onemem/sdk-ts) for the on-chain write — no
+# Python Sui/Walrus/Seal deps. livekit-agents is the host runtime (provided).
+dependencies = []
 
 [project.urls]
 Homepage = "https://onemem.ai"
@@ -19,6 +19,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["onemem_livekit"]
-
-[tool.uv.sources]
-onemem-sdk-python = { workspace = true }

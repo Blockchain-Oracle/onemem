@@ -1,0 +1,44 @@
+---
+title: "Verify"
+description: "What chain verification proves — and what it doesn't"
+---
+
+# Verify
+
+Verification re-derives a session's Merkle chain **from chain data alone** and compares the computed root to the on-chain root. It needs **no signer, no Walrus, no Seal** — anyone can run it.
+
+## From the CLI
+
+```bash
+onemem verify <session-id>
+```
+
+## In code
+
+```ts
+import { verifyTraceChain } from "@onemem/sdk-ts";
+import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+
+const client = new SuiJsonRpcClient({ network: "testnet", url });
+const result = await verifyTraceChain(client, packageId, sessionId);
+// → { ok, brokenAt, expectedMerkleRoot, computedMerkleRoot, callCount, sessionStatus }
+```
+
+## On the web
+
+Visit `app.onemem.ai/verify/<session-id>` — a public page (no login) that runs the same check and lights up green when the chain holds.
+
+## What it proves
+
+<CardGroup cols={2}>
+  <Card title="Proven" icon="check">
+    The calls are intact, in order, and the committed chain matches the on-chain root — nothing inserted, dropped, or tampered.
+  </Card>
+  <Card title="Not proven" icon="xmark">
+    That the agent *honestly recorded* its activity. That requires the delegate-key holder's honesty (or a future TEE relayer).
+  </Card>
+</CardGroup>
+
+<Note>
+Verification reveals only what's already public on Sui — the on-chain hashes. The Walrus blob contents stay Seal-encrypted, so verifying a trace never leaks private data.
+</Note>

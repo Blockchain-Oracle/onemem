@@ -1,13 +1,26 @@
 {
   "name": "@onemem/claude-code-plugin",
   "version": "0.1.0",
-  "description": "OneMem plugin for Claude Code — captures hooks (PostToolUse / UserPromptSubmit / etc) into verifiable on-chain traces",
+  "description": "OneMem plugin for Claude Code — captures SessionStart, PostToolUse, and SessionEnd hooks into verifiable on-chain traces",
   "license": "Apache-2.0",
   "type": "module",
+  "homepage": "https://github.com/Blockchain-Oracle/onemem/tree/main/packages/plugin-claude-code",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Blockchain-Oracle/onemem.git",
+    "directory": "packages/plugin-claude-code"
+  },
+  "bugs": {
+    "url": "https://github.com/Blockchain-Oracle/onemem/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     ".claude-plugin",
     "hooks",
     "scripts",
+    "skills",
     "README.md",
     "LICENSE"
   ],

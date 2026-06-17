@@ -1,0 +1,19 @@
+/* OneMem dashboard global styles — the designer's cdr-kit design system,
+   ported verbatim and consumed by the React components (same class names).
+   Order matters: tokens → cards → app shell → per-surface. */
+@import "../styles/cdr-tokens.css";
+@import "../styles/cdr-cards.css";
+@import "../styles/onemem.css";
+@import "../styles/dash.css";
+@import "../styles/trace.css";
+
+/* A late-injected reset (`body{background:#fff;color:#000}`) ships in the bundle
+   and would otherwise pin the page to light. Re-assert the themed surface so
+   light AND dark both paint from the cdr-kit tokens. */
+html {
+  background: var(--paper);
+}
+body {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+}

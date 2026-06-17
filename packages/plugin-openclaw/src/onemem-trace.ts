@@ -1,42 +1,75 @@
 // OneMem trace recorder for the OpenClaw plugin.
 //
 // An OpenClaw plugin runs in one long-lived process, so per-session trace state
-// lives in an in-memory map (no cross-process file needed, unlike the Claude
-// Code hooks). Defensive throughout: a OneMem failure must never break the
-// agent, so callers swallow errors.
+// lives in an in-memory map. Defensive throughout: a OneMem failure must never
+// break the agent, so callers swallow errors.
+//
+// Design (matches the verifiable-execution reference plugin): OpenClaw does not
+// reliably expose a `session_start` hook, so we NEVER pre-allocate on-chain.
+// Tool/LLM calls are buffered lazily (the session map entry is created on first
+// sight of a sessionKey), and ALL on-chain work — provisioning, startSession,
+// the Merkle-chained ActionCalls, endSession — is deferred to the single
+// `agent_end` flush.
+//
+// Zero-config: namespace/cap/signer are auto-resolved + auto-provisioned (see
+// provision.ts) so a user never has to copy IDs or wire env.
 
-import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
-import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { OneMem, recordSession, shouldTraceRuntime } from "@onemem/sdk-ts/runtime";
 
-import { CallStatus, OneMem, SessionStatus } from "@onemem/sdk-ts";
+import { ensureTarget, type ProvisionedTarget, resolveSigner } from "./provision.js";
+
+const NETWORKS = ["testnet", "mainnet", "devnet", "local"] as const;
+type Network = (typeof NETWORKS)[number];
 
 export interface TraceConfig {
-  namespaceId: string;
-  rwCapId: string;
-  network: "testnet" | "mainnet" | "devnet" | "local";
+  /**
+   * Explicit trace target. Both ids travel as a pair (a target is meaningless
+   * with only one), so they're modeled as one optional object — absent means
+   * "auto-provision + persist at first flush".
+   */
+  target?: ProvisionedTarget;
+  network: Network;
   privateKey?: string;
 }
 
-/** OneMem config from env, or null (plugin then records nothing). */
-export function loadConfig(): TraceConfig | null {
-  const namespaceId = process.env.ONEMEM_NAMESPACE_ID;
-  const rwCapId = process.env.ONEMEM_RW_CAP_ID;
-  if (!namespaceId || !rwCapId) return null;
-  return {
-    namespaceId,
-    rwCapId,
-    network: (process.env.SUI_NETWORK as TraceConfig["network"]) ?? "testnet",
-    privateKey: process.env.ONEMEM_PRIVATE_KEY,
-  };
+/** Raw config bag from OpenClaw's `api.pluginConfig` (all optional). */
+export interface PluginConfigOverrides {
+  namespaceId?: unknown;
+  rwCapId?: unknown;
+  network?: unknown;
+  privateKey?: unknown;
 }
 
-function loadSigner(privateKey?: string): Ed25519Keypair {
-  if (privateKey) return Ed25519Keypair.fromSecretKey(privateKey);
-  const path = join(homedir(), ".sui", "sui_config", "sui.keystore");
-  const entries = JSON.parse(readFileSync(path, "utf8")) as string[];
-  return Ed25519Keypair.fromSecretKey(Buffer.from(entries[0]!, "base64").subarray(1));
+/** Minimal logger surface (OpenClaw's `api.logger`) so lifecycle is visible. */
+export interface TraceLogger {
+  info?: (msg: string) => void;
+  warn?: (msg: string) => void;
+}
+
+function str(...vals: unknown[]): string | undefined {
+  for (const v of vals) if (typeof v === "string" && v.length > 0) return v;
+  return undefined;
+}
+
+/**
+ * Resolve OneMem config from `api.pluginConfig` first, then env. Always returns
+ * a config (the plugin is zero-config: a missing namespace/cap is provisioned at
+ * flush time, not a reason to stay inert).
+ */
+export function loadConfig(overrides?: PluginConfigOverrides): TraceConfig {
+  const rawNetwork = str(overrides?.network, process.env.SUI_NETWORK);
+  const network = (NETWORKS as readonly string[]).includes(rawNetwork ?? "")
+    ? (rawNetwork as Network)
+    : "testnet";
+  const namespaceId = str(overrides?.namespaceId, process.env.ONEMEM_NAMESPACE_ID);
+  const rwCapId = str(overrides?.rwCapId, process.env.ONEMEM_RW_CAP_ID);
+  return {
+    // Only an explicit target when BOTH ids are present; a half-configured pair
+    // is treated as "unconfigured" → auto-provision.
+    target: namespaceId && rwCapId ? { namespaceId, rwCapId } : undefined,
+    network,
+    privateKey: str(overrides?.privateKey, process.env.ONEMEM_PRIVATE_KEY),
+  };
 }
 
 interface BufferedCall {
@@ -45,94 +78,105 @@ interface BufferedCall {
   output: unknown;
 }
 
-interface SessionEntry {
-  onememSessionId: string;
-  calls: BufferedCall[];
-}
+const RUNTIME_ID = "openclaw";
 
 /**
- * Records OpenClaw agent activity as a verifiable OneMem trace: open a session
- * per agent run, buffer tool calls, flush them as Merkle-chained ActionCalls at
- * the end. One recorder instance per plugin process.
+ * Records OpenClaw agent activity as a verifiable OneMem trace: buffer every
+ * tool/LLM call per session, then flush them as one TraceSession of
+ * Merkle-chained ActionCalls at agent_end. One recorder instance per plugin
+ * process.
  */
 export class TraceRecorder {
   private client: OneMem | null = null;
-  private readonly sessions = new Map<string, SessionEntry>();
+  // Memoized so concurrent agent_end flushes await ONE provisioning attempt
+  // (otherwise two sessions ending together could each mint a namespace).
+  private targetPromise: Promise<ProvisionedTarget | null> | null = null;
+  private readonly buffers = new Map<string, BufferedCall[]>();
 
-  constructor(private readonly config: TraceConfig) {}
+  constructor(
+    private readonly config: TraceConfig,
+    private readonly logger?: TraceLogger,
+  ) {}
+
+  private traceEnabled(): boolean {
+    try {
+      return shouldTraceRuntime(RUNTIME_ID);
+    } catch (err) {
+      this.logger?.warn?.(
+        `[oc-onemem] trace skipped: runtime controls unreadable: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+      return false;
+    }
+  }
 
   private async getClient(): Promise<OneMem> {
     if (!this.client) {
       this.client = await OneMem.create({
         network: this.config.network,
-        signer: loadSigner(this.config.privateKey),
+        signer: resolveSigner(this.config.privateKey, this.logger),
       });
     }
     return this.client;
   }
 
-  /** agent_start → open a OneMem TraceSession for this agent run. */
-  async start(sessionKey: string): Promise<void> {
+  /** Buffer a captured call, lazily creating the session entry. */
+  record(sessionKey: string, call: BufferedCall): void {
+    if (!this.traceEnabled()) return;
+    const buf = this.buffers.get(sessionKey);
+    if (buf) buf.push(call);
+    else this.buffers.set(sessionKey, [call]);
+  }
+
+  /**
+   * agent_end → flush the buffered calls as one on-chain TraceSession
+   * (startSession → appendCall/closeCall chain → endSession). Returns the
+   * on-chain session id, or null if nothing was buffered / on a failure.
+   */
+  async end(sessionKey: string): Promise<string | null> {
+    const calls = this.buffers.get(sessionKey);
+    if (!calls || calls.length === 0) {
+      this.buffers.delete(sessionKey);
+      return null;
+    }
+    this.buffers.delete(sessionKey);
+    if (!this.traceEnabled()) {
+      this.logger?.info?.(
+        `[oc-onemem] skipped ${calls.length} buffered call(s); runtime controls disabled tracing`,
+      );
+      return null;
+    }
     try {
-      if (this.sessions.has(sessionKey)) return;
       const onemem = await this.getClient();
-      const session = await onemem.traces.startSession({
-        namespaceId: this.config.namespaceId,
-        rwCapId: this.config.rwCapId,
+      this.targetPromise ??= ensureTarget(onemem, this.config, this.logger);
+      const target = await this.targetPromise;
+      if (!target) {
+        // Provisioning unavailable (e.g. unfunded signer). ensureTarget already
+        // warned with the cause; note here that THIS session's buffer is dropped
+        // (it was removed above), and clear the memo so a later flush retries.
+        this.logger?.warn?.(
+          `[oc-onemem] dropping ${calls.length} buffered call(s); no trace target`,
+        );
+        this.targetPromise = null;
+        return null;
+      }
+
+      const { sessionId } = await recordSession(onemem, {
+        target,
         agentId: "openclaw",
         environment: "openclaw",
-        sdkVersion: "0.1.0",
+        calls,
       });
-      this.sessions.set(sessionKey, { onememSessionId: session.sessionId, calls: [] });
-    } catch {
-      // never break the agent
-    }
-  }
-
-  /** tool_execution_end → buffer the tool call (flushed on agent_end). */
-  record(sessionKey: string, call: BufferedCall): void {
-    this.sessions.get(sessionKey)?.calls.push(call);
-  }
-
-  /** agent_end → flush buffered calls as ActionCalls + close the session. */
-  async end(sessionKey: string): Promise<string | null> {
-    const entry = this.sessions.get(sessionKey);
-    if (!entry) return null;
-    this.sessions.delete(sessionKey);
-    try {
-      const onemem = await this.getClient();
-      const enc = (v: unknown) =>
-        new TextEncoder().encode(typeof v === "string" ? v : JSON.stringify(v ?? ""));
-      let parentCallId: string | null = null;
-      for (const call of entry.calls) {
-        const emitted = await onemem.traces.appendCall({
-          sessionId: entry.onememSessionId,
-          namespaceId: this.config.namespaceId,
-          rwCapId: this.config.rwCapId,
-          parentCallId,
-          toolName: call.toolName,
-          toolNamespace: "openclaw",
-          inputContent: enc(call.input),
-          encrypt: true,
-        });
-        await onemem.traces.closeCall({
-          sessionId: entry.onememSessionId,
-          rwCapId: this.config.rwCapId,
-          namespaceId: this.config.namespaceId,
-          callId: emitted.callId,
-          outputContent: enc(call.output),
-          encrypt: true,
-          status: CallStatus.Success,
-        });
-        parentCallId = emitted.callId;
-      }
-      await onemem.traces.endSession({
-        sessionId: entry.onememSessionId,
-        rwCapId: this.config.rwCapId,
-        status: SessionStatus.Completed,
-      });
-      return entry.onememSessionId;
-    } catch {
+      return sessionId;
+    } catch (err) {
+      // Defensive: never break the host agent. But a failure here means we
+      // built a full trace and lost it on write — surface it so an operator
+      // can see it (the return value alone can't distinguish this from "nothing
+      // buffered").
+      this.logger?.warn?.(
+        `[oc-onemem] trace flush failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
       return null;
     }
   }
