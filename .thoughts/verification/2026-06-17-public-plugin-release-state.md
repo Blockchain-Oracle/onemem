@@ -2,18 +2,22 @@
 
 ## Verdict
 
-Conditional pass.
+Pass for GitHub marketplace publication; conditional fail for npm registry
+publication.
 
 The repo-local plugin package and marketplace shapes verify cleanly for Codex
-and Claude Code. Npm package dry-runs are clean. Public GitHub install from
-`Blockchain-Oracle/onemem` without a ref still fails today because `main` does
-not yet contain the new marketplace manifests and Codex plugin package. Npm
-upload is blocked by invalid npm authentication in this shell. Codex's stable
-MCP layer remains publishable, and the optional hook scripts now run from a
-clean Codex plugin cache without a workspace SDK symlink by flushing through the
-published `@onemem/sdk-ts@0.6.0` trace CLI. Full automatic Codex trace coverage
-is still not production-claimed until a trusted `/hooks` session emits and
-verifies a real on-chain OneMem `TraceSession`.
+and Claude Code, and the verified release commit has been pushed to both
+`pillar-3-plugins` and `main`. Public GitHub marketplace installs from
+`Blockchain-Oracle/onemem` now pass without a branch/ref suffix for Codex and
+Claude Code. Npm package dry-runs are clean, but npm upload is blocked because
+local npm auth is invalid, the repository has no `NPM_TOKEN` GitHub secret, and
+the release workflow's OIDC path still requires npm-side trusted publisher
+configuration plus an npm/Node runtime that supports trusted publishing.
+Codex's stable MCP layer remains installable, and the optional hook scripts run
+from a clean Codex plugin cache without a workspace SDK symlink by flushing
+through the published `@onemem/sdk-ts@0.6.0` trace CLI. Full automatic Codex
+trace coverage is still not production-claimed until a trusted `/hooks` session
+emits and verifies a real on-chain OneMem `TraceSession`.
 
 ## Artifacts Checked
 
@@ -30,12 +34,13 @@ verifies a real on-chain OneMem `TraceSession`.
 
 ## Requirement Traceability
 
-- Public Codex marketplace shape: implemented locally in
-  `.agents/plugins/marketplace.json` and verified through a temporary clean
-  `CODEX_HOME` local checkout install.
-- Public Claude Code marketplace shape: implemented locally in
+- Public Codex marketplace shape: implemented in
+  `.agents/plugins/marketplace.json` and verified through temporary clean
+  `CODEX_HOME` installs from both a local checkout and the public default branch.
+- Public Claude Code marketplace shape: implemented in
   `.claude-plugin/marketplace.json` and verified through `claude plugin
-  validate . --strict` plus a temporary clean `HOME` local checkout install.
+  validate . --strict` plus temporary clean `HOME` installs from both a local
+  checkout and the public default branch.
 - Plugin package contents: verified by `npm publish --dry-run --access public`
   for `@onemem/codex-plugin@0.1.0` and
   `@onemem/claude-code-plugin@0.1.0`.
@@ -51,16 +56,18 @@ verifies a real on-chain OneMem `TraceSession`.
 
 - AC1: Codex can install the plugin from a marketplace root containing
   `.agents/plugins/marketplace.json`.
-  Evidence: temporary `CODEX_HOME` local checkout marketplace add/install
-  passed.
+  Evidence: temporary `CODEX_HOME` local checkout and public
+  `Blockchain-Oracle/onemem` marketplace add/install passed.
 - AC2: Claude Code can install the plugin from a marketplace root containing
   `.claude-plugin/marketplace.json`.
-  Evidence: temporary `HOME` local checkout marketplace add/install passed.
-- AC3: Public GitHub marketplace install from default branch is not claimed.
-  Evidence: clean Codex and Claude Code public GitHub install tests both failed
-  against current `main` because the manifests are not present there.
+  Evidence: temporary `HOME` local checkout and public
+  `Blockchain-Oracle/onemem` marketplace add/install passed.
+- AC3: Public GitHub marketplace install from default branch is claimed.
+  Evidence: clean Codex and Claude Code public GitHub install tests both passed
+  after `main` was fast-forwarded to the verified release commit.
 - AC4: Npm packages are ready to publish but not published from this shell.
-  Evidence: dry-runs passed; `npm whoami` returns `E401`.
+  Evidence: dry-runs passed; `npm whoami` returns `E401`; `gh secret list`
+  returns no repository secrets; release workflow failed with npm `ENEEDAUTH`.
 - AC5: Clean Codex hook lifecycle no longer depends on workspace symlinks.
   Evidence: installed plugin-cache scripts emitted a valid trace payload through
   a fake `ONEMEM_TRACE_CLI`.
@@ -158,19 +165,46 @@ HOME="$tmp/home" claude plugin list
 
 Result: passed.
 
+```bash
+CODEX_HOME="$tmp/codex-home" codex plugin marketplace add Blockchain-Oracle/onemem --json
+CODEX_HOME="$tmp/codex-home" codex plugin add onemem-codex@onemem --json
+```
+
+Result: passed from public `main`.
+
+```bash
+HOME="$tmp/claude-home" claude plugin marketplace add Blockchain-Oracle/onemem --sparse .claude-plugin packages/plugin-claude-code
+HOME="$tmp/claude-home" claude plugin install onemem@onemem
+HOME="$tmp/claude-home" claude plugin list
+```
+
+Result: passed from public `main`; plugin `onemem@onemem` installed and enabled.
+
+```bash
+gh run view 27709795260 --repo Blockchain-Oracle/onemem --log-failed
+```
+
+Result: release workflow failed in `changesets/action` publish step. It found no
+`NPM_TOKEN`, attempted OIDC, then npm returned `ENEEDAUTH` for unpublished
+packages including `@onemem/codex-plugin@0.1.0` and
+`@onemem/claude-code-plugin@0.1.0`.
+
 ## Deviations From Plan
 
 - Direct npm upload was not attempted after `npm whoami` returned `E401`.
-- Public default-branch install was tested and failed before branch publication;
-  the failure is recorded as a blocker rather than hidden behind local install
-  proof.
+- Public default-branch install initially failed before branch publication, then
+  passed after the verified release commit was pushed to `main`.
+- The first Release workflow run failed because npm authentication/trusted
+  publishing was not actually usable.
 
 ## Gaps And Risks
 
-- The public GitHub commands without `--ref` require these files to land on
-  `main`.
-- The configured npm token in `~/.npmrc` is unusable; a valid token or CI secret
-  is required for registry publication.
+- The public GitHub commands without `--ref` are now working from `main`.
+- The configured npm token in `~/.npmrc` is unusable; no `NPM_TOKEN` repository
+  secret is present; npm registry publication requires either a valid secret or
+  npm trusted publisher entries for the packages and workflow.
+- The release workflow was still using Node 20/npm 10 before the follow-up fix;
+  npm docs require npm 11.5.1+ and Node 22.14+ for trusted publishing.
 - Full Codex hook trace coverage still needs a real trusted `/hooks` session and
   on-chain OneMem `TraceSession` verification.
 - Codex hook trace coverage still needs live trusted `/hooks` proof against a
@@ -179,22 +213,23 @@ Result: passed.
 
 ## Follow-ups
 
-- Push the focused branch commit and verify GitHub marketplace install with
-  `--ref pillar-3-plugins`.
-- Merge or fast-forward the marketplace commit to `main`, then verify the same
-  GitHub marketplace commands without `--ref`.
-- Restore npm auth or rely on a valid `NPM_TOKEN` GitHub secret, then publish
-  the plugin packages and confirm `npm view` returns the published versions.
+- Configure npm registry authentication: either add a valid `NPM_TOKEN` repo
+  secret or configure npm trusted publishers for `release.yml` on npmjs.com.
+- Re-run the Release workflow after auth is configured, then confirm `npm view`
+  returns versions for `@onemem/codex-plugin` and
+  `@onemem/claude-code-plugin`.
 - Run live trusted Codex hook proof and verify the emitted session on-chain.
 - Consider replacing `npx` Stop flushing with a warm worker if real Codex
   sessions show unacceptable Stop-hook latency.
 
 ## Evidence Log
 
-- Clean public Codex install from `Blockchain-Oracle/onemem`: failed because the
-  fetched default branch has no supported Codex marketplace manifest.
-- Clean public Claude install from `Blockchain-Oracle/onemem`: failed because
-  `.claude-plugin/marketplace.json` is absent from the fetched default branch.
+- Clean public Codex install from `Blockchain-Oracle/onemem`: initially failed
+  before branch publication; passed after `main` was fast-forwarded.
+- Clean public Claude install from `Blockchain-Oracle/onemem`: initially failed
+  before branch publication; passed after `main` was fast-forwarded.
 - `npm whoami`: `E401`.
 - `npm view @onemem/codex-plugin`: `E404`.
 - `npm view @onemem/claude-code-plugin`: `E404`.
+- `gh secret list --repo Blockchain-Oracle/onemem`: `[]`.
+- Release run `27709795260`: failed with npm `ENEEDAUTH`.

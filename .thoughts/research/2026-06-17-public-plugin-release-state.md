@@ -24,24 +24,26 @@ Codex and Claude Code plugin packages.
   - `.claude-plugin/marketplace.json`
   - `packages/plugin-codex/`
   - `packages/plugin-claude-code/`
-  - `.github/workflows/release.yml`
+- `.github/workflows/release.yml`
+- `gh secret list --repo Blockchain-Oracle/onemem --json name,updatedAt`
+- `gh run view 27709795260 --repo Blockchain-Oracle/onemem --log-failed`
+- npm trusted publishing docs, checked 2026-06-17:
+  `https://docs.npmjs.com/trusted-publishers/`
 
 ## Verified Facts
 
 - GitHub auth is present for `Blockchain-Oracle`, and
   `Blockchain-Oracle/onemem` is a public repository with default branch `main`.
-- `origin/main` contains the older `packages/plugin-claude-code/` package but
-  does not contain root `.claude-plugin/marketplace.json`.
-- `origin/main` does not contain `.agents/plugins/marketplace.json` or
+- Before branch publication, `origin/main` contained the older
+  `packages/plugin-claude-code/` package but did not contain root
+  `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, or
   `packages/plugin-codex/`.
-- A clean Codex public marketplace install from `Blockchain-Oracle/onemem`
-  currently fails because the fetched default branch does not contain a
-  supported Codex marketplace manifest.
-- A clean Claude Code public marketplace install from
-  `Blockchain-Oracle/onemem` currently fails because the fetched default branch
-  does not contain `.claude-plugin/marketplace.json`.
-- The working tree contains local marketplace manifests and the Codex plugin
-  package, but they are not yet present on the public default branch.
+- After commit `1d85581` was pushed to `pillar-3-plugins` and fast-forwarded to
+  `main`, clean Codex public marketplace install from
+  `Blockchain-Oracle/onemem` passed without `--ref`.
+- After commit `1d85581` was pushed to `main`, clean Claude Code public
+  marketplace install from `Blockchain-Oracle/onemem` passed with sparse paths
+  `.claude-plugin packages/plugin-claude-code`.
 - `~/.npmrc` contains an npm registry auth token entry, but `npm whoami`
   returns `E401`; the token is invalid, expired, or lacks access.
 - `NPM_TOKEN` and `NODE_AUTH_TOKEN` are not present in this shell.
@@ -49,6 +51,19 @@ Codex and Claude Code plugin packages.
   published on npm.
 - `.github/workflows/release.yml` is wired to publish npm packages from CI with
   `${{ secrets.NPM_TOKEN }}` through Changesets.
+- `gh secret list --repo Blockchain-Oracle/onemem --json name,updatedAt`
+  returned `[]`; the repository currently has no configured `NPM_TOKEN` secret.
+- The Release workflow run created by pushing `main` failed in the
+  `changesets/action` publish step. Logs show `NPM_TOKEN:` empty, Changesets
+  attempted OIDC, and npm returned `ENEEDAUTH` while trying to publish
+  unpublished packages including `@onemem/codex-plugin@0.1.0` and
+  `@onemem/claude-code-plugin@0.1.0`.
+- Official npm trusted publishing docs state that trusted publishing requires
+  npm CLI `11.5.1` or later and Node `22.14.0` or higher, plus a trusted
+  publisher configured on npmjs.com for the package/workflow.
+- The repo's mise toolchain used Node `20.18.0` and npm `10.8.2` during the
+  failed release, so the workflow needed a release-only Node/npm upgrade even
+  if npm-side trusted publisher configuration is added.
 - An initial temporary local Codex marketplace install created a plugin cache
   entry for `onemem-codex@onemem` with an empty copied
   `node_modules/@onemem` scope; the workspace symlink to `@onemem/sdk-ts` was
@@ -66,16 +81,18 @@ Codex and Claude Code plugin packages.
 
 ## Inferences
 
-- The repo-local package work is not enough for public installation until the
-  relevant marketplace manifests and plugin package files are committed and
+- The repo-local package work was not enough for public installation until the
+  relevant marketplace manifests and plugin package files were committed and
   pushed to the branch users fetch.
-- For production one-line install commands without `--ref`, the changes must
-  land on `main`, because both Codex and Claude Code default to the repository's
-  default branch for `owner/repo` marketplace sources.
+- Production one-line install commands without `--ref` require `main`, because
+  both Codex and Claude Code default to the repository's default branch for
+  `owner/repo` marketplace sources. This is now satisfied.
 - Npm publication from this shell is blocked by external authentication, not by
   package metadata alone.
-- CI may be able to publish the npm packages if the repository secret
-  `NPM_TOKEN` is valid, but that cannot be proven from this shell.
+- CI cannot currently publish with a token because the repository has no
+  `NPM_TOKEN` secret. CI may publish through OIDC only after npm trusted
+  publisher settings are configured and the workflow uses a supported npm/Node
+  runtime.
 - The Codex plugin's stable MCP layer is not affected by the missing copied SDK
   dependency because `.mcp.json` launches `npx -y @onemem/mcp@latest`.
 - The Codex optional hook layer no longer depends on a workspace symlink in the
@@ -84,9 +101,11 @@ Codex and Claude Code plugin packages.
 
 ## Unknowns And Questions
 
-- Whether GitHub Actions currently has a valid `NPM_TOKEN` secret.
-- Whether the current dirty branch should be merged directly to `main` or opened
-  as a PR after focused release verification.
+- Whether npm trusted publisher settings exist for any `@onemem/*` packages on
+  npmjs.com.
+- Whether the npm organization/scope can publish first versions of new packages
+  by trusted publishing alone, or whether first publish requires a token/account
+  publish.
 - Whether full trusted Codex hook execution will succeed after the user reviews
   `/hooks`; package simulation tests do not prove hook trust in a real Codex
   session.
@@ -96,5 +115,6 @@ Codex and Claude Code plugin packages.
 ## Not Included
 
 - No npm upload was completed because npm auth is currently invalid.
-- No direct push to `main` was performed in this research step.
+- `main` was later fast-forwarded after verification, and public default-branch
+  marketplace installs passed.
 - No live trusted Codex `/hooks` on-chain trace proof was performed.

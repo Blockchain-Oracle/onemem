@@ -27,6 +27,15 @@ jobs:
         with:
           experimental: true
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - name: Use npm version with trusted publishing support
+        run: npm install -g npm@latest
+
       - name: Install deps
         run: |
           pnpm install --frozen-lockfile
@@ -34,6 +43,12 @@ jobs:
 
       - name: Build
         run: pnpm turbo run build
+
+      - name: Verify publish toolchain
+        run: |
+          node --version
+          npm --version
+          pnpm --version
 
       - name: Create Release PR or publish to npm
         id: changesets
