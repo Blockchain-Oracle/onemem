@@ -165,6 +165,30 @@ describe("OneMem monorepo structure", () => {
         assert.ok(exists(`.github/workflows/${w}`), `expected workflow: ${w}`);
       });
     }
+
+    test("release workflow uses provenance-aware TS publish script", () => {
+      const workflow = readFileSync(join(ROOT, ".github/workflows/release.yml"), "utf8");
+      assert.match(
+        workflow,
+        /publish:\s*bash scripts\/publish-all\.sh ts/,
+        "Changesets release must route TS publishing through scripts/publish-all.sh",
+      );
+      assert.match(
+        workflow,
+        /PUBLISH_ALL_NPM_PROVENANCE:\s*"1"/,
+        "release workflow must opt npm publishing into provenance",
+      );
+      assert.match(
+        workflow,
+        /NPM_CONFIG_ACCESS:\s*public/,
+        "release workflow must preserve public scoped package publishing",
+      );
+      assert.match(
+        workflow,
+        /NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.NPM_TOKEN\s*\}\}/,
+        "release workflow must support token-based npm publishing",
+      );
+    });
   });
 
   describe("TS packages", () => {
@@ -471,6 +495,30 @@ describe("OneMem monorepo structure", () => {
       );
       assert.doesNotMatch(script, /uv publish\s*\|\|/, "uv publish errors must not be swallowed");
       assert.doesNotMatch(script, /skeleton/, "publish script must not claim PyPI is skeleton");
+    });
+
+    test("publish-all configures TS npm public access and optional provenance", () => {
+      const script = readFileSync(join(ROOT, "scripts/publish-all.sh"), "utf8");
+      assert.match(
+        script,
+        /NPM_CONFIG_ACCESS="\$\{NPM_CONFIG_ACCESS:-public\}"/,
+        "TS npm publish must default to public access for first-time scoped packages",
+      );
+      assert.match(
+        script,
+        /NODE_AUTH_TOKEN="\$NPM_TOKEN"/,
+        "TS npm publish must forward NPM_TOKEN for token-based releases",
+      );
+      assert.match(
+        script,
+        /PUBLISH_ALL_NPM_PROVENANCE:-0/,
+        "TS npm publish must have an explicit provenance switch",
+      );
+      assert.match(
+        script,
+        /NPM_CONFIG_PROVENANCE="\$\{NPM_CONFIG_PROVENANCE:-true\}"/,
+        "provenance switch must set npm provenance config",
+      );
     });
   });
 
@@ -893,6 +941,11 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/research/2026-06-17-public-plugin-release-state.md",
       ".thoughts/plans/2026-06-17-public-plugin-release-state.md",
       ".thoughts/verification/2026-06-17-public-plugin-release-state.md",
+      ".thoughts/research/2026-06-17-npm-provenance-release-hardening.md",
+      ".thoughts/specs/2026-06-17-npm-provenance-release-hardening.md",
+      ".thoughts/stories/2026-06-17-npm-provenance-release-hardening.md",
+      ".thoughts/plans/2026-06-17-npm-provenance-release-hardening.md",
+      ".thoughts/verification/2026-06-17-npm-provenance-release-hardening.md",
       ".thoughts/research/2026-06-17-demo-executable-trace.md",
       ".thoughts/specs/2026-06-17-demo-executable-trace.md",
       ".thoughts/stories/2026-06-17-demo-executable-trace.md",

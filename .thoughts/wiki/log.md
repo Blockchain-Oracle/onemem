@@ -174,3 +174,10 @@
   unclaimed. Full `pnpm test`, `pnpm typecheck`, `pnpm build`,
   `pnpm test:structure`, plugin validations, and npm publish dry-runs pass.
   Actual plugin npm upload is still blocked by `npm whoami` returning `E401`.
+- Implemented npm Provenance Release Hardening. The release workflow now routes
+  TS package publishing through `scripts/publish-all.sh ts`; the script defaults
+  npm access to public, forwards `NPM_TOKEN` to `NODE_AUTH_TOKEN`, and supports
+  CI provenance via `PUBLISH_ALL_NPM_PROVENANCE=1`. Structure tests guard those
+  invariants. Plugin npm dry-runs and Python publish dry-run pass, but actual
+  npm publication remains unclaimed because local npm auth returns `E401` and
+  both plugin package registry lookups return `E404`.

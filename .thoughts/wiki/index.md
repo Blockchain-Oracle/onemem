@@ -337,6 +337,16 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-17-public-plugin-release-state.md`
 - Public Plugin Release State verification:
   `../verification/2026-06-17-public-plugin-release-state.md`
+- npm Provenance Release Hardening research:
+  `../research/2026-06-17-npm-provenance-release-hardening.md`
+- npm Provenance Release Hardening spec:
+  `../specs/2026-06-17-npm-provenance-release-hardening.md`
+- npm Provenance Release Hardening stories:
+  `../stories/2026-06-17-npm-provenance-release-hardening.md`
+- npm Provenance Release Hardening plan:
+  `../plans/2026-06-17-npm-provenance-release-hardening.md`
+- npm Provenance Release Hardening verification:
+  `../verification/2026-06-17-npm-provenance-release-hardening.md`
 
 ## Maintenance Notes
 

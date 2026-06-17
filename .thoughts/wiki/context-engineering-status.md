@@ -363,6 +363,16 @@ same-namespace continuity proof with mocked runtime labels; it does not claim
 real Claude Code hooks, Hermes hooks, MemWal recall, cross-device login, Walrus
 plaintext, or Seal decryptability.
 
+npm Provenance Release Hardening is the thirty-sixth release-readiness slice.
+The GitHub release workflow now routes TS package publication through
+`scripts/publish-all.sh ts` instead of a bare Changesets publish command. The
+script defaults npm access to public, forwards `NPM_TOKEN` to `NODE_AUTH_TOKEN`
+when token publishing is configured, and lets CI opt into npm provenance through
+`PUBLISH_ALL_NPM_PROVENANCE=1`. Structure tests now guard these release
+invariants. This does not claim npm upload success: local `npm whoami` still
+returns `E401`, and `npm view @onemem/codex-plugin` plus
+`npm view @onemem/claude-code-plugin` still return `E404`.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:
@@ -395,8 +405,11 @@ Use subagents for independent lanes with disjoint write scopes:
 3. Protocol-backed claim/transfer and owner-driven revoke remain separate
    follow-up designs.
 4. Re-run affected quality gates and write verification before claiming done.
-5. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and publish
-   `@onemem/codex-plugin@0.1.0` plus `@onemem/claude-code-plugin@0.1.0`.
+5. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
+   publish `@onemem/codex-plugin@0.1.0` plus
+   `@onemem/claude-code-plugin@0.1.0`. The repo release path is now
+   provenance/public-access hardened, but registry publication remains
+   unproven until `npm view` returns real versions.
 
 ## Verification Rule
 

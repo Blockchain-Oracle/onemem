@@ -53,13 +53,16 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: pnpm changeset publish
+          publish: bash scripts/publish-all.sh ts
           version: pnpm changeset version
           commit: "chore: version packages"
           title: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_ACCESS: public
+          PUBLISH_ALL_NPM_PROVENANCE: "1"
 
       - name: Publish Python packages to PyPI
         if: steps.changesets.outputs.published == 'true'

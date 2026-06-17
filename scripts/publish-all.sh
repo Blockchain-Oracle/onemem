@@ -23,6 +23,15 @@ esac
 
 if [[ "$MODE" == "ts" || "$MODE" == "all" ]]; then
   echo "==> Publishing TS packages via Changesets..."
+  export NPM_CONFIG_ACCESS="${NPM_CONFIG_ACCESS:-public}"
+  export npm_config_access="${npm_config_access:-$NPM_CONFIG_ACCESS}"
+  if [[ -n "${NPM_TOKEN:-}" && -z "${NODE_AUTH_TOKEN:-}" ]]; then
+    export NODE_AUTH_TOKEN="$NPM_TOKEN"
+  fi
+  if [[ "${PUBLISH_ALL_NPM_PROVENANCE:-0}" == "1" ]]; then
+    export NPM_CONFIG_PROVENANCE="${NPM_CONFIG_PROVENANCE:-true}"
+    export npm_config_provenance="${npm_config_provenance:-$NPM_CONFIG_PROVENANCE}"
+  fi
   pnpm changeset publish
 fi
 
