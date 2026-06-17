@@ -47,7 +47,7 @@ const PY_PACKAGES = [
 ] as const;
 
 const APPS = ["landing", "docs", "hosted-dashboard"] as const;
-const DEMOS = ["agent-sends-money"] as const;
+const DEMOS = ["agent-sends-money", "switch-laptops"] as const;
 
 const HOSTED_DASHBOARD_ROUTES = [
   "login",
@@ -898,6 +898,11 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/stories/2026-06-17-demo-executable-trace.md",
       ".thoughts/plans/2026-06-17-demo-executable-trace.md",
       ".thoughts/verification/2026-06-17-demo-executable-trace.md",
+      ".thoughts/research/2026-06-17-switch-laptops-executable-demo.md",
+      ".thoughts/specs/2026-06-17-switch-laptops-executable-demo.md",
+      ".thoughts/stories/2026-06-17-switch-laptops-executable-demo.md",
+      ".thoughts/plans/2026-06-17-switch-laptops-executable-demo.md",
+      ".thoughts/verification/2026-06-17-switch-laptops-executable-demo.md",
     ]) {
       test(`Context Engineering artifact exists: ${f}`, () => {
         assert.ok(exists(f), `${f} missing`);
@@ -919,6 +924,14 @@ describe("OneMem monorepo structure", () => {
       assert.ok(
         exists("demos/agent-sends-money/src/trace-model.test.ts"),
         "agent-sends-money trace model tests missing",
+      );
+      assert.ok(
+        exists("demos/switch-laptops/src/mock-switch-trace.ts"),
+        "switch-laptops executable trace script missing",
+      );
+      assert.ok(
+        exists("demos/switch-laptops/src/trace-model.test.ts"),
+        "switch-laptops trace model tests missing",
       );
     });
 

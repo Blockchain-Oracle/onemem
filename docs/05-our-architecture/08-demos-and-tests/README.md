@@ -66,7 +66,7 @@ Combined: every v0.1 runtime + every v0.1 framework + every pillar is exercised 
 
 | Demo | Status |
 |---|---|
-| Switch laptops | ⏳ pending |
+| Switch laptops | ✅ executable safe testnet trace harness in `demos/switch-laptops`; runtime handoff is mocked |
 | Agent sends money | ✅ executable safe testnet trace harness in `demos/agent-sends-money`; payment step is mocked |
 | Verifiable research agent | ⏳ pending |
 | Multi-agent coordination | ⏳ pending |

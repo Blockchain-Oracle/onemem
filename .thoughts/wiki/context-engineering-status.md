@@ -344,11 +344,24 @@ Codex marketplace manifest is now documented as a GitHub marketplace root whose
 user-local checkout. Codex hooks now arm local state and flush buffered calls via
 the published `@onemem/sdk-ts@0.6.0` `onemem-trace` CLI at `Stop`, avoiding the
 workspace-symlink install trap found in clean Codex plugin-cache inspection.
-Clean local Codex and Claude marketplace installs pass, npm publish dry-runs for
-both plugin packages pass, full TS test/typecheck/build gates pass, and
-`pnpm test:structure` passes. Public default-branch install remains blocked
-until these files land on `main`; npm plugin upload remains blocked by invalid
-npm auth in this shell.
+Clean public Codex and Claude marketplace installs from `Blockchain-Oracle/onemem`
+pass, the Claude plugin tag `onemem--v0.1.0` is pushed, npm publish dry-runs for
+both plugin packages pass, and full CI passes on `main`. Npm plugin upload
+remains blocked by `@onemem` registry publish permission/trusted-publisher
+configuration; direct and CI publishes return npm `E404` permission errors.
+
+Switch Laptops Executable Demo is the thirty-fifth demo-readiness slice.
+`demos/switch-laptops` now has a private workspace package with deterministic
+model tests plus a live `demo:trace` command. The command creates two real Sui
+testnet `TraceSession`s in one namespace: Laptop A / Claude Code shaped context
+write, and Laptop B / Hermes shaped recall/answer. Live proof verified sessions
+`0x8b94875ac47a0a465825efffcd4f18aeae076f54869c07c8254158827df55c80` and
+`0x4fa78b3df807b0f55ea21712f65c80ae01830113898ba0855c54043c5bdcffb1` under
+namespace
+`0xf6e5d42df661c748df8211e77a7356ef8ea290e601141569d863a38b9eda12af`. This is
+same-namespace continuity proof with mocked runtime labels; it does not claim
+real Claude Code hooks, Hermes hooks, MemWal recall, cross-device login, Walrus
+plaintext, or Seal decryptability.
 
 ## Documentation Standing
 
@@ -382,9 +395,7 @@ Use subagents for independent lanes with disjoint write scopes:
 3. Protocol-backed claim/transfer and owner-driven revoke remain separate
    follow-up designs.
 4. Re-run affected quality gates and write verification before claiming done.
-5. Push/merge the focused plugin marketplace release state to `main`, then rerun
-   clean GitHub marketplace installs without `--ref`.
-6. Restore npm auth or CI `NPM_TOKEN` and publish
+5. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and publish
    `@onemem/codex-plugin@0.1.0` plus `@onemem/claude-code-plugin@0.1.0`.
 
 ## Verification Rule

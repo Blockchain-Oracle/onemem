@@ -32,6 +32,8 @@ Sources:
 - `packages/provider-*` — framework/voice providers.
 - `demos/agent-sends-money/` — executable safe testnet demo that writes and
   verifies a mocked payment `TraceSession`.
+- `demos/switch-laptops/` — executable safe testnet demo that writes and
+  verifies two mocked cross-runtime handoff `TraceSession`s in one namespace.
 
 ## Current Truth Sources
 

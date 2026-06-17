@@ -1,0 +1,24 @@
+{
+  "name": "@onemem/demo-switch-laptops",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Executable OneMem demo: mocked laptop/runtime handoff recorded as two real verifiable testnet traces in one namespace",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "clean": "rm -rf out .turbo",
+    "demo:trace": "tsx src/mock-switch-trace.ts",
+    "lint": "biome check .",
+    "test": "node --import tsx --test src/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@onemem/sdk-ts": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.21",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
