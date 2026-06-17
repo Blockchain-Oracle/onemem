@@ -27,6 +27,7 @@ Codex and Claude Code plugin packages.
 - `.github/workflows/release.yml`
 - `gh secret list --repo Blockchain-Oracle/onemem --json name,updatedAt`
 - `gh run view 27709795260 --repo Blockchain-Oracle/onemem --log-failed`
+- `gh run view 27710076086 --repo Blockchain-Oracle/onemem --log-failed`
 - npm trusted publishing docs, checked 2026-06-17:
   `https://docs.npmjs.com/trusted-publishers/`
 
@@ -64,6 +65,12 @@ Codex and Claude Code plugin packages.
 - The repo's mise toolchain used Node `20.18.0` and npm `10.8.2` during the
   failed release, so the workflow needed a release-only Node/npm upgrade even
   if npm-side trusted publisher configuration is added.
+- After the release workflow was moved to Node `24` plus `npm@latest`, Release
+  run `27710076086` reached npm with OIDC available but still failed with
+  `E404 Not Found - PUT` for unpublished packages including
+  `@onemem/codex-plugin@0.1.0`, `@onemem/claude-code-plugin@0.1.0`,
+  `@onemem/cli@0.1.0`, `@onemem/brand@0.1.0`, and
+  `@onemem/dashboard@0.1.0`.
 - An initial temporary local Codex marketplace install created a plugin cache
   entry for `onemem-codex@onemem` with an empty copied
   `node_modules/@onemem` scope; the workspace symlink to `@onemem/sdk-ts` was
@@ -91,8 +98,8 @@ Codex and Claude Code plugin packages.
   package metadata alone.
 - CI cannot currently publish with a token because the repository has no
   `NPM_TOKEN` secret. CI may publish through OIDC only after npm trusted
-  publisher settings are configured and the workflow uses a supported npm/Node
-  runtime.
+  publisher settings or package/scope publish permissions are configured on
+  npmjs.com.
 - The Codex plugin's stable MCP layer is not affected by the missing copied SDK
   dependency because `.mcp.json` launches `npx -y @onemem/mcp@latest`.
 - The Codex optional hook layer no longer depends on a workspace symlink in the

@@ -11,8 +11,8 @@ and Claude Code, and the verified release commit has been pushed to both
 `Blockchain-Oracle/onemem` now pass without a branch/ref suffix for Codex and
 Claude Code. Npm package dry-runs are clean, but npm upload is blocked because
 local npm auth is invalid, the repository has no `NPM_TOKEN` GitHub secret, and
-the release workflow's OIDC path still requires npm-side trusted publisher
-configuration plus an npm/Node runtime that supports trusted publishing.
+the release workflow's OIDC path reaches npm but is not authorized for first
+publishes under the `@onemem` scope.
 Codex's stable MCP layer remains installable, and the optional hook scripts run
 from a clean Codex plugin cache without a workspace SDK symlink by flushing
 through the published `@onemem/sdk-ts@0.6.0` trace CLI. Full automatic Codex
@@ -67,7 +67,9 @@ emits and verifies a real on-chain OneMem `TraceSession`.
   after `main` was fast-forwarded to the verified release commit.
 - AC4: Npm packages are ready to publish but not published from this shell.
   Evidence: dry-runs passed; `npm whoami` returns `E401`; `gh secret list`
-  returns no repository secrets; release workflow failed with npm `ENEEDAUTH`.
+  returns no repository secrets; release workflow first failed with npm
+  `ENEEDAUTH`, then failed with npm `E404` permission errors after the workflow
+  was moved to Node 24/npm latest.
 - AC5: Clean Codex hook lifecycle no longer depends on workspace symlinks.
   Evidence: installed plugin-cache scripts emitted a valid trace payload through
   a fake `ONEMEM_TRACE_CLI`.
@@ -189,6 +191,16 @@ Result: release workflow failed in `changesets/action` publish step. It found no
 packages including `@onemem/codex-plugin@0.1.0` and
 `@onemem/claude-code-plugin@0.1.0`.
 
+```bash
+gh run view 27710076086 --repo Blockchain-Oracle/onemem --log-failed
+```
+
+Result: after the workflow was moved to Node 24/npm latest, publish reached npm
+with OIDC available but still failed with `E404 Not Found - PUT` for unpublished
+packages including `@onemem/codex-plugin@0.1.0` and
+`@onemem/claude-code-plugin@0.1.0`. This is consistent with missing npm-side
+package/scope publishing permission or missing trusted publisher configuration.
+
 ## Deviations From Plan
 
 - Direct npm upload was not attempted after `npm whoami` returned `E401`.
@@ -203,8 +215,9 @@ packages including `@onemem/codex-plugin@0.1.0` and
 - The configured npm token in `~/.npmrc` is unusable; no `NPM_TOKEN` repository
   secret is present; npm registry publication requires either a valid secret or
   npm trusted publisher entries for the packages and workflow.
-- The release workflow was still using Node 20/npm 10 before the follow-up fix;
-  npm docs require npm 11.5.1+ and Node 22.14+ for trusted publishing.
+- The release workflow now uses Node 24/npm latest for the publish path, but npm
+  still rejects unpublished packages with `E404` until registry permissions are
+  configured.
 - Full Codex hook trace coverage still needs a real trusted `/hooks` session and
   on-chain OneMem `TraceSession` verification.
 - Codex hook trace coverage still needs live trusted `/hooks` proof against a
@@ -233,3 +246,5 @@ packages including `@onemem/codex-plugin@0.1.0` and
 - `npm view @onemem/claude-code-plugin`: `E404`.
 - `gh secret list --repo Blockchain-Oracle/onemem`: `[]`.
 - Release run `27709795260`: failed with npm `ENEEDAUTH`.
+- Release run `27710076086`: failed with npm `E404` permission errors for
+  unpublished `@onemem/*` packages after Node 24/npm latest was enabled.
