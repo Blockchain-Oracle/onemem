@@ -34,9 +34,23 @@ Social and OG SVG source assets live in `og-images/`:
 - `product-card.svg` - 1080 x 1080
 - `demo-video-cover.svg` - 1920 x 1080
 
-These are source-controlled SVG source assets. PNG exports should be generated
-from these files when a platform requires raster uploads; do not hand-edit raster
+Platform-ready PNG exports live beside their SVG sources:
+
+- `x-banner.png` - 1500 x 500
+- `discord-banner.png` - 1920 x 480
+- `github-og.png` - 1200 x 630
+- `product-card.png` - 1080 x 1080
+- `demo-video-cover.png` - 1920 x 1080
+
+The SVG files are the source-controlled design source. The PNG files are
+committed upload artifacts generated from those SVGs; do not hand-edit raster
 copies as the source of truth.
+
+## Domain Status
+
+`onememe.xyz` is the current campaign identity, but DNS is not live in this
+checkout's latest verification pass. Do not claim it as a deployed website until
+DNS resolves and the landing page is actually served.
 
 ## Usage Rules
 

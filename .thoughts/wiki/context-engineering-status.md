@@ -480,6 +480,14 @@ migration pass. A new structure shard guards the brand package asset inventory,
 dimensions, and public identity strings. PNG exports, live social accounts,
 DNS, video assets, and dashboard mark consolidation remain separate follow-ups.
 
+Brand Raster And Domain Readiness is the forty-eighth brand/package slice.
+`packages/brand/og-images/` now includes platform-ready PNG exports for the X
+banner, Discord/community banner, GitHub/OG image, product card, and demo video
+cover, beside the SVG source assets. The brand structure shard now validates PNG
+signatures and dimensions from file headers. DNS verification found that
+`onememe.xyz` and `www.onememe.xyz` currently have no A/AAAA records, so the
+campaign identity is not yet a live deployed website.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:
@@ -510,9 +518,8 @@ Use subagents for independent lanes with disjoint write scopes:
 2. Decide and implement the final Walrus mirror artifact shape: full static
    dashboard rewrite vs. smaller public verifier shell, then run `site-builder`
    and record the returned Walrus URL.
-3. Generate final PNG/video exports from the `@onemem/brand` SVG source assets
-   once final social/submission upload requirements are known, and confirm
-   `onememe.xyz` DNS/hosting.
+3. Render the brand video/animated bumper once final submission video
+   requirements are known, and configure/confirm `onememe.xyz` DNS/hosting.
 4. Continue hosted/manual wallet verification for CLI delegate registration,
    hosted share execution, and hosted holder self-revoke when real
    wallet/Enoki/MemWal config is available.

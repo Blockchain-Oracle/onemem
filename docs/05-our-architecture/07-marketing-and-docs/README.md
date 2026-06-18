@@ -51,4 +51,6 @@ identity is `onememe.xyz`) + the developer reference (`docs.onemem.ai`).
 | `docs.onemem.ai` Mintlify setup | ⏳ pending |
 | 5 must-have docs pages | ⏳ pending |
 | `@onemem/brand` logo SVGs | ✅ source assets in `packages/brand/logo/` |
-| `@onemem/brand` social/OG SVGs | ✅ source assets in `packages/brand/og-images/`; PNG exports still generated per platform need |
+| `@onemem/brand` social/OG SVGs | ✅ source assets in `packages/brand/og-images/` |
+| `@onemem/brand` social/OG PNGs | ✅ platform-ready exports in `packages/brand/og-images/` |
+| `onememe.xyz` DNS/hosting | ⏳ pending; latest check found no DNS records |

@@ -21,8 +21,20 @@ const SOCIAL_ASSETS = {
   "packages/brand/og-images/demo-video-cover.svg": "1920 1080",
 } as const;
 
+const SOCIAL_PNG_EXPORTS = {
+  "packages/brand/og-images/x-banner.png": [1500, 500],
+  "packages/brand/og-images/discord-banner.png": [1920, 480],
+  "packages/brand/og-images/github-og.png": [1200, 630],
+  "packages/brand/og-images/product-card.png": [1080, 1080],
+  "packages/brand/og-images/demo-video-cover.png": [1920, 1080],
+} as const;
+
 function read(rel: string): string {
   return readFileSync(join(ROOT, rel), "utf8");
+}
+
+function readBytes(rel: string): Buffer {
+  return readFileSync(join(ROOT, rel));
 }
 
 function assertSvg(rel: string) {
@@ -32,6 +44,15 @@ function assertSvg(rel: string) {
   assert.match(svg, /<\/svg>\s*$/, `${rel} must close the SVG root`);
   assert.ok(svg.length > 300, `${rel} must not be an empty placeholder`);
   assert.doesNotMatch(svg, /TODO|placeholder|lorem/i, `${rel} must be production copy`);
+}
+
+function assertPng(rel: string, width: number, height: number) {
+  assert.ok(exists(rel), `${rel} must exist`);
+  const png = readBytes(rel);
+  assert.ok(png.length > 1000, `${rel} must not be an empty placeholder`);
+  assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", `${rel} signature`);
+  assert.equal(png.readUInt32BE(16), width, `${rel} width must be ${width}`);
+  assert.equal(png.readUInt32BE(20), height, `${rel} height must be ${height}`);
 }
 
 describe("brand package assets", () => {
@@ -71,14 +92,24 @@ describe("brand package assets", () => {
     }
   });
 
+  test("social PNG exports exist and match source dimensions", () => {
+    for (const [rel, [width, height]] of Object.entries(SOCIAL_PNG_EXPORTS)) {
+      assertPng(rel, width, height);
+    }
+  });
+
   test("brand README documents inventory, identity, and raster boundary", () => {
     const readme = read("packages/brand/README.md");
-    for (const rel of [...LOGO_ASSETS, ...Object.keys(SOCIAL_ASSETS)]) {
+    for (const rel of [
+      ...LOGO_ASSETS,
+      ...Object.keys(SOCIAL_ASSETS),
+      ...Object.keys(SOCIAL_PNG_EXPORTS),
+    ]) {
       assert.match(readme, new RegExp(basename(rel).replace(".", "\\.")), `${rel} missing`);
     }
     assert.match(readme, /onememe\.xyz/);
     assert.match(readme, /@OneMemAI/);
     assert.match(readme, /SVG source assets/);
-    assert.match(readme, /PNG exports/);
+    assert.match(readme, /platform-ready PNG exports/i);
   });
 });
