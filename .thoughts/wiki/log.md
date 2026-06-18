@@ -260,3 +260,9 @@
   `onemem-sdk-python>=0.2.0` for Python provider memory helpers. Structure
   tests guard the script, workflow step, docs, strict modes, no-publish
   boundary, artifact marker checks, and provider version repair.
+- Implemented CLI Dashboard Launcher. The TS CLI now registers
+  `onemem dashboard`, spawns the existing `onemem-dashboard` binary with
+  `PORT` and `ONEMEM_MODE=local`, and gives explicit `@onemem/dashboard`
+  install guidance if the binary is missing. Current CLI/dashboard docs now
+  treat the launcher as implemented; structure tests guard against moving it
+  back into deferred command lists.

@@ -29,8 +29,8 @@ Python-first environments.
 1. **TS canonical, Python read-only mirror.** TS owns provisioning, hosted login
    pairing, namespace writes, and MemWal memory add/search. Python mirrors the
    independently-verifiable read surface (`verify`, `trace`, `health`).
-2. **Only advertise commands that are registered in code.** Replay, dashboard,
-   logout, and unified runtime installers stay deferred until implemented.
+2. **Only advertise commands that are registered in code.** Replay, logout, and
+   unified runtime installers stay deferred until implemented.
 3. **Runtime wiring is package-owned for v0.1.** Runtime packages expose their
    own install paths; `onemem install --runtime <id>` is a later convenience
    command, not current behavior.
@@ -48,7 +48,7 @@ Python-first environments.
 | Component | Status |
 |---|---|
 | `@onemem/cli` package skeleton | Built. |
-| Command surface implemented (TS) | Built for current v0.1: verify, trace list/get/events, health, hosted login pairing, init, namespace share/revoke/capabilities, add, and search. |
+| Command surface implemented (TS) | Built for current v0.1: verify, trace list/get/events, health, dashboard launcher, hosted login pairing, init, namespace share/revoke/capabilities, add, and search. |
 | `onemem-cli` package skeleton | Built. |
 | Command surface implemented (Python) | Built as read-only mirror: verify, trace list/get/events, and health. |
 | Browser login flow | Built in TS CLI + hosted `/cli-login` callback flow; live wallet popup remains manual proof. |

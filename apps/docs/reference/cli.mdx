@@ -6,8 +6,9 @@ description: "The onemem command-line tool"
 # CLI reference
 
 ```bash
-npm install -g @onemem/cli   # onemem
-pipx install onemem-cli       # onemem-py (read-only mirror)
+npm install -g @onemem/cli       # onemem
+npm install -g @onemem/dashboard # local dashboard launcher target
+pipx install onemem-cli          # onemem-py (read-only mirror)
 ```
 
 Global flags: `--json` (machine output), `--network <testnet|mainnet|devnet|local>`.
@@ -21,6 +22,7 @@ Global flags: `--json` (machine output), `--network <testnet|mainnet|devnet|loca
 | `onemem trace get <id>` | Session metadata (agent, status, calls) | nothing |
 | `onemem trace events <id>` | The decoded ActionCall chain | nothing |
 | `onemem health` | Check RPC + package reachability | nothing |
+| `onemem dashboard` | Launch the local dashboard on `localhost:4040` or `--port <port>` | `@onemem/dashboard` installed |
 | `onemem login` | Pair this terminal with a hosted dashboard callback | hosted dashboard callback |
 | `onemem init` | Provision (or reuse) a namespace + ReadWrite cap — zero config | a Sui signer |
 | `onemem namespace share <namespace-id> <recipient>` | Mint + transfer a ReadOnly or ReadWrite namespace capability | signer + Admin cap |
@@ -33,6 +35,7 @@ Global flags: `--json` (machine output), `--network <testnet|mainnet|devnet|loca
 
 ```bash
 onemem init
+onemem dashboard
 onemem verify 0x06668df1cfbb31...b79f
 onemem --json trace events 0x06668df1...b79f
 ```

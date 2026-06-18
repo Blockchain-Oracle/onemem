@@ -5,6 +5,8 @@ memory + traces from your terminal.
 
 ```bash
 npm install -g @onemem/cli
+# dashboard launcher support:
+npm install -g @onemem/dashboard
 # or
 npx @onemem/cli verify <session-id>
 ```
@@ -18,6 +20,7 @@ npx @onemem/cli verify <session-id>
 | `onemem trace get <session-id>` | Session metadata (agent, status, call count) | nothing |
 | `onemem trace events <session-id>` | The decoded ActionCall chain (tool, link, content hash, Walrus blob) | nothing |
 | `onemem health` | Check RPC + package reachability | nothing |
+| `onemem dashboard` | Launch the local dashboard on `localhost:4040` or `--port <port>` | `@onemem/dashboard` installed |
 | `onemem login` | Pair this terminal with a hosted dashboard callback and save `~/.onemem/credentials.json` | hosted dashboard implementing the callback contract |
 | `onemem init` | Provision (or reuse) a namespace + ReadWrite cap — zero config | a Sui signer |
 | `onemem namespace share <namespace-id> <recipient>` | Mint + transfer a ReadOnly or ReadWrite namespace capability | signer + Admin cap |
@@ -38,7 +41,5 @@ generated+persisted wallet). `add`/`search` need the signer plus MemWal env
 
 - **Runtime installers** (`onemem install --runtime …`) — each runtime already has
   its own one-line install; a unified installer is post-hackathon.
-- **Dashboard launcher** (`onemem dashboard`) — the dashboard package exposes
-  `onemem-dashboard`; the unified CLI does not currently include this subcommand.
 
 Full command spec: `docs/05-our-architecture/05-cli/command-surface.md`.

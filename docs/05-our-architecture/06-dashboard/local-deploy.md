@@ -1,6 +1,8 @@
 # Local Deploy — `localhost:4040`
 
-The OneMem dashboard running on the user's own machine, launched via `onemem dashboard`. Bundled with `@onemem/dashboard`.
+The OneMem dashboard running on the user's own machine, launched via
+`onemem dashboard`. The UI bundle stays in the separate `@onemem/dashboard`
+package; the TS CLI delegates to that package's `onemem-dashboard` binary.
 
 > **Audit context 2026-05-26.** This is the **daily-driver** surface — used every coding session, no login, reads `~/.onemem/credentials.json`. Authoritative purpose split + what local does NOT include (no `/verify/[session_id]`, no `/onboarding`, no `/login`, no `/cli-login`) is in `purpose-local-vs-hosted.md`. Framework confirmed as Next.js 15 standalone output per `../00-overview/TOOLING_DECISIONS.md`.
 
@@ -17,7 +19,7 @@ onemem-dashboard/
 ├── components/ ...
 ├── lib/ ...
 ├── bin/
-│   └── onemem-dashboard          # executable that runs `next start -p 4040`
+│   └── onemem-dashboard          # executable that runs the standalone server
 ├── public/ ...
 └── tsconfig.json
 ```
@@ -62,51 +64,17 @@ onemem-dashboard/
 Per `05-cli/command-surface.md`:
 
 ```bash
-onemem dashboard [--port 4040] [--no-open]
+onemem dashboard [--port 4040]
 ```
 
-The CLI implementation:
+Current behavior:
 
-```ts
-// @onemem/cli/src/commands/dashboard.ts
-import { spawn } from "node:child_process";
-import { resolve } from "node:path";
-import open from "open";
-
-export async function dashboard(opts: { port?: string; open?: boolean }) {
-  const port = opts.port ?? "4040";
-
-  // Check if @onemem/dashboard is installed
-  let dashboardBin: string;
-  try {
-    dashboardBin = require.resolve("@onemem/dashboard/bin/onemem-dashboard");
-  } catch {
-    // Auto-install via npx if not present
-    console.log("Installing OneMem dashboard (one-time)...");
-    await execa("npm", ["install", "-g", "@onemem/dashboard@latest"]);
-    dashboardBin = require.resolve("@onemem/dashboard/bin/onemem-dashboard");
-  }
-
-  // Spawn the Next.js server
-  const proc = spawn(dashboardBin, [], {
-    env: {
-      ...process.env,
-      PORT: port,
-      ONEMEM_MODE: "local",
-      ONEMEM_CREDENTIALS_PATH: process.env.HOME + "/.onemem/credentials.json",
-    },
-    stdio: "inherit",
-  });
-
-  // Open browser
-  if (opts.open !== false) {
-    setTimeout(() => open(`http://localhost:${port}`), 1500);
-  }
-
-  // Wait for Ctrl-C
-  await new Promise((resolve) => proc.on("close", resolve));
-}
-```
+- `@onemem/cli` registers `onemem dashboard`.
+- The command spawns `onemem-dashboard` with `PORT=<port>` and
+  `ONEMEM_MODE=local`.
+- If the binary is not available, the CLI exits non-zero and tells the user to
+  install `@onemem/dashboard`.
+- Browser auto-open is not implemented in v0.1.
 
 ---
 
@@ -129,7 +97,7 @@ When `ONEMEM_MODE=local`, the dashboard:
 - Dashboard has ~50 MB of dependencies (Next.js + React + Tailwind + Radix). CLI should stay light.
 - Users who only want the CLI (no dashboard) don't pay the install cost.
 - Dashboard updates ship on their own cadence vs CLI.
-- `onemem dashboard` auto-installs the package on first run if missing.
+- `onemem dashboard` gives install guidance if the package binary is missing.
 
 ---
 
@@ -147,8 +115,10 @@ When `ONEMEM_MODE=local`, the dashboard:
 
 ## Distribution
 
-- npm: `@onemem/dashboard` — global install via `npm install -g @onemem/dashboard`
-- Or invoked transparently by `@onemem/cli dashboard`
+- npm: `@onemem/dashboard` — global install via
+  `npm install -g @onemem/dashboard`
+- CLI wrapper: `onemem dashboard` from `@onemem/cli` delegates to
+  `onemem-dashboard`
 
 ---
 

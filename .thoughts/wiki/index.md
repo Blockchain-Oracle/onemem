@@ -401,6 +401,26 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-17-framework-provider-status-refresh.md`
 - Framework Provider Status Refresh verification:
   `../verification/2026-06-17-framework-provider-status-refresh.md`
+- Release Preflight Auth Diagnostics research:
+  `../research/2026-06-18-release-preflight-auth-diagnostics.md`
+- Release Preflight Auth Diagnostics spec:
+  `../specs/2026-06-18-release-preflight-auth-diagnostics.md`
+- Release Preflight Auth Diagnostics stories:
+  `../stories/2026-06-18-release-preflight-auth-diagnostics.md`
+- Release Preflight Auth Diagnostics plan:
+  `../plans/2026-06-18-release-preflight-auth-diagnostics.md`
+- Release Preflight Auth Diagnostics verification:
+  `../verification/2026-06-18-release-preflight-auth-diagnostics.md`
+- CLI Dashboard Launcher research:
+  `../research/2026-06-18-cli-dashboard-launcher.md`
+- CLI Dashboard Launcher spec:
+  `../specs/2026-06-18-cli-dashboard-launcher.md`
+- CLI Dashboard Launcher stories:
+  `../stories/2026-06-18-cli-dashboard-launcher.md`
+- CLI Dashboard Launcher plan:
+  `../plans/2026-06-18-cli-dashboard-launcher.md`
+- CLI Dashboard Launcher verification:
+  `../verification/2026-06-18-cli-dashboard-launcher.md`
 
 ## Maintenance Notes
 

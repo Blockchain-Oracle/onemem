@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { dashboardCommand } from "./commands/dashboard.js";
 import { healthCommand } from "./commands/health.js";
 import { initCommand } from "./commands/init.js";
 import { loginCommand } from "./commands/login.js";
@@ -25,6 +26,12 @@ export function buildProgram(): Command {
     .action(initCommand);
 
   program.command("health").description("Check RPC + package reachability").action(healthCommand);
+
+  program
+    .command("dashboard")
+    .description("Launch the local OneMem dashboard")
+    .option("--port <port>", "Local dashboard port", "4040")
+    .action(dashboardCommand);
 
   program
     .command("login")

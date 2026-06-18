@@ -448,6 +448,13 @@ shell, npm and PyPI auth are absent; registry publication remains unproven until
 credentials are configured and `pnpm registry:status -- --strict` passes after
 publication.
 
+CLI Dashboard Launcher is the forty-fifth CLI/docs slice. The TS CLI now
+registers `onemem dashboard`, delegates to the separate `onemem-dashboard`
+binary from `@onemem/dashboard`, passes `PORT` and `ONEMEM_MODE=local`, and
+fails with install guidance when the dashboard binary is missing. Current CLI,
+dashboard, and public docs now list `onemem dashboard` as implemented instead of
+deferred; browser auto-open remains intentionally out of scope.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:

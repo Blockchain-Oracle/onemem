@@ -168,7 +168,6 @@ describe("OneMem monorepo structure", () => {
         "utf8",
       );
       const deferredCurrentHeadings = [
-        "onemem dashboard",
         "onemem logout",
         "onemem get",
         "onemem update",
@@ -198,6 +197,25 @@ describe("OneMem monorepo structure", () => {
           `CLI command surface must not advertise deferred command as current: ${command}`,
         );
       }
+    });
+
+    test("CLI docs expose current dashboard launcher", () => {
+      const docs = [
+        "docs/05-our-architecture/05-cli/command-surface.md",
+        "packages/cli-ts/README.md",
+        "apps/docs/reference/cli.mdx",
+      ];
+      for (const doc of docs) {
+        const content = readFileSync(join(ROOT, doc), "utf8");
+        assert.match(content, /onemem dashboard/, `${doc} must document onemem dashboard`);
+      }
+
+      const surface = readFileSync(
+        join(ROOT, "docs/05-our-architecture/05-cli/command-surface.md"),
+        "utf8",
+      );
+      assert.doesNotMatch(surface, /-\s+`onemem dashboard`/);
+      assert.match(surface, /onemem-dashboard/);
     });
 
     test("CLI docs expose current namespace commands and local network", () => {

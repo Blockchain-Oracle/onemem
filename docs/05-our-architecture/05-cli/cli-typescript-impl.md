@@ -3,8 +3,8 @@
 > Historical note, 2026-06-17: this file is a larger planned implementation
 > sketch, not the current command registry. Current truth lives in
 > `command-surface.md` and `packages/cli-ts/src/index.ts`. The current package
-> uses Commander plus SDK/Sui dependencies; logout, dashboard, replay, runtime
-> installers, trace tree/end, and many mutation commands below are deferred.
+> uses Commander plus SDK/Sui dependencies; logout, replay, runtime installers,
+> trace tree/end, and many mutation commands below are deferred.
 
 Node implementation sketch for the larger planned OneMem CLI.
 
