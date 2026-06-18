@@ -37,3 +37,14 @@ Python publication only runs after the npm publish step reports success and
 those credentials means release PR automation succeeded; it does not mean npm
 or PyPI packages were published. Confirm publication with registry lookups such
 as `npm view @onemem/codex-plugin version` before claiming a package is live.
+
+For a repo-wide npm/PyPI snapshot, run:
+
+```bash
+pnpm registry:status
+```
+
+Use `pnpm registry:status --strict` when preparing a release handoff that
+must fail unless every local package is already published at the same registry
+version. The command is read-only; it compares local package manifests against
+npm and PyPI JSON metadata and never uploads artifacts.

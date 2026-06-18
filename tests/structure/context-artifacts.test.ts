@@ -217,6 +217,9 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/stories/2026-06-17-framework-provider-status-refresh.md",
       ".thoughts/plans/2026-06-17-framework-provider-status-refresh.md",
       ".thoughts/verification/2026-06-17-framework-provider-status-refresh.md",
+      ".thoughts/research/2026-06-18-registry-publication-preflight.md",
+      ".thoughts/plans/2026-06-18-registry-publication-preflight.md",
+      ".thoughts/verification/2026-06-18-registry-publication-preflight.md",
     ]) {
       test(`Context Engineering artifact exists: ${f}`, () => {
         assert.ok(exists(f), `${f} missing`);

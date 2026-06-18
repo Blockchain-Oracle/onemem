@@ -203,6 +203,25 @@ describe("OneMem monorepo structure", () => {
       );
     });
 
+    test("registry status preflight checks npm and PyPI without publishing", () => {
+      const manifest = readJson<{ scripts?: Record<string, string> }>("package.json");
+      assert.equal(
+        manifest.scripts?.["registry:status"],
+        "python scripts/check-registry-status.py",
+      );
+
+      const script = readFileSync(join(ROOT, "scripts/check-registry-status.py"), "utf8");
+      assert.match(script, /https:\/\/registry\.npmjs\.org/);
+      assert.match(script, /https:\/\/pypi\.org\/pypi/);
+      assert.match(script, /tomllib/, "script must parse pyproject.toml structurally");
+      assert.match(script, /--strict/, "script must support exact publication checks");
+      assert.doesNotMatch(
+        script,
+        /(?:npm|uv|twine)\s+publish/,
+        "status preflight must not upload packages",
+      );
+    });
+
     test("root package exposes deterministic demo matrix script", () => {
       const manifest = readJson<{ scripts?: Record<string, string> }>("package.json");
       assert.equal(

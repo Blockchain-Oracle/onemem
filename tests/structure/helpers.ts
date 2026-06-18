@@ -90,6 +90,7 @@ export const SCRIPTS = [
   "verify-mainnet.sh",
   "bootstrap-dev.sh",
   "publish-all.sh",
+  "check-registry-status.py",
 ] as const;
 
 export const ROOT_CONFIGS = [

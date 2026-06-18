@@ -10,6 +10,7 @@
     "test": "turbo run test",
     "test:demo-matrix": "turbo run test typecheck lint build --filter=./demos/*",
     "test:structure": "node --import tsx --test tests/structure/*.test.ts",
+    "registry:status": "python scripts/check-registry-status.py",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
