@@ -2,6 +2,8 @@ import { Icon } from "@/components/Icon";
 import { VerifyDemo } from "@/components/VerifyDemo";
 import { INTEGRATIONS, PILLARS, PROBLEMS, STEPS } from "./landing-content";
 
+const appUrl = process.env.NEXT_PUBLIC_ONEMEM_APP_URL ?? "https://app.onemem.xyz";
+
 export default function LandingPage() {
   return (
     <>
@@ -12,15 +14,11 @@ export default function LandingPage() {
         </a>
         <div className="spacer" />
         <div className="lp-nav-links">
-          <a href="http://localhost:4040">Dashboard</a>
+          <a href={appUrl}>Dashboard</a>
           <a href="#integrations">Integrations</a>
           <a href="#demo">Live proof</a>
         </div>
-        <a
-          className="btn btn-primary btn-sm"
-          href="http://localhost:4040"
-          style={{ marginLeft: 8 }}
-        >
+        <a className="btn btn-primary btn-sm" href={appUrl} style={{ marginLeft: 8 }}>
           Get started <Icon name="arrowRight" size={16} />
         </a>
       </nav>
@@ -44,7 +42,7 @@ export default function LandingPage() {
               it did.
             </p>
             <div className="hero-cta">
-              <a className="btn btn-primary" href="http://localhost:4040">
+              <a className="btn btn-primary" href={appUrl}>
                 <Icon name="bolt" size={16} />
                 Get started
               </a>
@@ -238,11 +236,11 @@ export default function LandingPage() {
             Install in under a minute. Store a memory, run a trace, and prove it.
           </p>
           <div className="cta" style={{ marginTop: 24 }}>
-            <a className="btn btn-primary" href="http://localhost:4040">
+            <a className="btn btn-primary" href={appUrl}>
               <Icon name="bolt" size={16} />
               Get started
             </a>
-            <a className="btn btn-ghost" href="http://localhost:4040">
+            <a className="btn btn-ghost" href={appUrl}>
               See a live trace
             </a>
           </div>
