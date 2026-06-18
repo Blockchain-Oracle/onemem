@@ -57,6 +57,9 @@ trap restore_env EXIT
 need_cmd jq
 need_cmd sui
 
+SUI_BIN="$(command -v sui)"
+SUI_VERSION="$(sui --version)"
+
 if [ "$DRY_RUN_ONLY" -eq 0 ]; then
   need_cmd pnpm
   need_cmd uv
@@ -87,6 +90,7 @@ echo "==> Switching to $NETWORK"
 sui client switch --env "$NETWORK" >/dev/null
 
 ACTIVE_ADDRESS="$(sui client active-address)"
+echo "==> Sui CLI: $SUI_BIN ($SUI_VERSION)"
 echo "==> Active address: $ACTIVE_ADDRESS"
 echo "==> Current package ID: $CURRENT_PACKAGE_ID"
 echo "==> UpgradeCap: $UPGRADE_CAP_ID"

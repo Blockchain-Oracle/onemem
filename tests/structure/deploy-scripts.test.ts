@@ -42,6 +42,13 @@ describe("deployment scripts", () => {
       assert.match(script, /sui "\$\{args\[@\]\}"/, "upgrade helper must preserve args array");
     });
 
+    test("upgrade script reports the Sui CLI binary and version", () => {
+      const script = migrateScript();
+      assert.match(script, /SUI_BIN="\$\(command -v sui\)"/);
+      assert.match(script, /SUI_VERSION="\$\(sui --version\)"/);
+      assert.match(script, /==> Sui CLI: \$SUI_BIN \(\$SUI_VERSION\)/);
+    });
+
     test("active Sui CLI environment is restored on exit", () => {
       const script = migrateScript();
       assert.match(script, /PREVIOUS_ENV="\$\(sui client active-env/);

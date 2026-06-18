@@ -146,6 +146,34 @@ At v0.1 we publish ONCE (`sui client publish`). Any future upgrades use `sui cli
 
 **Upgrade cap policy:** the `UpgradeCap` from `sui client publish` is initially owned by the deployer (the OneMem team). At v0.2+ this could move to a multisig or DAO governance. At v0.1, deployer-owned is fine (single point of trust for hackathon scope).
 
+### Operational dry-run
+
+Before a live upgrade, rehearse the exact source with:
+
+```bash
+bash scripts/migrate-contract.sh testnet --dry-run
+```
+
+The script runs `sui client upgrade --dry-run --json`, prints the selected Sui
+CLI binary/version, and exits before any manifest or generated-address update.
+Successful dry-runs print `No chain state changed` and `No repo files were
+updated`.
+
+Sui testnet can move ahead of the Homebrew stable CLI. If Homebrew reports a
+protocol-version panic, install the testnet-channel binary with `suiup` and put
+that binary first in PATH for the rehearsal:
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/MystenLabs/suiup/main/install.sh | sh
+/Users/abu/.local/bin/suiup install sui@testnet
+/Users/abu/.local/bin/suiup default set sui@testnet
+PATH="/Users/abu/.local/bin:$PATH" bash scripts/migrate-contract.sh testnet --dry-run
+```
+
+On 2026-06-18, Homebrew `sui 1.73.0-homebrew` still supported protocol max 125
+while testnet was on protocol 126. The `suiup` testnet binary
+`sui 1.73.1-ff1fe0ec4551` completed the dry-run successfully.
+
 ---
 
 ## What entry functions in v2+ need to do
