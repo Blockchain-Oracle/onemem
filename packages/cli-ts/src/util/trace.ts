@@ -7,6 +7,7 @@ import { ACTION_CALL_EMITTED } from "./sui.js";
 
 export interface SessionMeta {
   sessionId: string;
+  packageId: string;
   agentId: string;
   environment: string;
   namespaceId: string;
@@ -41,20 +42,32 @@ export async function fetchSessionMeta(
   client: SuiJsonRpcClient,
   sessionId: string,
 ): Promise<SessionMeta> {
-  const obj = await client.getObject({ id: sessionId, options: { showContent: true } });
-  const content = obj.data?.content;
+  const obj = await client.getObject({
+    id: sessionId,
+    options: { showContent: true, showType: true },
+  });
+  const data = obj.data;
+  const content = data?.content;
   if (!content || content.dataType !== "moveObject") {
     throw new Error(`no TraceSession object found at ${sessionId}`);
   }
   const f = content.fields as Record<string, unknown>;
   return {
     sessionId,
+    packageId: traceSessionPackageId(String(data.type ?? "")),
     agentId: String(f.agent_id ?? ""),
     environment: String(f.environment ?? ""),
     namespaceId: String(f.namespace_id ?? ""),
     status: Number(f.status ?? 0),
     callCount: Number(f.call_count ?? 0),
   };
+}
+
+function traceSessionPackageId(type: string): string {
+  const marker = "::trace::TraceSession";
+  const index = type.indexOf(marker);
+  if (index <= 0) throw new Error(`object is not trace::TraceSession: ${type}`);
+  return type.slice(0, index);
 }
 
 /**

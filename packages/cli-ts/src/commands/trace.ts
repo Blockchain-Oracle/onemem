@@ -35,8 +35,9 @@ export function traceGet(sessionId: string, _o: unknown, command: Cmd) {
 export function traceEvents(sessionId: string, _o: unknown, command: Cmd) {
   const g = command.optsWithGlobals();
   return runCommand(g, async () => {
-    const { client, packageId } = readContext(g.network);
-    const calls = await fetchCalls(client, packageId, sessionId);
+    const { client } = readContext(g.network);
+    const meta = await fetchSessionMeta(client, sessionId);
+    const calls = await fetchCalls(client, meta.packageId, sessionId);
     if (g.json) {
       printJson(
         calls.map((c) => ({

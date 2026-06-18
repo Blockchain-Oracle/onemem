@@ -10,8 +10,8 @@ type EventCursor = Parameters<SuiJsonRpcClient["queryEvents"]>[0]["cursor"];
 interface PublicVerifyRpc {
   getObject(input: {
     readonly id: string;
-    readonly options: { readonly showContent: true };
-  }): Promise<{ readonly data?: { readonly content?: unknown } | null }>;
+    readonly options: { readonly showContent: true; readonly showType: true };
+  }): Promise<{ readonly data?: { readonly type?: string; readonly content?: unknown } | null }>;
   queryEvents(input: {
     readonly query: { readonly MoveEventType: string };
     readonly cursor: EventCursor;
@@ -95,6 +95,12 @@ function parseSessionFields(content: unknown): TraceSessionFields {
   return object.fields;
 }
 
+function traceSessionPackageId(type: string, fallback: string): string {
+  const marker = "::trace::TraceSession";
+  const index = type.indexOf(marker);
+  return index > 0 ? type.slice(0, index) : fallback;
+}
+
 export async function fetchPublicVerifyCalls(
   rpc: PublicVerifyRpc,
   packageId: string,
@@ -145,11 +151,15 @@ export async function loadPublicVerifySession(
   const rpc = deps.rpc ?? new SuiJsonRpcClient({ network, url: addr.rpcUrl });
   const verifier = deps.verifier ?? verifyTraceChain;
 
-  const obj = await rpc.getObject({ id: sessionId, options: { showContent: true } });
+  const obj = await rpc.getObject({
+    id: sessionId,
+    options: { showContent: true, showType: true },
+  });
   const fields = parseSessionFields(obj.data?.content);
+  const eventPackageId = traceSessionPackageId(String(obj.data?.type ?? ""), packageId);
   const [verify, calls] = await Promise.all([
     verifier(rpc as SuiJsonRpcClient, packageId, sessionId),
-    fetchPublicVerifyCalls(rpc as PublicVerifyRpc, packageId, sessionId),
+    fetchPublicVerifyCalls(rpc as PublicVerifyRpc, eventPackageId, sessionId),
   ]);
   const expectedRoot = hexOf(verify.expectedMerkleRoot);
   const computedRoot = hexOf(verify.computedMerkleRoot);

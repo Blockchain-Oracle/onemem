@@ -36,6 +36,7 @@ function client(): { rpc: SuiJsonRpcClient; packageId: string } {
 
 export interface SessionMeta {
   sessionId: string;
+  packageId: string;
   agentId: string;
   environment: string;
   namespaceId: string;
@@ -78,14 +79,19 @@ export async function fetchSession(
 ): Promise<{ meta: SessionMeta; calls: DecodedCall[]; verify: VerifyResult } | { error: string }> {
   try {
     const { rpc, packageId } = client();
-    const obj = await rpc.getObject({ id: sessionId, options: { showContent: true } });
-    const content = obj.data?.content;
+    const obj = await rpc.getObject({
+      id: sessionId,
+      options: { showContent: true, showType: true },
+    });
+    const data = obj.data;
+    const content = data?.content;
     if (!content || content.dataType !== "moveObject") {
       return { error: `No TraceSession found at ${sessionId}` };
     }
     const f = content.fields as Record<string, unknown>;
     const meta: SessionMeta = {
       sessionId,
+      packageId: traceSessionPackageId(String(data.type ?? "")),
       agentId: String(f.agent_id ?? ""),
       environment: String(f.environment ?? ""),
       namespaceId: String(f.namespace_id ?? ""),
@@ -93,13 +99,20 @@ export async function fetchSession(
       callCount: Number(f.call_count ?? 0),
     };
     const [calls, verify] = await Promise.all([
-      fetchCalls(rpc, packageId, sessionId),
+      fetchCalls(rpc, meta.packageId || packageId, sessionId),
       verifyTraceChain(rpc, packageId, sessionId),
     ]);
     return { meta, calls, verify };
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) };
   }
+}
+
+function traceSessionPackageId(type: string): string {
+  const marker = "::trace::TraceSession";
+  const index = type.indexOf(marker);
+  if (index <= 0) throw new Error(`object is not trace::TraceSession: ${type}`);
+  return type.slice(0, index);
 }
 
 const ACTION_CALL_CLOSED = "events::ActionCallClosedEvent";

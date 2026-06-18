@@ -75,6 +75,7 @@ export type CallStatus = (typeof CallStatus)[keyof typeof CallStatus];
 /** On-chain layout of `onemem::trace::TraceSession`. */
 export interface TraceSession {
   readonly id: string;
+  readonly packageId: string;
   readonly namespaceId: string;
   readonly agentId: string;
   readonly environment: string;

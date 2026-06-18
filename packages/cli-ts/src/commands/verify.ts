@@ -26,8 +26,11 @@ export function verifyCommand(
         ok: result.ok,
         sessionId,
         callCount: result.callCount,
+        sessionCallCount: result.sessionCallCount,
         sessionStatus: result.sessionStatus,
         brokenAt: result.brokenAt,
+        rootMatches: result.rootMatches,
+        countMatches: result.countMatches,
         expectedMerkleRoot: shortHex(result.expectedMerkleRoot, 64),
         computedMerkleRoot: shortHex(result.computedMerkleRoot, 64),
         agentId: meta.agentId,
@@ -40,7 +43,7 @@ export function verifyCommand(
     printLine(`  session    ${sessionId}`);
     printLine(`  agent      ${meta.agentId} (${meta.environment})`);
     printLine(`  status     ${statusLabel(result.sessionStatus ?? meta.status)}`);
-    printLine(`  calls      ${result.callCount}`);
+    printLine(`  calls      ${result.callCount}/${result.sessionCallCount}`);
     printLine(`  merkleRoot ${shortHex(result.computedMerkleRoot, 64)}`);
     if (!result.ok) {
       printLine(`  brokenAt   ${result.brokenAt ?? "merkle-root mismatch"}`);

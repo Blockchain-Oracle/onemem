@@ -18,6 +18,9 @@ function verifyResult(callCount: number): VerifyResult {
     expectedMerkleRoot: Uint8Array.from([1, 2, 3]),
     computedMerkleRoot: Uint8Array.from([1, 2, 3]),
     callCount,
+    sessionCallCount: callCount,
+    rootMatches: true,
+    countMatches: true,
     sessionStatus: 1 as VerifyResult["sessionStatus"],
   };
 }

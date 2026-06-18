@@ -13,6 +13,7 @@ const fakeFetcher: SessionExportFetcher = async (sessionId) => {
   return {
     meta: {
       sessionId,
+      packageId: "0xpackage",
       agentId: "agent",
       environment: sessionId === "0x2" ? "hermes" : "claude-code",
       namespaceId: "0xnamespace",
@@ -25,6 +26,9 @@ const fakeFetcher: SessionExportFetcher = async (sessionId) => {
       expectedMerkleRoot: Uint8Array.from([1, 2, 3]),
       computedMerkleRoot: Uint8Array.from([1, 2, 3]),
       callCount: 1,
+      sessionCallCount: 1,
+      rootMatches: true,
+      countMatches: true,
       sessionStatus: 1,
     },
     calls: [

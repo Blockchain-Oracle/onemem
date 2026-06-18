@@ -80,9 +80,12 @@ export interface VerifyResult {
   readonly ok: boolean;
   /** Index of the first call whose computed content_hash doesn't match the on-chain stored hash. Null if ok. */
   readonly brokenAt: number | null;
+  readonly rootMatches: boolean;
+  readonly countMatches: boolean;
   readonly expectedMerkleRoot: Uint8Array;
   readonly computedMerkleRoot: Uint8Array;
   readonly callCount: number;
+  readonly sessionCallCount: number;
   readonly sessionStatus: SessionStatus;
 }
 
@@ -300,12 +303,9 @@ export class TracesAPI {
   }
 
   private async fetchEmittedEvents(sessionId: string) {
-    const { fetchActionCallEmittedEvents } = await import("./fetchers/trace.js");
-    return fetchActionCallEmittedEvents(
-      this.client.client,
-      this.client.addresses.packageId,
-      sessionId,
-    );
+    const { fetchTraceSession, fetchActionCallEmittedEvents } = await import("./fetchers/trace.js");
+    const session = await fetchTraceSession(this.client.client, sessionId);
+    return fetchActionCallEmittedEvents(this.client.client, session.packageId, sessionId);
   }
 }
 
@@ -327,7 +327,11 @@ export async function verifyTraceChain(
 ): Promise<VerifyResult> {
   const { fetchTraceSession, fetchActionCallEmittedEvents } = await import("./fetchers/trace.js");
   const session = await fetchTraceSession(client, sessionId);
-  const events = await fetchActionCallEmittedEvents(client, packageId, sessionId);
+  const events = await fetchActionCallEmittedEvents(
+    client,
+    session.packageId || packageId,
+    sessionId,
+  );
   events.sort((a, b) => Number(a.timestampMs - b.timestampMs));
 
   let runningMerkle: Uint8Array = ZERO_HASH;
@@ -341,13 +345,19 @@ export async function verifyTraceChain(
     prevContent = event.contentHash;
   });
 
-  const ok = brokenAt === null && u8eq(runningMerkle, session.merkleRoot);
+  const rootMatches = u8eq(runningMerkle, session.merkleRoot);
+  const sessionCallCount = Number(session.callCount);
+  const countMatches = events.length === sessionCallCount;
+  const ok = brokenAt === null && rootMatches && countMatches;
   return {
     ok,
     brokenAt,
+    rootMatches,
+    countMatches,
     expectedMerkleRoot: session.merkleRoot,
     computedMerkleRoot: runningMerkle,
     callCount: events.length,
+    sessionCallCount,
     sessionStatus: session.status,
   };
 }

@@ -38,9 +38,11 @@ export async function fetchTraceSession(
   if (!content || content.dataType !== "moveObject") {
     throw new Error(`fetchTraceSession(${sessionId}): not a Move object`);
   }
+  const packageId = traceSessionPackageId(String(obj.data.type ?? ""));
   const f = content.fields as unknown as RawTraceSessionFields;
   return {
     id: sessionId,
+    packageId,
     namespaceId: f.namespace_id,
     agentId: f.agent_id,
     environment: f.environment,
@@ -55,6 +57,15 @@ export async function fetchTraceSession(
     status: f.status as SessionStatus,
     capturedByAddress: f.captured_by_address,
   };
+}
+
+function traceSessionPackageId(type: string): string {
+  const marker = "::trace::TraceSession";
+  const index = type.indexOf(marker);
+  if (index <= 0) {
+    throw new Error(`fetchTraceSession: object type is not trace::TraceSession: ${type}`);
+  }
+  return type.slice(0, index);
 }
 
 export interface EmittedEventRow {

@@ -7,7 +7,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { CallStatus, SessionStatus } from "../src/index.js";
-import { TracePayloadError, TracesAPI } from "../src/traces.js";
+import { TracePayloadError, TracesAPI, verifyTraceChain } from "../src/traces.js";
 
 const IDS = {
   session: "0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -148,5 +148,62 @@ describe("TracesAPI trace close targets", () => {
     );
     expect(execute).toHaveBeenCalledTimes(1);
     moveCall.mockRestore();
+  });
+});
+
+describe("verifyTraceChain", () => {
+  it("uses the TraceSession object package for historical sessions", async () => {
+    const historicalPackage = `0x${"1".repeat(64)}`;
+    const latestPackage = `0x${"2".repeat(64)}`;
+    const contentHash = new Uint8Array([0x12, 0x34]);
+    const merkleRoot = sha256(Uint8Array.from([...new Uint8Array(32), ...contentHash]));
+    const queryEvents = vi.fn().mockResolvedValue({
+      data: [
+        {
+          timestampMs: "100",
+          parsedJson: {
+            session_id: IDS.session,
+            call_id: IDS.call,
+            content_hash: Array.from(contentHash),
+            prev_hash: Array.from(new Uint8Array(32)),
+          },
+        },
+      ],
+      hasNextPage: false,
+    });
+    const client = {
+      getObject: vi.fn().mockResolvedValue({
+        data: {
+          type: `${historicalPackage}::trace::TraceSession`,
+          content: {
+            dataType: "moveObject",
+            fields: {
+              namespace_id: IDS.namespace,
+              agent_id: "agent",
+              environment: "test",
+              sdk_version: "test",
+              started_at: "1",
+              call_count: "1",
+              last_content_hash: Array.from(contentHash),
+              merkle_root: Array.from(merkleRoot),
+              status: SessionStatus.Completed,
+              captured_by_address: IDS.cap,
+            },
+          },
+        },
+      }),
+      queryEvents,
+    };
+
+    const result = await verifyTraceChain(client as never, latestPackage, IDS.session);
+
+    expect(result.ok).toBe(true);
+    expect(result.countMatches).toBe(true);
+    expect(result.rootMatches).toBe(true);
+    expect(queryEvents).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: { MoveEventType: `${historicalPackage}::events::ActionCallEmittedEvent` },
+      }),
+    );
   });
 });
