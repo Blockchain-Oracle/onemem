@@ -44,6 +44,8 @@ describe("Walrus Sites static verifier", () => {
     assert.match(app, /crypto\.subtle\.digest\("SHA-256"/);
     assert.match(app, /prevHash/);
     assert.match(app, /countMatches/);
+    assert.match(app, /packageId: type\.split\("::trace::TraceSession"\)\[0\]/);
+    assert.match(app, /fetchEvents\(\{ \.\.\.network, packageId: session\.packageId \}/);
     assert.match(app, /location\.pathname\.match/);
     assert.match(app, /pathSession/);
     assert.match(app, new RegExp(networks.networks.testnet.package_id));

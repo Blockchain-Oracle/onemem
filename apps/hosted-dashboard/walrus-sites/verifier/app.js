@@ -50,10 +50,8 @@ async function submitVerify(event) {
   setBusy(true);
   setState("neutral", "Checking", "Reading TraceSession object and ActionCall events from Sui...");
   try {
-    const [session, events] = await Promise.all([
-      fetchSession(network, sessionId),
-      fetchEvents(network, sessionId),
-    ]);
+    const session = await fetchSession(network, sessionId);
+    const events = await fetchEvents({ ...network, packageId: session.packageId }, sessionId);
     const verification = await verifyChain(session, events);
     renderResult(network, sessionId, session, events, verification);
   } catch (error) {
@@ -76,12 +74,14 @@ async function fetchSession(network, sessionId) {
   if (!content || content.dataType !== "moveObject" || !content.fields) {
     throw new Error("Object is not a Move TraceSession.");
   }
-  if (result.data.type && !result.data.type.includes("::trace::TraceSession")) {
-    throw new Error(`Object type is not trace::TraceSession: ${result.data.type}`);
+  const type = String(result.data.type ?? "");
+  if (!type.includes("::trace::TraceSession")) {
+    throw new Error(`Object type is not trace::TraceSession: ${type}`);
   }
   const fields = content.fields;
   return {
     fields,
+    packageId: type.split("::trace::TraceSession")[0],
     agentId: String(fields.agent_id ?? ""),
     environment: String(fields.environment ?? ""),
     namespaceId: String(fields.namespace_id ?? ""),

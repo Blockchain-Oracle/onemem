@@ -39,6 +39,7 @@ was performed, so no hosted Walrus URL is claimed.
 | Default deploy path points at a real artifact | `scripts/deploy-walrus-sites.sh` defaults `WALRUS_DIST` to `apps/hosted-dashboard/walrus-sites/verifier`. |
 | Workflow no longer depends on hosted Next build output | `.github/workflows/deploy-walrus-sites.yml` defaults `dist` to the verifier directory and no longer runs the hosted-dashboard build step. |
 | Verifier uses Sui JSON-RPC | `app.js` calls `sui_getObject` and `suix_queryEvents`. |
+| Verifier supports upgraded package history | `app.js` derives the event package ID from the TraceSession object type before querying events. |
 | Verifier recomputes trace chain | `app.js` checks `prevHash`, folds `crypto.subtle.digest("SHA-256", running || content)`, and compares root and count. |
 | Walrus resource metadata supports verifier routes | `ws-resources.json` routes `/verify` and `/verify/*` to `/index.html`. |
 | Docs keep proof boundary honest | Walrus docs say the full dashboard mirror and live Walrus URL remain pending. |
@@ -79,20 +80,24 @@ Results:
 - Full structure suite: passed, 425/425.
 - Whitespace check: passed.
 - Static smoke: passed.
-- Chrome plugin browser proof: unavailable. The Codex Chrome Extension backend
-  reported `Browser is not available: extension` after the required retry.
+- Chrome plugin browser proof: passed after the extension became available. The
+  local verifier loaded a historical testnet TraceSession, returned `Verified`,
+  showed four calls, and displayed matching expected/computed Merkle roots.
 
 ## Deviations From Plan
 
-- No live browser proof through Chrome was captured because the extension
-  backend was unavailable in this session.
+- The first Chrome connection attempt failed because the extension backend was
+  unavailable; after the user restored it, the Chrome proof passed.
 - No live `site-builder deploy` was run; only preflight checks were run.
 
 ## Gaps And Risks
 
 - Live Walrus Sites deployment URL remains unclaimed.
-- Public Sui fullnode CORS behavior still needs a real browser pass when the
-  Chrome extension is available.
+- Current disposable trace demo environment still references an old namespace
+  capability package boundary after the testnet upgrade, so the demo script did
+  not mint a fresh current-package verified trace in this slice. The static
+  verifier handles this package-history case by deriving the event package from
+  the TraceSession object type.
 - Mainnet verification remains disabled until `config/networks.json` contains a
   real mainnet package ID.
 
@@ -100,8 +105,8 @@ Results:
 
 - Run `site-builder deploy` in a funded Walrus/Sui environment and record the
   returned site object and URL.
-- Repeat the verifier page in Chrome once the Codex Chrome Extension is
-  available.
+- Align disposable demo credentials with the upgraded testnet package before
+  relying on that demo for fresh post-upgrade trace generation.
 
 ## Evidence Log
 
@@ -111,3 +116,7 @@ Results:
   `site-builder --context=mainnet deploy --epochs 26 <verifier-dir>`
 - Testnet preflight command printed:
   `site-builder --context=testnet deploy --epochs 2 <verifier-dir>`
+- Chrome proof session:
+  `0xc173d0abc33f51bef8f489c9e928e2d956a290419edc7e3924b79a39bec56d59`
+  verified with 4 calls and matching root
+  `0x6c963d157122b69ee57ec6c082867e16d0df6ed4ccc74cbad1c58c04f7f7b42e`.

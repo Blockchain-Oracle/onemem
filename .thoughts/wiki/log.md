@@ -292,6 +292,5 @@
   and deploy script now default to a checked-in static verifier artifact instead
   of missing `apps/hosted-dashboard/out`; the shell verifies TraceSession
   Merkle integrity in-browser through public Sui JSON-RPC. Local deploy
-  preflights, focused structure test, full structure suite, and static curl
-  smoke passed. Live Walrus URL and Chrome extension browser proof remain
-  unclaimed.
+  preflights, focused structure test, full structure suite, static curl smoke,
+  and Chrome extension browser proof passed. Live Walrus URL remains unclaimed.
