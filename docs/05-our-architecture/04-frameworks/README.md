@@ -108,10 +108,10 @@ publication.
 
 ## Implementation status
 
-| Provider | Current repo status | Registry evidence checked 2026-06-17 | Deferred boundary |
+| Provider | Current repo status | Registry evidence checked 2026-06-18 | Deferred boundary |
 |---|---|---|---|
-| `@onemem/vercel-ai-provider` | Built/tested: trace model calls via `withOneMem(...)`; explicit memory via `createOneMemMemory(...)` | npm `0.1.1` | Automatic memory extraction and per-tool-call interception |
-| `@onemem/openai-agents` | Built/tested: trace runner lifecycle via `createTracedRunner(...)` / `attachOneMem(...)`; explicit memory via `createOneMemMemory(...)` | npm `0.1.2` | Verify/replay tools and automatic memory extraction |
-| `onemem-crewai` | Built/tested: trace CrewAI callbacks plus explicit memory via `create_onemem_memory(...)` | PyPI `0.1.0` | Mem0-style `memory_config={"provider": "onemem"}` memory provider |
-| `onemem-livekit` | Built/tested: trace voice turns/function tools plus explicit memory via `create_onemem_memory(...)` | PyPI `0.1.0` | Native memory provider and per-room namespace switching |
-| `onemem-elevenlabs` | Built/tested: trace transcript turns/client tools plus explicit memory via `create_onemem_memory(...)` | PyPI `0.1.0` | Native memory adapter and per-conversation namespacing |
+| `@onemem/vercel-ai-provider` | Built/tested: trace model calls via `withOneMem(...)`; explicit memory via `createOneMemMemory(...)`; local `0.1.2` pending publish | npm `0.1.1` artifact lacks explicit memory helper | Automatic memory extraction and per-tool-call interception |
+| `@onemem/openai-agents` | Built/tested: trace runner lifecycle via `createTracedRunner(...)` / `attachOneMem(...)`; explicit memory via `createOneMemMemory(...)`; local `0.1.3` pending publish | npm `0.1.2` artifact lacks explicit memory helper | Verify/replay tools and automatic memory extraction |
+| `onemem-crewai` | Built/tested: trace CrewAI callbacks plus explicit memory via `create_onemem_memory(...)`; local `0.1.1` pending publish | PyPI `0.1.0` artifact lacks explicit memory helper | Mem0-style `memory_config={"provider": "onemem"}` memory provider |
+| `onemem-livekit` | Built/tested: trace voice turns/function tools plus explicit memory via `create_onemem_memory(...)`; local `0.1.1` pending publish | PyPI `0.1.0` artifact lacks explicit memory helper | Native memory provider and per-room namespace switching |
+| `onemem-elevenlabs` | Built/tested: trace transcript turns/client tools plus explicit memory via `create_onemem_memory(...)`; local `0.1.1` pending publish | PyPI `0.1.0` artifact lacks explicit memory helper | Native memory adapter and per-conversation namespacing |

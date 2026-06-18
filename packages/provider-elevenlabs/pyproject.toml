@@ -1,6 +1,6 @@
 [project]
 name = "onemem-elevenlabs"
-version = "0.1.0"
+version = "0.1.1"
 description = "OneMem provider for ElevenLabs Conversational AI — record voice-agent sessions as verifiable on-chain traces"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
@@ -9,7 +9,7 @@ authors = [{ name = "OneMem contributors" }]
 # and shells out to the `onemem-trace` Node CLI (@onemem/sdk-ts) for the on-chain
 # write — no Python Sui/Walrus/Seal deps. elevenlabs is the host runtime (provided).
 dependencies = [
-    "onemem-sdk-python",
+    "onemem-sdk-python>=0.2.0",
 ]
 
 [project.urls]

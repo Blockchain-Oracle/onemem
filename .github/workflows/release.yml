@@ -53,6 +53,9 @@ jobs:
           npm --version
           pnpm --version
 
+      - name: Report registry publication preflight
+        run: pnpm release:preflight
+
       - name: Report npm publish disabled
         if: ${{ env.NPM_TOKEN == '' && env.ONEMEM_NPM_TRUSTED_PUBLISHING != '1' && env.ONEMEM_NPM_TRUSTED_PUBLISHING != 'true' }}
         run: |

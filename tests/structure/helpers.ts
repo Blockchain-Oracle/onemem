@@ -91,6 +91,7 @@ export const SCRIPTS = [
   "bootstrap-dev.sh",
   "publish-all.sh",
   "check-registry-status.py",
+  "check-release-preflight.py",
 ] as const;
 
 export const ROOT_CONFIGS = [

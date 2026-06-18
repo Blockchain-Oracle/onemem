@@ -44,6 +44,14 @@ For a repo-wide npm/PyPI snapshot, run:
 pnpm registry:status
 ```
 
+For the release handoff view that combines registry drift with credential gates,
+run:
+
+```bash
+pnpm release:preflight
+pnpm release:preflight -- --strict
+```
+
 Use `pnpm registry:status --strict` when preparing a release handoff that
 must fail unless every local package is already published at the same registry
 version. The command is read-only; it compares local package manifests against

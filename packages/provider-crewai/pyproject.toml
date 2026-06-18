@@ -1,6 +1,6 @@
 [project]
 name = "onemem-crewai"
-version = "0.1.0"
+version = "0.1.1"
 description = "OneMem provider for CrewAI — record crew runs as verifiable on-chain action traces"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
@@ -9,7 +9,7 @@ authors = [{ name = "OneMem contributors" }]
 # the `onemem-trace` Node CLI (@onemem/sdk-ts) for the on-chain write — no
 # Python Sui/Walrus/Seal deps. crewai is the host runtime (provided), not a dep.
 dependencies = [
-    "onemem-sdk-python",
+    "onemem-sdk-python>=0.2.0",
 ]
 
 [project.urls]

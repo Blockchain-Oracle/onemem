@@ -251,3 +251,12 @@
   user-level or plugin hooks in local proof attempts. MCP remains the stable
   Codex layer; full automatic Codex hook trace coverage still requires a
   trusted interactive `/hooks` session emitting a verifiable OneMem trace.
+- Added Release Preflight Auth Diagnostics. A new read-only
+  `pnpm release:preflight` command combines registry drift with npm/PyPI auth
+  gate visibility and published-artifact memory-helper marker checks without
+  printing secret values or publishing packages. Release workflow logs now run
+  the preflight before publish decisions. Stale same-version provider artifacts
+  were repaired by advancing local provider patch versions and requiring
+  `onemem-sdk-python>=0.2.0` for Python provider memory helpers. Structure
+  tests guard the script, workflow step, docs, strict modes, no-publish
+  boundary, artifact marker checks, and provider version repair.

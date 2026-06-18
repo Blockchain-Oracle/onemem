@@ -235,6 +235,11 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/stories/2026-06-18-codex-hook-proof-boundary.md",
       ".thoughts/plans/2026-06-18-codex-hook-proof-boundary.md",
       ".thoughts/verification/2026-06-18-codex-hook-proof-boundary.md",
+      ".thoughts/research/2026-06-18-release-preflight-auth-diagnostics.md",
+      ".thoughts/specs/2026-06-18-release-preflight-auth-diagnostics.md",
+      ".thoughts/stories/2026-06-18-release-preflight-auth-diagnostics.md",
+      ".thoughts/plans/2026-06-18-release-preflight-auth-diagnostics.md",
+      ".thoughts/verification/2026-06-18-release-preflight-auth-diagnostics.md",
     ]) {
       test(`Context Engineering artifact exists: ${f}`, () => {
         assert.ok(exists(f), `${f} missing`);

@@ -51,6 +51,11 @@ describe("OneMem monorepo structure", () => {
         /npm view @onemem\/codex-plugin version/,
         "release docs must require registry lookup before publication claims",
       );
+      assert.match(
+        content,
+        /pnpm release:preflight/,
+        "release docs must document the combined registry/auth preflight",
+      );
     });
   });
 });

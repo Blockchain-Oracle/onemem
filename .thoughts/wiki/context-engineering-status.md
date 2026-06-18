@@ -435,6 +435,19 @@ execute user-level or plugin hooks, so full automatic Codex hook tracing remains
 unclaimed until a trusted interactive `/hooks` session emits a verifiable
 on-chain OneMem `TraceSession`.
 
+Release Preflight Auth Diagnostics is the forty-fourth release-readiness slice.
+`pnpm release:preflight` now reports npm/PyPI packages needing publication and
+whether npm token/trusted-publishing or PyPI token gates are present, and it
+checks current published provider artifacts for shipped memory-helper markers,
+without printing secret values or uploading artifacts. Release workflow logs run
+this preflight before publish decisions. Published provider artifacts for
+Vercel AI, OpenAI Agents, CrewAI, LiveKit, and ElevenLabs were stale at their
+current registry versions, so local provider patch versions now advance to
+publishable versions with docs/tests guarding that boundary. In the current
+shell, npm and PyPI auth are absent; registry publication remains unproven until
+credentials are configured and `pnpm registry:status -- --strict` passes after
+publication.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:
@@ -469,10 +482,15 @@ Use subagents for independent lanes with disjoint write scopes:
    follow-up designs.
 4. Re-run affected quality gates and write verification before claiming done.
 5. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
-   publish `@onemem/codex-plugin@0.1.0` plus
-   `@onemem/claude-code-plugin@0.1.0`. The repo release path is now
-   provenance/public-access hardened, but registry publication remains
-   unproven until `npm view` returns real versions.
+   publish the missing npm packages plus fresh provider patch versions
+   (`@onemem/vercel-ai-provider@0.1.2`,
+   `@onemem/openai-agents@0.1.3`,
+   `@onemem/codex-plugin@0.1.0`,
+   `@onemem/claude-code-plugin@0.1.0`, and the other missing local packages).
+   Restore PyPI auth and publish `onemem-sdk-python@0.2.0`,
+   `hermes-onemem@0.2.0`, and provider patch versions `0.1.1`. The repo
+   release path is now provenance/public-access hardened, but registry
+   publication remains unproven until registry lookups return real versions.
 
 ## Verification Rule
 

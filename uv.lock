@@ -644,7 +644,7 @@ requires-dist = [
 
 [[package]]
 name = "onemem-crewai"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/provider-crewai" }
 dependencies = [
     { name = "onemem-sdk-python" },
@@ -655,7 +655,7 @@ requires-dist = [{ name = "onemem-sdk-python", editable = "packages/sdk-python" 
 
 [[package]]
 name = "onemem-elevenlabs"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/provider-elevenlabs" }
 dependencies = [
     { name = "onemem-sdk-python" },
@@ -666,7 +666,7 @@ requires-dist = [{ name = "onemem-sdk-python", editable = "packages/sdk-python" 
 
 [[package]]
 name = "onemem-livekit"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/provider-livekit" }
 dependencies = [
     { name = "onemem-sdk-python" },

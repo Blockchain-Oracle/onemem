@@ -87,6 +87,11 @@ describe("OneMem monorepo structure", () => {
         /NODE_AUTH_TOKEN:\s*\$\{\{\s*env\.NPM_TOKEN\s*\}\}/,
         "release workflow must support token-based npm publishing",
       );
+      assert.match(
+        workflow,
+        /pnpm release:preflight/,
+        "release workflow must report registry/auth preflight before publish decisions",
+      );
     });
 
     test("release workflow gates registry publishing on credentials", () => {
@@ -233,6 +238,33 @@ describe("OneMem monorepo structure", () => {
         script,
         /(?:npm|uv|twine)\s+publish/,
         "status preflight must not upload packages",
+      );
+    });
+
+    test("release preflight reports auth gates without publishing", () => {
+      const manifest = readJson<{ scripts?: Record<string, string> }>("package.json");
+      assert.equal(
+        manifest.scripts?.["release:preflight"],
+        "python scripts/check-release-preflight.py",
+      );
+
+      const script = readFileSync(join(ROOT, "scripts/check-release-preflight.py"), "utf8");
+      for (const marker of [
+        "NPM_TOKEN",
+        "NODE_AUTH_TOKEN",
+        "ONEMEM_NPM_TRUSTED_PUBLISHING",
+        "PYPI_TOKEN",
+        "UV_PUBLISH_TOKEN",
+      ]) {
+        assert.match(script, new RegExp(marker), `release preflight must check ${marker}`);
+      }
+      assert.match(script, /check-registry-status\.py/);
+      assert.match(script, /--require-auth/);
+      assert.match(script, /--strict/);
+      assert.doesNotMatch(
+        script,
+        /(?:npm|uv|twine|changeset)\s+publish/,
+        "release preflight must not upload packages",
       );
     });
 
