@@ -217,7 +217,7 @@ function renderFacts(id, rows) {
 
 function renderCalls(network, events) {
   if (events.length === 0) {
-    $("calls").innerHTML = "<p class=\"message\">No ActionCall events found.</p>";
+    $("calls").innerHTML = '<p class="message">No ActionCall events found.</p>';
     return;
   }
   $("calls").innerHTML = events
@@ -239,7 +239,12 @@ function toBytes(value) {
   if (value instanceof Uint8Array) return value;
   if (Array.isArray(value)) return Uint8Array.from(value.map((item) => Number(item)));
   if (typeof value === "string" && value.startsWith("0x")) {
-    return Uint8Array.from(value.slice(2).match(/.{1,2}/g)?.map((x) => parseInt(x, 16)) ?? []);
+    return Uint8Array.from(
+      value
+        .slice(2)
+        .match(/.{1,2}/g)
+        ?.map((x) => parseInt(x, 16)) ?? [],
+    );
   }
   throw new Error("Expected a vector<u8> field from Sui.");
 }
@@ -249,19 +254,15 @@ function optionalString(value) {
   if (value && Array.isArray(value.vec) && value.vec.length > 0) return String(value.vec[0]);
   return "";
 }
-
 function optionalId(value) {
   return optionalString(value) || null;
 }
-
 function sameBytes(a, b) {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
-
 function bytesHex(bytes) {
   return `0x${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
-
 function short(value, head = 12, tail = 8) {
   if (!value) return "none";
   return value.length > head + tail + 3 ? `${value.slice(0, head)}...${value.slice(-tail)}` : value;
@@ -292,7 +293,6 @@ function setBusy(isBusy) {
   $("verifyButton").disabled = isBusy;
   $("verifyButton").textContent = isBusy ? "Verifying" : "Verify";
 }
-
 function setState(kind, label, message) {
   $("statusBadge").className = `badge ${kind}`;
   $("statusBadge").textContent = label;
