@@ -461,7 +461,7 @@ Vercel AI, OpenAI Agents, CrewAI, LiveKit, and ElevenLabs were stale at their
 current registry versions, so local provider patch versions now advance to
 publishable versions with docs/tests guarding that boundary. In the current
 shell, npm and PyPI auth are absent; registry publication remains unproven until
-credentials are configured and `pnpm registry:status -- --strict` passes after
+credentials are configured and `pnpm registry:status --strict` passes after
 publication.
 
 CLI Dashboard Launcher is the forty-fifth CLI/docs slice. The TS CLI now

@@ -9,6 +9,7 @@
     "./logo/*": "./logo/*",
     "./fonts/*": "./fonts/*",
     "./og-images/*": "./og-images/*",
+    "./campaign/*": "./campaign/*",
     "./vendor-logos/*": "./vendor-logos/*"
   },
   "files": [
@@ -16,6 +17,7 @@
     "logo",
     "fonts",
     "og-images",
+    "campaign",
     "vendor-logos",
     "README.md",
     "LICENSE"

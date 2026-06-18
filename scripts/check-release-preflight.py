@@ -36,13 +36,21 @@ ARTIFACT_MARKERS = [
         ecosystem="npm",
         name="@onemem/vercel-ai-provider",
         marker="createOneMemMemory",
-        path_suffixes=("package/dist/index.js", "package/dist/index.cjs", "package/dist/index.d.ts"),
+        path_suffixes=(
+            "package/dist/index.js",
+            "package/dist/index.cjs",
+            "package/dist/index.d.ts",
+        ),
     ),
     ArtifactMarker(
         ecosystem="npm",
         name="@onemem/openai-agents",
         marker="createOneMemMemory",
-        path_suffixes=("package/dist/index.js", "package/dist/index.cjs", "package/dist/index.d.ts"),
+        path_suffixes=(
+            "package/dist/index.js",
+            "package/dist/index.cjs",
+            "package/dist/index.d.ts",
+        ),
     ),
     ArtifactMarker(
         ecosystem="pypi",
@@ -176,7 +184,9 @@ def pypi_file_has_marker(url: str, marker: ArtifactMarker, timeout: float) -> bo
     return marker.marker.encode("utf8") in payload
 
 
-def pypi_artifact_has_marker(status: dict[str, Any], marker: ArtifactMarker, timeout: float) -> bool:
+def pypi_artifact_has_marker(
+    status: dict[str, Any], marker: ArtifactMarker, timeout: float
+) -> bool:
     data = fetch_json(str(status["registry_url"]), timeout)
     urls = data.get("urls")
     if not isinstance(urls, list):
@@ -205,7 +215,14 @@ def artifact_checks(statuses: list[dict[str, Any]], timeout: float) -> list[dict
                 if marker.ecosystem == "npm"
                 else pypi_artifact_has_marker(status, marker, timeout)
             )
-        except (HTTPError, URLError, OSError, tarfile.TarError, ValueError, json.JSONDecodeError) as exc:
+        except (
+            HTTPError,
+            URLError,
+            OSError,
+            tarfile.TarError,
+            ValueError,
+            json.JSONDecodeError,
+        ) as exc:
             checks.append(
                 {
                     "ecosystem": marker.ecosystem,
@@ -242,11 +259,14 @@ def has_registry_errors(statuses: list[dict[str, Any]]) -> bool:
     return any(status.get("status") == "error" for status in statuses)
 
 
-def artifact_issues(checks: list[dict[str, Any]], ecosystem: str | None = None) -> list[dict[str, Any]]:
+def artifact_issues(
+    checks: list[dict[str, Any]], ecosystem: str | None = None
+) -> list[dict[str, Any]]:
     return [
         check
         for check in checks
-        if check.get("status") != "ok" and (ecosystem is None or check.get("ecosystem") == ecosystem)
+        if check.get("status") != "ok"
+        and (ecosystem is None or check.get("ecosystem") == ecosystem)
     ]
 
 
@@ -293,7 +313,9 @@ def auth_line(auth: AuthStatus, ecosystem: str) -> str:
     return "missing: set PYPI_TOKEN or UV_PUBLISH_TOKEN"
 
 
-def print_human(statuses: list[dict[str, Any]], checks: list[dict[str, Any]], auth: AuthStatus) -> None:
+def print_human(
+    statuses: list[dict[str, Any]], checks: list[dict[str, Any]], auth: AuthStatus
+) -> None:
     npm_needed = noncurrent(statuses, "npm")
     pypi_needed = noncurrent(statuses, "pypi")
 
@@ -310,8 +332,8 @@ def print_human(statuses: list[dict[str, Any]], checks: list[dict[str, Any]], au
     print(f"- PyPI: {auth_line(auth, 'pypi')}")
     print()
     print("strict handoff")
-    print("- use `pnpm release:preflight -- --strict` before claiming registries are current")
-    print("- use `pnpm registry:status -- --strict` after publishing to prove registry parity")
+    print("- use `pnpm release:preflight --strict` before claiming registries are current")
+    print("- use `pnpm registry:status --strict` after publishing to prove registry parity")
 
 
 def exit_code(

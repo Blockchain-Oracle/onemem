@@ -46,6 +46,19 @@ The SVG files are the source-controlled design source. The PNG files are
 committed upload artifacts generated from those SVGs; do not hand-edit raster
 copies as the source of truth.
 
+Campaign SVG source assets live in `campaign/`:
+
+- `readme-hero.svg` - 1400 x 360
+- `x-header.svg` - 1500 x 500
+- `link-card.svg` - 1200 x 630
+- `tools-grid.svg` - 1600 x 900
+- `architecture.svg` - 1920 x 1080
+- `motion-storyboard.svg` - 1920 x 1080
+
+Platform-ready PNG exports live beside their SVG sources. The generator lives at
+`campaign/generate-campaign-assets.mjs`, and `campaign/README.md` documents
+copy guardrails, public links, and regeneration commands.
+
 Vendor and ecosystem logo assets live in `vendor-logos/`:
 
 - `vendor-logos/manifest.json` - source map for every third-party logo.

@@ -106,5 +106,5 @@ claiming this slice done.
 ## Handoff Notes
 
 This does not solve publication. The follow-up remains configuring npm/PyPI auth
-or trusted publishing and rerunning `pnpm registry:status -- --strict` after
+or trusted publishing and rerunning `pnpm registry:status --strict` after
 publish.

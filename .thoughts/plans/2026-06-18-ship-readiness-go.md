@@ -62,7 +62,7 @@ Publish missing or drifted npm/PyPI packages when auth is valid; otherwise prese
 - Check env vars and local auth config by presence only.
 - Use `npm whoami` and equivalent safe probes to prove auth works.
 - Run repo publish/preflight scripts.
-- Re-run `pnpm registry:status -- --strict` after publication.
+- Re-run `pnpm registry:status --strict` after publication.
 
 ### Checks
 

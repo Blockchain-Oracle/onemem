@@ -48,7 +48,11 @@ if [[ "$MODE" == "python" || "$MODE" == "all" ]]; then
       echo "  publishing $pkg"
       rm -rf "$pkg/dist"
       uv build "$pkg" --out-dir "$pkg/dist" --clear
-      uv publish "${publish_args[@]}" "$pkg"/dist/*
+      if [[ "${#publish_args[@]}" -gt 0 ]]; then
+        uv publish "${publish_args[@]}" "$pkg"/dist/*
+      else
+        uv publish "$pkg"/dist/*
+      fi
     fi
   done
 fi

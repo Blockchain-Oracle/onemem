@@ -29,6 +29,24 @@ const SOCIAL_PNG_EXPORTS = {
   "packages/brand/og-images/demo-video-cover.png": [1920, 1080],
 } as const;
 
+const CAMPAIGN_ASSETS = {
+  "packages/brand/campaign/readme-hero.svg": [1400, 360],
+  "packages/brand/campaign/x-header.svg": [1500, 500],
+  "packages/brand/campaign/link-card.svg": [1200, 630],
+  "packages/brand/campaign/tools-grid.svg": [1600, 900],
+  "packages/brand/campaign/architecture.svg": [1920, 1080],
+  "packages/brand/campaign/motion-storyboard.svg": [1920, 1080],
+} as const;
+
+const CAMPAIGN_PNG_EXPORTS = {
+  "packages/brand/campaign/readme-hero.png": [1400, 360],
+  "packages/brand/campaign/x-header.png": [1500, 500],
+  "packages/brand/campaign/link-card.png": [1200, 630],
+  "packages/brand/campaign/tools-grid.png": [1600, 900],
+  "packages/brand/campaign/architecture.png": [1920, 1080],
+  "packages/brand/campaign/motion-storyboard.png": [1920, 1080],
+} as const;
+
 const REQUIRED_VENDOR_IDS = [
   "sui",
   "walrus",
@@ -92,9 +110,11 @@ describe("brand package assets", () => {
     );
     assert.equal(pkg.exports["./logo/*"], "./logo/*");
     assert.equal(pkg.exports["./og-images/*"], "./og-images/*");
+    assert.equal(pkg.exports["./campaign/*"], "./campaign/*");
     assert.equal(pkg.exports["./vendor-logos/*"], "./vendor-logos/*");
     assert.ok(pkg.files.includes("logo"));
     assert.ok(pkg.files.includes("og-images"));
+    assert.ok(pkg.files.includes("campaign"));
     assert.ok(pkg.files.includes("vendor-logos"));
   });
 
@@ -128,6 +148,30 @@ describe("brand package assets", () => {
     for (const [rel, [width, height]] of Object.entries(SOCIAL_PNG_EXPORTS)) {
       assertPng(rel, width, height);
     }
+  });
+
+  test("campaign SVG and PNG assets are generated with fixed dimensions", () => {
+    for (const [rel, [width, height]] of Object.entries(CAMPAIGN_ASSETS)) {
+      assertSvg(rel);
+      const svg = read(rel);
+      assert.match(svg, new RegExp(`width="${width}"`), `${rel} width must be ${width}`);
+      assert.match(svg, new RegExp(`height="${height}"`), `${rel} height must be ${height}`);
+      assert.match(svg, /OneMem/, `${rel} must identify OneMem`);
+      assert.match(svg, /x\.com\/OneMemAI/, `${rel} must include the X profile URL`);
+      assert.doesNotMatch(svg, /OpenClaude|Stop trusting|Etherscan for AI agents/i);
+    }
+
+    for (const [rel, [width, height]] of Object.entries(CAMPAIGN_PNG_EXPORTS)) {
+      assertPng(rel, width, height);
+    }
+
+    const campaignReadme = read("packages/brand/campaign/README.md");
+    assert.match(campaignReadme, /One memory layer for every agent/);
+    assert.match(campaignReadme, /onememe\.xyz/);
+    assert.match(campaignReadme, /@OneMemAI/);
+    assert.match(campaignReadme, /x\.com\/OneMemAI/);
+    assert.match(campaignReadme, /OpenClaw/);
+    assert.doesNotMatch(campaignReadme, /OpenClaude/);
   });
 
   test("brand README documents inventory, identity, and raster boundary", () => {

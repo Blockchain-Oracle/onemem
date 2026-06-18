@@ -62,9 +62,9 @@ packages need patch versions before publication can be honest.
 
 - AC1: `pnpm release:preflight` reports current registry drift and missing auth
   while exiting zero by default.
-- AC2: `pnpm release:preflight -- --require-auth` exits non-zero when packages
+- AC2: `pnpm release:preflight --require-auth` exits non-zero when packages
   need publication and auth is absent.
-- AC3: `pnpm release:preflight -- --json` emits machine-readable auth/status
+- AC3: `pnpm release:preflight --json` emits machine-readable auth/status
   data without secret values.
 - AC4: Structure tests pass.
 - AC5: Release docs mention the combined preflight.

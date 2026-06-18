@@ -41,8 +41,8 @@ Add a read-only script that combines registry drift and auth readiness.
 ### Checks
 
 - `pnpm release:preflight`
-- `pnpm release:preflight -- --json`
-- `pnpm release:preflight -- --require-auth`
+- `pnpm release:preflight --json`
+- `pnpm release:preflight --require-auth`
 
 ### Acceptance Criteria Covered
 
@@ -120,4 +120,4 @@ Run focused preflight modes, structure tests, targeted lint/format checks, and
 
 This slice does not publish. Publication still requires adding npm/PyPI auth or
 trusted-publishing config and then proving registry parity with
-`pnpm registry:status -- --strict`.
+`pnpm registry:status --strict`.

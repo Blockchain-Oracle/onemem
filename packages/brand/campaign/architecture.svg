@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">OneMem architecture diagram</title>
+  <desc id="desc">Designed architecture flow for OneMem from agent runtimes to SDK/MCP/plugins, namespaces, capabilities, Seal, Walrus, MemWal, Sui, and dashboard surfaces.</desc>
+  <defs>
+    <pattern id="grid" width="96" height="96" patternUnits="userSpaceOnUse">
+      <path d="M96 0H0v96" fill="none" stroke="#202838" stroke-width="1" opacity=".62"/>
+    </pattern>
+    <pattern id="tight-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#202838" stroke-width="1" opacity=".45"/>
+    </pattern>
+    <linearGradient id="dark-sheen" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0a0f18"/>
+      <stop offset=".52" stop-color="#080a0f"/>
+      <stop offset="1" stop-color="#10141e"/>
+    </linearGradient>
+    <linearGradient id="paper-sheen" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf8"/>
+      <stop offset="1" stop-color="#faf8f5"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-20%" y="-30%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity=".24"/>
+    </filter>
+    <filter id="small-shadow" x="-20%" y="-30%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000000" flood-opacity=".20"/>
+    </filter>
+    <marker id="arrow-violet" markerWidth="14" markerHeight="14" refX="10" refY="5" orient="auto">
+      <path d="M0 0 10 5 0 10z" fill="#8f7cff"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="10" refY="5" orient="auto">
+      <path d="M0 0 10 5 0 10z" fill="#0090ff"/>
+    </marker>
+    <marker id="arrow-lime" markerWidth="14" markerHeight="14" refX="10" refY="5" orient="auto">
+      <path d="M0 0 10 5 0 10z" fill="#d4ff5e"/>
+    </marker>
+  </defs>
+  <style>
+    .display{font-family:Bricolage Grotesque, Hanken Grotesk, Inter, Arial, sans-serif;font-weight:800;letter-spacing:0}
+    .body{font-family:Hanken Grotesk, Inter, Arial, sans-serif;font-weight:500;letter-spacing:0}
+    .mono{font-family:JetBrains Mono, SFMono-Regular, Consolas, monospace;font-weight:600;letter-spacing:0}
+    .small{font-family:Hanken Grotesk, Inter, Arial, sans-serif;font-weight:700;letter-spacing:0}
+  </style>
+  
+  <rect width="1920" height="1080" fill="#faf8f5"/>
+  <rect x="56" y="54" width="1808" height="972" rx="8" fill="#fffdf8" stroke="#e3dbce" stroke-width="2"/>
+  <text class="display" x="96" y="126" fill="#171717" font-size="64">OneMem architecture</text>
+  <text class="body" x="100" y="170" fill="#5f6572" font-size="25">Decentralized persistent memory for AI agents, with proof as the confidence layer.</text>
+  <g filter="url(#small-shadow)">
+    <rect x="96" y="250" width="330" height="158" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M114 268h294" stroke="#8f7cff" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="118" y="308" fill="#171717" font-size="28">Agents &amp; runtimes</text>
+    <text class="body" x="118" y="342" fill="#5f6572" font-size="18">Claude Code, Codex, OpenClaw, Hermes</text>
+  </g>
+  <g filter="url(#small-shadow)">
+    <rect x="96" y="476" width="330" height="158" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M114 494h294" stroke="#8f7cff" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="118" y="534" fill="#171717" font-size="28">Developer surface</text>
+    <text class="body" x="118" y="568" fill="#5f6572" font-size="18">add, search, trace, share, revoke</text>
+  </g>
+  <g filter="url(#small-shadow)">
+    <rect x="508" y="250" width="330" height="158" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M526 268h294" stroke="#8f7cff" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="530" y="308" fill="#171717" font-size="28">SDK / MCP / plugins</text>
+    <text class="body" x="530" y="342" fill="#5f6572" font-size="18">@onemem/sdk-ts, @onemem/mcp, hooks</text>
+  </g>
+  <g filter="url(#small-shadow)">
+    <rect x="508" y="476" width="330" height="158" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M526 494h294" stroke="#8f7cff" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="530" y="534" fill="#171717" font-size="28">Provider adapters</text>
+    <text class="body" x="530" y="568" fill="#5f6572" font-size="18">Vercel, OpenAI Agents, CrewAI, voice</text>
+  </g>
+  <g filter="url(#soft-shadow)">
+    <rect x="936" y="294" width="382" height="274" rx="8" fill="#171717" stroke="#d4ff5e" stroke-width="3"/>
+    <rect x="954" y="312" width="346" height="238" rx="6" fill="none" stroke="#2b3244" stroke-width="1"/>
+    <path d="M992 360 1127 322 1262 360v170L1127 540 992 530z" fill="none" stroke="#8f7cff" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M992 360 1127 398 1262 360M1127 398v142" fill="none" stroke="#d4ff5e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="display" x="1127" y="498" text-anchor="middle" fill="#fffdf8" font-size="34">MemoryNamespace</text>
+    <text class="mono" x="1127" y="528" text-anchor="middle" fill="#d4ff5e" font-size="15">user | agent | org | session | shared</text>
+  </g>
+  <text class="display" x="1430" y="278" fill="#171717" font-size="30">Capability authority</text>
+  <g>
+    <rect x="1428" y="314" width="154" height="44" rx="8" fill="#0a0f18" stroke="#0090ff" stroke-width="1.5"/>
+    <path d="M1446 339h30m-9-9 9 9-9 9" fill="none" stroke="#0090ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="mono" x="1490" y="342" fill="#fffdf8" font-size="13">ReadOnly</text>
+  </g>
+  <g>
+    <rect x="1600" y="314" width="154" height="44" rx="8" fill="#0a0f18" stroke="#8f7cff" stroke-width="1.5"/>
+    <path d="M1618 339h30m-9-9 9 9-9 9" fill="none" stroke="#8f7cff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="mono" x="1662" y="342" fill="#fffdf8" font-size="13">ReadWrite</text>
+  </g>
+  <g>
+    <rect x="1514" y="374" width="154" height="44" rx="8" fill="#0a0f18" stroke="#d4ff5e" stroke-width="1.5"/>
+    <path d="M1532 399h30m-9-9 9 9-9 9" fill="none" stroke="#d4ff5e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="mono" x="1576" y="402" fill="#fffdf8" font-size="13">Admin</text>
+  </g>
+  <g filter="url(#small-shadow)">
+    <rect x="1428" y="476" width="336" height="138" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M1446 494h300" stroke="#d4ff5e" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="1450" y="534" fill="#171717" font-size="28">Seal encryption</text>
+    <text class="body" x="1450" y="568" fill="#5f6572" font-size="18">capability holders decrypt through gate</text>
+  </g>
+  <g filter="url(#small-shadow)">
+    <rect x="1428" y="676" width="336" height="138" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M1446 694h300" stroke="#0090ff" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="1450" y="734" fill="#171717" font-size="28">MemWal + Walrus</text>
+    <text class="body" x="1450" y="768" fill="#5f6572" font-size="18">manual memory API, encrypted blobs</text>
+  </g>
+  <g filter="url(#small-shadow)">
+    <rect x="936" y="706" width="382" height="138" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M954 724h346" stroke="#0090ff" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="958" y="764" fill="#171717" font-size="28">Sui proof plane</text>
+    <text class="body" x="958" y="798" fill="#5f6572" font-size="18">namespace, caps, trace receipts</text>
+  </g>
+  <g filter="url(#small-shadow)">
+    <rect x="508" y="746" width="330" height="138" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M526 764h294" stroke="#d4ff5e" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="530" y="804" fill="#171717" font-size="28">Dashboard surfaces</text>
+    <text class="body" x="530" y="838" fill="#5f6572" font-size="18">memories, sessions, trace, share</text>
+  </g>
+  <g filter="url(#small-shadow)">
+    <rect x="96" y="746" width="330" height="138" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
+    <path d="M114 764h294" stroke="#8f7cff" stroke-width="4" stroke-linecap="round"/>
+    <text class="display" x="118" y="804" fill="#171717" font-size="28">Recall anywhere</text>
+    <text class="body" x="118" y="838" fill="#5f6572" font-size="18">same namespace, different runtime</text>
+  </g>
+  <path d="M426 328C467 328, 467 328, 508 328" fill="none" stroke="#8f7cff" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-violet)" opacity="1"/>
+  <path d="M426 554C467 554, 467 554, 508 554" fill="none" stroke="#8f7cff" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-violet)" opacity="1"/>
+  <path d="M838 328C887 328, 887 386, 936 386" fill="none" stroke="#8f7cff" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-violet)" opacity="1"/>
+  <path d="M838 554C887 554, 887 474, 936 474" fill="none" stroke="#8f7cff" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-violet)" opacity="1"/>
+  <path d="M1318 386C1373 386, 1373 348, 1428 348" fill="none" stroke="#d4ff5e" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-lime)" opacity="1"/>
+  <path d="M1596 418C1596 418, 1596 476, 1596 476" fill="none" stroke="#d4ff5e" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-lime)" opacity="1"/>
+  <path d="M1596 614C1596 614, 1596 676, 1596 676" fill="none" stroke="#0090ff" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-blue)" opacity="1"/>
+  <path d="M1428 746C1373 746, 1373 776, 1318 776" fill="none" stroke="#0090ff" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-blue)" opacity="1"/>
+  <path d="M936 776C887 776, 887 816, 838 816" fill="none" stroke="#d4ff5e" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-lime)" opacity="1"/>
+  <path d="M508 816C467 816, 467 816, 426 816" fill="none" stroke="#8f7cff" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-violet)" opacity="1"/>
+  <rect x="96" y="922" width="1668" height="46" rx="8" fill="#0a0f18"/>
+  <text class="mono" x="122" y="951" fill="#d4ff5e" font-size="17">memory-first:</text>
+  <text class="mono" x="270" y="951" fill="#fffdf8" font-size="17">add -> encrypt -> store -> anchor -> share -> recall</text>
+  <text class="mono" x="1436" y="951" fill="#fffdf8" font-size="17">onememe.xyz</text>
+  <g>
+    <rect x="1572" y="934" width="21" height="21" rx="4" fill="#fffdf8"/>
+    <image href="data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+WDwvdGl0bGU+PHBhdGggZD0iTTE0LjIzNCAxMC4xNjIgMjIuOTc3IDBoLTIuMDcybC03LjU5MSA4LjgyNEw3LjI1MSAwSC4yNThsOS4xNjggMTMuMzQzTC4yNTggMjRIMi4zM2w4LjAxNi05LjMxOEwxNi43NDkgMjRoNi45OTN6bS0yLjgzNyAzLjI5OS0uOTI5LTEuMzI5TDMuMDc2IDEuNTZoMy4xODJsNS45NjUgOC41MzIuOTI5IDEuMzI5IDcuNzU0IDExLjA5aC0zLjE4MnoiLz48L3N2Zz4=" x="1577" y="939" width="11" height="11" preserveAspectRatio="xMidYMid meet"/>
+    <text class="mono" x="1603" y="951" fill="#d4ff5e" font-size="15">x.com/OneMemAI</text>
+  </g>
+
+</svg>

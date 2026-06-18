@@ -53,8 +53,8 @@ publish credentials.
 | Acceptance Criterion | Evidence |
 |---|---|
 | AC1: Default preflight reports drift/auth | `pnpm release:preflight` exits zero and reports npm/PyPI packages needing publication plus missing auth gates. |
-| AC2: Require-auth fails without auth | `pnpm release:preflight -- --require-auth` exits 1 in the current no-auth state. |
-| AC3: JSON mode works | `pnpm release:preflight -- --json` exits zero and emits machine-readable status/auth data. |
+| AC2: Require-auth fails without auth | `pnpm release:preflight --require-auth` exits 1 in the current no-auth state. |
+| AC3: JSON mode works | `pnpm release:preflight --json` exits zero and emits machine-readable status/auth data. |
 | AC4: Structure tests pass | `pnpm test:structure`: 384 pass, 0 fail. |
 | AC5: Docs mention preflight | Structure release-doc test passes. |
 | AC6: Stale artifacts become version drift | Default preflight now reports affected providers as version-drift pending publish. |
@@ -68,7 +68,7 @@ Passed:
 mise exec -- uv lock
 mise exec -- pnpm install --lockfile-only
 mise exec -- pnpm release:preflight
-mise exec -- pnpm release:preflight -- --json
+mise exec -- pnpm release:preflight --json
 mise exec -- python -m py_compile scripts/check-release-preflight.py scripts/check-registry-status.py
 mise exec -- uv run ruff check scripts/check-release-preflight.py scripts/check-registry-status.py packages/provider-crewai packages/provider-livekit packages/provider-elevenlabs
 mise exec -- pnpm exec biome check package.json packages/provider-vercel-ai/package.json packages/provider-openai-agents/package.json .github/workflows/release.yml .changeset/README.md docs/05-our-architecture/04-frameworks/README.md tests/structure .thoughts
@@ -89,8 +89,8 @@ NPM_CONFIG_DRY_RUN=true npm_config_dry_run=true NPM_CONFIG_ACCESS=public npm_con
 Expected failing handoff gates:
 
 ```bash
-mise exec -- pnpm release:preflight -- --require-auth
-mise exec -- pnpm release:preflight -- --strict
+mise exec -- pnpm release:preflight --require-auth
+mise exec -- pnpm release:preflight --strict
 ```
 
 Both exit 1 because package publication is still needed and npm/PyPI auth gates
@@ -116,7 +116,7 @@ are absent.
 
 - Add repo `NPM_TOKEN`/`PYPI_TOKEN` secrets or configure trusted publishing.
 - Publish the missing packages and new provider patch versions.
-- Re-run `pnpm registry:status -- --strict` after publication.
+- Re-run `pnpm registry:status --strict` after publication.
 
 ## Evidence Log
 

@@ -184,16 +184,14 @@ describe("OneMem monorepo structure", () => {
       const script = readFileSync(join(ROOT, "scripts/publish-all.sh"), "utf8");
       assert.match(script, /PUBLISH_ALL_DRY_RUN/, "publish-all needs a dry-run gate");
       assert.match(script, /--trusted-publishing never/, "dry runs must not probe OIDC");
-      assert.match(
-        script,
-        /uv build "\$pkg" --out-dir "\$pkg\/dist" --clear/,
-        "uv build must use explicit package dist",
-      );
+      assert.match(script, /uv build "\$pkg" --out-dir "\$pkg\/dist" --clear/);
       assert.match(
         script,
         /uv publish "\$\{publish_args\[@\]\}"/,
-        "uv publish must use args array",
+        "uv publish must use args array when optional args are present",
       );
+      assert.match(script, /\$\{#publish_args\[@\]\}/);
+      assert.match(script, /uv publish "\$pkg"\/dist\/\*/);
       assert.doesNotMatch(script, /uv publish\s*\|\|/, "uv publish errors must not be swallowed");
       assert.doesNotMatch(script, /skeleton/, "publish script must not claim PyPI is skeleton");
     });

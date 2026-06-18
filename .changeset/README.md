@@ -49,7 +49,7 @@ run:
 
 ```bash
 pnpm release:preflight
-pnpm release:preflight -- --strict
+pnpm release:preflight --strict
 ```
 
 Use `pnpm registry:status --strict` when preparing a release handoff that
