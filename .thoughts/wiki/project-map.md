@@ -43,8 +43,10 @@ Sources:
 ## Current Truth Sources
 
 Use current code, package manifests, CI, and `BUILD_SEQUENCE.md` for build status.
-Some older architecture docs still contain design-phase “pending” status tables.
-Treat those tables as stale unless verified against current code.
+The architecture entry points now carry current scoped status for protocol,
+SDK, runtime, framework, CLI, dashboard, docs, demo, and stretch lanes. Treat
+any remaining pending row as lane-specific future work unless verified stale
+against current code.
 
 ## Prototype Source
 

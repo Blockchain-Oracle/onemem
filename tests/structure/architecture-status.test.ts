@@ -66,4 +66,15 @@ describe("architecture implementation status docs", () => {
     assert.match(overview, /mainnet remains pending/i);
     assert.match(overview, /missing from PyPI/i);
   });
+
+  test("reference maps do not describe current architecture as not started", () => {
+    const canonical = readText("docs/06-references/CANONICAL_URLS.md");
+    const projectMap = readText(".thoughts/wiki/project-map.md");
+
+    assert.doesNotMatch(canonical, /05-our-architecture\/\*`?\s+—\s+design phase \(not yet started\)/i);
+    assert.match(canonical, /current scoped architecture status/);
+
+    assert.doesNotMatch(projectMap, /older architecture docs still contain design-phase/i);
+    assert.match(projectMap, /architecture entry points now carry current scoped status/i);
+  });
 });

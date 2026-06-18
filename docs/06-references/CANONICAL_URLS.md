@@ -192,7 +192,9 @@ Fast-lookup index of every URL that matters during architecture + build. Grouped
 - `../02-inspirations/*` — per-product deep dives (mix of written + in-flight)
 - `../03-target-runtimes/README.md` — plugin surface matrix
 - `../04-framework-providers/README.md` — provider integration matrix
-- `../05-our-architecture/*` — design phase (not yet started)
+- `../05-our-architecture/*` — current scoped architecture status, including
+  built protocol/SDK/runtime surfaces and explicitly pending deployment or
+  registry gaps
 - Original parent-folder research files referenced by older docs:
   `WEDGE_V2.md`, `TRACE_AND_PROVIDERS.md`, `MEM0_DEEP_DIVE.md`,
   `DEEP_DIVE.md`, `WEDGE_REFINEMENT.md`, `FINAL_WEDGE.md`, `scores.json`,
