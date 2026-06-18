@@ -12,7 +12,7 @@ npx @onemem/cli verify <session-id>
 ```
 
 **Publication note, 2026-06-18:** `@onemem/cli@0.1.0` and
-`@onemem/dashboard@0.1.1` are current on npm after
+`@onemem/dashboard@0.1.2` are current on npm after
 `pnpm registry:status --strict`. Re-run that command before making a fresh
 public install claim.
 

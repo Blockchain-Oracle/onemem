@@ -5,7 +5,7 @@ Next.js 15 standalone dashboard. Same code serves the local launch
 `onemem-dashboard`) and is wrapped by `apps/hosted-dashboard/` for
 `app.onemem.ai`.
 
-**Publication note, 2026-06-18:** `@onemem/dashboard@0.1.1` is current on npm
+**Publication note, 2026-06-18:** `@onemem/dashboard@0.1.2` is current on npm
 after `pnpm registry:status --strict`. Re-run that command before making a fresh
 public install claim.
 

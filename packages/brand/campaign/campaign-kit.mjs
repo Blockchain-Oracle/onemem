@@ -6,19 +6,25 @@ const here = dirname(fileURLToPath(import.meta.url));
 const vendorRoot = join(here, "..", "vendor-logos");
 
 export const palette = {
-  dark: "#080a0f",
-  dark2: "#0a0f18",
-  stroke: "#2b3244",
-  strokeSoft: "#202838",
-  cream: "#faf8f5",
-  paper: "#fffdf8",
-  ink: "#171717",
-  muted: "#b9b6ad",
-  mutedDark: "#5f6572",
-  violet: "#8f7cff",
-  lime: "#d4ff5e",
-  sui: "#0090ff",
-  green: "#16a34a",
+  dark: "#0f1014",
+  dark2: "#15171b",
+  stroke: "#2d3037",
+  strokeSoft: "#e1dfdb",
+  darkStroke: "#242831",
+  cream: "#fdfcf9",
+  paper: "#ffffff",
+  paper2: "#f7f6f1",
+  paper3: "#f2f0eb",
+  ink: "#221d18",
+  muted: "#c9c5bd",
+  mutedDark: "#68625c",
+  faintDark: "#908b86",
+  line: "#e1dfdb",
+  line2: "#d3d1cc",
+  violet: "#3959da",
+  lime: "#0a924b",
+  sui: "#008cc0",
+  green: "#0a924b",
 };
 
 const fonts = {
@@ -58,18 +64,21 @@ function css() {
 function defs() {
   return `<defs>
     <pattern id="grid" width="96" height="96" patternUnits="userSpaceOnUse">
-      <path d="M96 0H0v96" fill="none" stroke="${palette.strokeSoft}" stroke-width="1" opacity=".62"/>
+      <path d="M96 0H0v96" fill="none" stroke="${palette.darkStroke}" stroke-width="1" opacity=".62"/>
     </pattern>
     <pattern id="tight-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M48 0H0v48" fill="none" stroke="${palette.strokeSoft}" stroke-width="1" opacity=".45"/>
+      <path d="M48 0H0v48" fill="none" stroke="${palette.darkStroke}" stroke-width="1" opacity=".45"/>
+    </pattern>
+    <pattern id="paper-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="${palette.line}" stroke-width="1" opacity=".82"/>
     </pattern>
     <linearGradient id="dark-sheen" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0" stop-color="${palette.dark2}"/>
       <stop offset=".52" stop-color="${palette.dark}"/>
-      <stop offset="1" stop-color="#10141e"/>
+      <stop offset="1" stop-color="#17191e"/>
     </linearGradient>
     <linearGradient id="paper-sheen" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0" stop-color="${palette.paper}"/>
+      <stop offset="0" stop-color="${palette.cream}"/>
       <stop offset="1" stop-color="${palette.cream}"/>
     </linearGradient>
     <filter id="soft-shadow" x="-20%" y="-30%" width="140%" height="160%">
@@ -104,14 +113,14 @@ export function svg({ width, height, title, desc, body }) {
 export function mark(x, y, size = 64) {
   const s = size / 64;
   return `<g transform="translate(${x} ${y}) scale(${s})">
-    <rect width="64" height="64" rx="14" fill="${palette.ink}"/>
+    <rect width="64" height="64" rx="14" fill="${palette.dark2}"/>
     <path d="M18 22.5 32 15l14 7.5v18.8L32 49l-14-7.7z" fill="none" stroke="${palette.lime}" stroke-width="4" stroke-linejoin="round"/>
     <path d="M18 22.5 32 30l14-7.5M32 30v19" fill="none" stroke="${palette.violet}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   </g>`;
 }
 
 export function runtimePill(x, y, label, tone = "violet", width = 172) {
-  const colors = { violet: [palette.violet, "#161223"], lime: [palette.lime, "#182010"], blue: [palette.sui, "#0b1b29"], cream: [palette.cream, "#191815"] }[tone];
+  const colors = { violet: [palette.violet, "#161b34"], lime: [palette.lime, "#102018"], blue: [palette.sui, "#0b1d27"], cream: [palette.cream, "#191815"] }[tone];
   return `<g filter="url(#small-shadow)">
     <rect x="${x}" y="${y}" width="${width}" height="44" rx="8" fill="${colors[1]}" stroke="${colors[0]}" stroke-width="1.5" opacity=".96"/>
     <circle cx="${x + 22}" cy="${y + 22}" r="6" fill="${colors[0]}"/>
@@ -150,7 +159,7 @@ export function logoChip({
     ? `<image href="${logoData(file)}" x="${x + 18}" y="${y + (h - imageH) / 2}" width="${imageW}" height="${imageH}" preserveAspectRatio="xMidYMid meet"/>`
     : `<circle cx="${x + 36}" cy="${y + 35}" r="18" fill="${accent}"/><text class="mono" x="${x + 36}" y="${y + 41}" text-anchor="middle" fill="${palette.ink}" font-size="15">${escapeText(label.slice(0, 2).toUpperCase())}</text>`;
   return `<g filter="url(#small-shadow)">
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${palette.paper}" stroke="#e7e1d5" stroke-width="1"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${palette.paper}" stroke="${palette.line}" stroke-width="1"/>
     ${image}
     <text class="small" x="${x + 68}" y="${labelY}" fill="${palette.ink}" font-size="16">${escapeText(label)}</text>
     <text class="mono" x="${x + 68}" y="${subY}" fill="${palette.mutedDark}" font-size="11">${escapeText(sub)}</text>
@@ -165,7 +174,7 @@ export function logoIcon(file, x, y, w, h) {
 export function docIcon(x, y, size = 18, color = palette.sui) {
   const fold = Math.round(size * 0.32);
   return `<g>
-    <path d="M${x + 3} ${y + 1}h${size - fold - 4}l${fold + 1} ${fold + 1}v${size - 4}H${x + 3}z" fill="#f8fbff" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M${x + 3} ${y + 1}h${size - fold - 4}l${fold + 1} ${fold + 1}v${size - 4}H${x + 3}z" fill="${palette.paper}" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/>
     <path d="M${x + size - fold} ${y + 2}v${fold + 1}h${fold}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/>
     <path d="M${x + 7} ${y + size * 0.56}h${size - 11}M${x + 7} ${y + size * 0.74}h${size - 13}" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>
   </g>`;
@@ -190,7 +199,7 @@ export function namespaceVault(x, y, w, h, label = "MemoryNamespace") {
   const titleY = y + h - (compact ? 54 : 56);
   const metaY = y + h - (compact ? 28 : 30);
   return `<g filter="url(#soft-shadow)">
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${palette.ink}" stroke="${palette.lime}" stroke-width="3"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${palette.dark2}" stroke="${palette.lime}" stroke-width="3"/>
     <rect x="${x + 18}" y="${y + 18}" width="${w - 36}" height="${h - 36}" rx="6" fill="none" stroke="${palette.stroke}" stroke-width="1"/>
     <path d="M${x + 56} ${lidY} ${x + w / 2} ${y + 28} ${x + w - 56} ${lidY}v${bottomY - lidY}L${x + w / 2} ${bottomY} ${x + 56} ${bottomY - 10}z" fill="none" stroke="${palette.violet}" stroke-width="5" stroke-linejoin="round"/>
     <path d="M${x + 56} ${lidY} ${x + w / 2} ${midY} ${x + w - 56} ${lidY}M${x + w / 2} ${midY}v${Math.max(8, bottomY - midY)}" fill="none" stroke="${palette.lime}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>

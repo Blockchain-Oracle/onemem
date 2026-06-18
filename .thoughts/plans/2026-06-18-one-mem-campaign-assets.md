@@ -7,7 +7,8 @@
 - Existing brand prompt: `.thoughts/design/2026-06-18-social-brand-kit-prompt.md`.
 - Vendor logo inventory: `packages/brand/vendor-logos/manifest.json`.
 - Brand tokens: `packages/brand/tokens.css`.
-- Dashboard palette: `packages/dashboard/tailwind.config.ts`.
+- Dashboard/landing palette: cdr-kit tokens in `apps/landing/styles/cdr-tokens.css`
+  and `packages/dashboard/styles/cdr-tokens.css`.
 - Existing brand package and tests: `packages/brand/` and `tests/structure/brand-assets.test.ts`.
 
 ## Assumptions

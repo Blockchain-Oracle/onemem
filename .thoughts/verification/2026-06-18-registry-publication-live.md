@@ -22,9 +22,9 @@ PyPI packages published:
 
 npm packages published:
 
-- `@onemem/brand@0.1.1`
+- `@onemem/brand@0.1.2`
 - `@onemem/cli@0.1.0`
-- `@onemem/dashboard@0.1.1`
+- `@onemem/dashboard@0.1.2`
 - `@onemem/claude-code-plugin@0.1.0`
 - `@onemem/codex-plugin@0.1.0`
 - `@onemem/openai-agents@0.1.3`
@@ -33,7 +33,9 @@ npm packages published:
 Changesets created matching npm git tags. The first npm pass published
 `@onemem/brand@0.1.0` and `@onemem/dashboard@0.1.0`; a follow-up linked patch
 release published `@onemem/brand@0.1.1` and `@onemem/dashboard@0.1.1` after the
-active brand domain/assets changed.
+active brand domain/assets changed. A final linked patch release published
+`@onemem/brand@0.1.2` and `@onemem/dashboard@0.1.2` after the generated
+campaign artwork palette changed.
 
 ## Fixes Before Publish
 

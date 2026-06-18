@@ -78,8 +78,12 @@ DNS resolves and the intended app is actually served.
 
 ## Usage Rules
 
-- Violet/indigo is the memory and runtime identity.
-- Lime is reserved for successful persistence, provenance, or proof-passed moments.
+- Match the rendered cdr-kit product palette used by the landing page and
+  dashboard: light paper, white cards, subtle grey grid/borders, warm black
+  text, indigo primary, verify green, and Sui chain blue.
+- Indigo is the memory and runtime identity.
+- Verify green is reserved for successful persistence, provenance, or
+  proof-passed moments.
 - Sui blue is reserved for chain or explorer affordances.
-- Keep social assets dark, technical, and memory-oriented; avoid generic AI
-  gradients, brains, and abstract blob decoration.
+- Use dark surfaces intentionally for X/video/header variants and contained
+  code/vault surfaces; avoid beige/brown-heavy campaign panels.

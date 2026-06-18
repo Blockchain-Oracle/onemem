@@ -514,7 +514,7 @@ publish path now handles empty optional `uv publish` args under `set -u`, guarde
 by structure tests and a dry-run publish pass. Live PyPI publication uploaded
 `onemem-sdk-python@0.2.0`, `onemem-cli@0.1.0`, `hermes-onemem@0.2.0`, and the
 three provider `0.1.1` packages. Live npm publication uploaded
-`@onemem/brand@0.1.1`, `@onemem/cli@0.1.0`, `@onemem/dashboard@0.1.1`,
+`@onemem/brand@0.1.2`, `@onemem/cli@0.1.0`, `@onemem/dashboard@0.1.2`,
 `@onemem/claude-code-plugin@0.1.0`, `@onemem/codex-plugin@0.1.0`,
 `@onemem/openai-agents@0.1.3`, and `@onemem/vercel-ai-provider@0.1.2`.
 Changesets created matching git tags at commit `0759f2c`. `pnpm

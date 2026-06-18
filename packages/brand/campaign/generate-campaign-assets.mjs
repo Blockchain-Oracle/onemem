@@ -108,7 +108,7 @@ function linkCard() {
             ? mark(628, y - 22, 22)
             : `<circle cx="638" cy="${y - 8}" r="6" fill="${item.accent}"/>`;
       return `<g>
-        <rect x="612" y="${y - 27}" width="482" height="38" rx="8" fill="${palette.paper}" stroke="#e7e1d5"/>
+        <rect x="612" y="${y - 27}" width="482" height="38" rx="8" fill="${palette.paper}" stroke="${palette.line}"/>
         ${icon}
         <text class="mono" x="660" y="${y - 3}" fill="${palette.mutedDark}" font-size="13">${escapeText(item.label)}</text>
         <text class="small" x="756" y="${y - 3}" fill="${palette.ink}" font-size="15">${escapeText(item.value)}</text>
@@ -123,7 +123,8 @@ function linkCard() {
     desc: "A social link card listing OneMem public links and package entry points.",
     body: `
   <rect width="${width}" height="${height}" fill="url(#paper-sheen)"/>
-  <rect x="52" y="52" width="1096" height="526" rx="8" fill="${palette.paper}" stroke="#e4ded1" stroke-width="2"/>
+  <rect width="${width}" height="${height}" fill="url(#paper-grid)" opacity=".72"/>
+  <rect x="52" y="52" width="1096" height="526" rx="8" fill="${palette.paper}" stroke="${palette.line}" stroke-width="2"/>
   <rect x="52" y="52" width="502" height="526" rx="8" fill="${palette.dark2}"/>
   <rect x="52" y="52" width="502" height="526" rx="8" fill="url(#tight-grid)" opacity=".74"/>
   ${mark(100, 104, 68)}
@@ -211,7 +212,7 @@ function toolsGrid() {
 function architecture() {
   const { width, height } = assets.architecture;
   const box = (x, y, w, h, title, sub, accent = palette.violet) => `<g filter="url(#small-shadow)">
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${palette.paper}" stroke="#e7e1d5" stroke-width="2"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${palette.paper}" stroke="${palette.line}" stroke-width="2"/>
     <path d="M${x + 18} ${y + 18}h${w - 36}" stroke="${accent}" stroke-width="4" stroke-linecap="round"/>
     <text class="display" x="${x + 22}" y="${y + 58}" fill="${palette.ink}" font-size="28">${escapeText(title)}</text>
     <text class="body" x="${x + 22}" y="${y + 92}" fill="${palette.mutedDark}" font-size="18">${escapeText(sub)}</text>
@@ -229,7 +230,8 @@ function architecture() {
     desc: "Designed architecture flow for OneMem from agent runtimes to SDK/MCP/plugins, namespaces, capabilities, Seal, Walrus, MemWal, Sui, and dashboard surfaces.",
     body: `
   <rect width="${width}" height="${height}" fill="${palette.cream}"/>
-  <rect x="56" y="54" width="1808" height="972" rx="8" fill="${palette.paper}" stroke="#e3dbce" stroke-width="2"/>
+  <rect width="${width}" height="${height}" fill="url(#paper-grid)" opacity=".72"/>
+  <rect x="56" y="54" width="1808" height="972" rx="8" fill="${palette.paper}" stroke="${palette.line}" stroke-width="2"/>
   <text class="display" x="96" y="126" fill="${palette.ink}" font-size="64">OneMem architecture</text>
   <text class="body" x="100" y="170" fill="${palette.mutedDark}" font-size="25">Decentralized persistent memory for AI agents, with proof as the confidence layer.</text>
   ${box(96, 250, 330, 158, "Agents & runtimes", "Claude Code, Codex, OpenClaw, Hermes", palette.violet)}
@@ -281,7 +283,7 @@ function motionStoryboard() {
     const x = 96 + col * 586;
     const y = 230 + row * 334;
     return `<g filter="url(#small-shadow)">
-      <rect x="${x}" y="${y}" width="506" height="250" rx="8" fill="${palette.paper}" stroke="#e7e1d5" stroke-width="2"/>
+      <rect x="${x}" y="${y}" width="506" height="250" rx="8" fill="${palette.paper}" stroke="${palette.line}" stroke-width="2"/>
       <rect x="${x}" y="${y}" width="506" height="58" rx="8" fill="${palette.dark2}"/>
       <text class="mono" x="${x + 22}" y="${y + 37}" fill="${beat[3]}" font-size="18">${beat[0]}</text>
       <text class="display" x="${x + 76}" y="${y + 39}" fill="${palette.paper}" font-size="25">${escapeText(beat[1])}</text>

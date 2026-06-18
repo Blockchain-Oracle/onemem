@@ -219,7 +219,8 @@ Future motion/interactive uses:
 - `.thoughts/design/2026-06-18-social-brand-kit-prompt.md`
 - `.thoughts/research/2026-06-18-vendor-logo-inventory.md`
 - `packages/brand/tokens.css`
-- `packages/dashboard/tailwind.config.ts`
+- `apps/landing/styles/cdr-tokens.css`
+- `packages/dashboard/styles/cdr-tokens.css`
 - `packages/brand/vendor-logos/manifest.json`
 - `packages/brand/logo/onemem-mark.svg`
 - `docs/05-our-architecture/README.md`

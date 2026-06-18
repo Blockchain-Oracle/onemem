@@ -53,8 +53,13 @@ rsvg-convert -w 1920 -h 1080 packages/brand/campaign/motion-storyboard.svg > pac
 
 ## Designer Notes
 
-- Use violet/indigo for memory and runtime identity.
-- Use lime only for persistence, provenance, or proof-passed moments.
+- Match the rendered product UI from `apps/landing` and `packages/dashboard`:
+  light-first cdr-kit surfaces, subtle grey grid lines, white cards, warm black
+  text, indigo primary, verify green, and Sui chain blue.
+- Avoid beige/brown-heavy background panels. Use cdr dark only for contained
+  code/vault/video surfaces.
+- Use indigo for memory and runtime identity.
+- Use verify green only for persistence, provenance, or proof-passed moments.
 - Use Sui blue only for chain/storage rails.
 - Show `MemoryNamespace` as the center of the system.
 - Show `NamespaceCapability` as access and sharing authority.
