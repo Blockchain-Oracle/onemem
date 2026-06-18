@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">OneMem demo video cover</title>
+  <desc id="desc">Video cover frame for the OneMem verification demo.</desc>
+  <rect width="1920" height="1080" fill="#0a0f18"/>
+  <path d="M0 880h1920M0 680h1920M0 480h1920M0 280h1920M240 0v1080M480 0v1080M720 0v1080M960 0v1080M1200 0v1080M1440 0v1080M1680 0v1080" stroke="#202838" stroke-width="1"/>
+  <rect x="132" y="126" width="122" height="122" rx="28" fill="#171717" stroke="#303642"/>
+  <path d="M165 178 193 163l28 15v37L193 232l-28-16.9z" fill="none" stroke="#d4ff5e" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M165 178 193 193l28-15M193 193v39" fill="none" stroke="#8f7cff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="292" y="214" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="96" font-weight="800" letter-spacing="-2.4">OneMem</text>
+  <text x="136" y="424" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="82" font-weight="800">Verification turns the page green.</text>
+  <text x="140" y="506" fill="#c9c5bd" font-family="Hanken Grotesk, Arial, sans-serif" font-size="40" font-weight="700">Watch an agent memory and action trace verify end to end on Sui + Walrus.</text>
+  <path d="M150 780h326l174-154h266l196 196h276l136-136h246" fill="none" stroke="#8f7cff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="150" cy="780" r="24" fill="#8f7cff"/>
+  <circle cx="650" cy="626" r="24" fill="#8f7cff"/>
+  <circle cx="1112" cy="822" r="24" fill="#8f7cff"/>
+  <circle cx="1524" cy="686" r="32" fill="#d4ff5e"/>
+  <path d="m1506 683 15 16 34-43" fill="none" stroke="#171717" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="140" y="972" fill="#d4ff5e" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="32">@OneMemAI</text>
+  <text x="1470" y="972" fill="#0090ff" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="32">onememe.xyz</text>
+</svg>

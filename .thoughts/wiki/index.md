@@ -431,6 +431,14 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-18-registry-aware-current-docs.md`
 - Registry-Aware Current Docs verification:
   `../verification/2026-06-18-registry-aware-current-docs.md`
+- Sui Overflow Brand Presence research:
+  `../research/2026-06-18-sui-overflow-brand-presence.md`
+- OneMem Social Brand Kit design input:
+  `../design/2026-06-18-social-brand-kit-prompt.md`
+- Brand Assets Package Readiness plan:
+  `../plans/2026-06-18-brand-assets-package-readiness.md`
+- Brand Assets Package Readiness verification:
+  `../verification/2026-06-18-brand-assets-package-readiness.md`
 
 ## Maintenance Notes
 

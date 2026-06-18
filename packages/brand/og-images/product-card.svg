@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-labelledby="title desc">
+  <title id="title">OneMem product card</title>
+  <desc id="desc">Square social card for OneMem product launch posts.</desc>
+  <rect width="1080" height="1080" fill="#0a0f18"/>
+  <path d="M0 832h1080M0 648h1080M0 464h1080M0 280h1080M216 0v1080M432 0v1080M648 0v1080M864 0v1080" stroke="#202838" stroke-width="1"/>
+  <rect x="86" y="82" width="150" height="150" rx="34" fill="#171717" stroke="#303642"/>
+  <path d="M126 146 161 127l35 19v46.2L161 212l-35-19.8z" fill="none" stroke="#d4ff5e" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M126 146 161 165l35-19M161 165v47" fill="none" stroke="#8f7cff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="272" y="180" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="92" font-weight="800" letter-spacing="-2.4">OneMem</text>
+  <text x="90" y="380" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="76" font-weight="800">Stop trusting agents.</text>
+  <text x="90" y="468" fill="#d4ff5e" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="76" font-weight="800">Verify them.</text>
+  <path d="M100 728h210l118-118h178l122 122h160" fill="none" stroke="#8f7cff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="100" cy="728" r="17" fill="#8f7cff"/>
+  <circle cx="428" cy="610" r="17" fill="#8f7cff"/>
+  <circle cx="728" cy="732" r="17" fill="#8f7cff"/>
+  <circle cx="888" cy="732" r="24" fill="#d4ff5e"/>
+  <path d="m875 731 11 11 24-31" fill="none" stroke="#171717" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="92" y="900" fill="#c9c5bd" font-family="Hanken Grotesk, Arial, sans-serif" font-size="34" font-weight="700">Portable memory. Encrypted blobs. On-chain traces.</text>
+  <text x="92" y="976" fill="#d4ff5e" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="28">@OneMemAI</text>
+  <text x="736" y="976" fill="#0090ff" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="28">onememe.xyz</text>
+</svg>

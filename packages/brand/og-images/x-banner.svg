@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500" viewBox="0 0 1500 500" role="img" aria-labelledby="title desc">
+  <title id="title">OneMem X banner</title>
+  <desc id="desc">Social banner for OneMem with trace, memory, and verification motifs.</desc>
+  <rect width="1500" height="500" fill="#0a0f18"/>
+  <path d="M0 388h1500M0 292h1500M0 196h1500M0 100h1500M148 0v500M296 0v500M444 0v500M592 0v500M740 0v500M888 0v500M1036 0v500M1184 0v500M1332 0v500" stroke="#202838" stroke-width="1"/>
+  <path d="M104 318h168l102-92h190l118 118h196l88-88h410" fill="none" stroke="#8f7cff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M966 256h410" fill="none" stroke="#0090ff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+  <circle cx="104" cy="318" r="14" fill="#8f7cff"/>
+  <circle cx="374" cy="226" r="14" fill="#8f7cff"/>
+  <circle cx="682" cy="344" r="14" fill="#8f7cff"/>
+  <circle cx="966" cy="256" r="14" fill="#0090ff"/>
+  <circle cx="1376" cy="256" r="18" fill="#d4ff5e"/>
+  <path d="m1366 255 8 8 17-21" fill="none" stroke="#171717" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="104" y="98" width="88" height="88" rx="20" fill="#171717" stroke="#303642"/>
+  <path d="M128 135.5 148 125l20 10.5v26.4L148 173l-20-11.1z" fill="none" stroke="#d4ff5e" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M128 135.5 148 146l20-10.5M148 146v27" fill="none" stroke="#8f7cff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="216" y="160" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="76" font-weight="800" letter-spacing="-2">OneMem</text>
+  <text x="108" y="258" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="50" font-weight="800">Every memory. Every action. Proven.</text>
+  <text x="110" y="414" fill="#b9b6ad" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="28">onememe.xyz</text>
+  <text x="392" y="414" fill="#d4ff5e" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="28">@OneMemAI</text>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="128" viewBox="0 0 520 128" role="img" aria-labelledby="title desc">
+  <title id="title">OneMem light lockup</title>
+  <desc id="desc">OneMem mark and wordmark for light backgrounds.</desc>
+  <rect width="520" height="128" rx="24" fill="#faf8f5"/>
+  <rect x="24" y="24" width="80" height="80" rx="18" fill="#171717"/>
+  <path d="M42 52 64 40l22 12v29.6L64 94 42 81.6z" fill="none" stroke="#d4ff5e" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M42 52 64 64l22-12M64 64v30" fill="none" stroke="#8f7cff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="128" y="76" fill="#171717" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="-1.6">OneMem</text>
+  <text x="132" y="101" fill="#514d46" font-family="Hanken Grotesk, Arial, sans-serif" font-size="16" font-weight="800" letter-spacing="2.4">VERIFIABLE AGENT MEMORY</text>
+</svg>

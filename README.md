@@ -41,8 +41,8 @@ pnpm exec lefthook install   # git hooks
 
 ## Workspace at a glance
 
-- `packages/` — 16 libraries (TS + Python mixed; SDKs, CLI, MCP server, dashboard, brand, plugins, providers)
-- `apps/` — landing (`onemem.ai`), docs (Mintlify), hosted-dashboard (`app.onemem.ai`)
+- `packages/` — 16 libraries (TS + Python mixed; SDKs, CLI, MCP server, dashboard, brand assets, plugins, providers)
+- `apps/` — landing (`onemem.ai` historical placeholder; current social campaign uses `onememe.xyz`), docs (Mintlify), hosted-dashboard (`app.onemem.ai`)
 - `contracts/onemem/` — Sui Move package
 - `services/` — Rust services (Nautilus relayer, stretch)
 - `demos/` — 4 demo apps

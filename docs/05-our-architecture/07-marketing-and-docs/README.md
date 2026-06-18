@@ -4,7 +4,8 @@
 > implementation truth lives in `apps/landing/`, `apps/docs/`, and active
 > Context Engineering artifacts under `.thoughts/`.
 
-The user-facing front door (`onemem.ai`) + the developer reference (`docs.onemem.ai`).
+The user-facing front door (`onemem.ai` historically; current social campaign
+identity is `onememe.xyz`) + the developer reference (`docs.onemem.ai`).
 
 ---
 
@@ -33,6 +34,8 @@ The user-facing front door (`onemem.ai`) + the developer reference (`docs.onemem
 ## Cross-references
 
 - `../../02-inspirations/BRAND_AND_SURFACES.md` — canonical brand
+- `../../../packages/brand/README.md` — current logo/social source assets
+- `../../../.thoughts/research/2026-06-18-sui-overflow-brand-presence.md` — current Sui Overflow brand presence research
 - `../../02-inspirations/mem0/MEM0_DOCS_DESIGN.md` — Mintlify config + IA template
 - `../../02-inspirations/claude-mem/CLAUDE_MEM_DOCS_DESIGN.md` — minimum-viable Mintlify baseline
 - `../00-goal/GOAL.md` — what we're building, in one paragraph
@@ -47,3 +50,5 @@ The user-facing front door (`onemem.ai`) + the developer reference (`docs.onemem
 | `onemem.ai` landing | ⏳ pending |
 | `docs.onemem.ai` Mintlify setup | ⏳ pending |
 | 5 must-have docs pages | ⏳ pending |
+| `@onemem/brand` logo SVGs | ✅ source assets in `packages/brand/logo/` |
+| `@onemem/brand` social/OG SVGs | ✅ source assets in `packages/brand/og-images/`; PNG exports still generated per platform need |

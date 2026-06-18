@@ -21,6 +21,8 @@ Sources:
 - `packages/sdk-python/` — Python SDK, currently read/verify-oriented with memory bridge.
 - `packages/cli-ts/`, `packages/cli-python/` — command-line surfaces.
 - `packages/mcp-server/` — MCP stdio server.
+- `packages/brand/` — shared brand package with tokens, logo SVGs, and
+  social/OG SVG source templates.
 - `packages/dashboard/` — local Next.js dashboard.
 - `apps/hosted-dashboard/` — hosted auth/public verify shell with real dApp Kit
   account readiness, Enoki-sponsored namespace/RW-cap provisioning,

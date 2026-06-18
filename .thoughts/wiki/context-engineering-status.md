@@ -471,6 +471,15 @@ from public npm/PyPI availability. Missing packages (`@onemem/cli`,
 called out near install/API examples, with `pnpm registry:status` as the live
 truth command. This does not publish packages or change runtime behavior.
 
+Brand Assets Package Readiness is the forty-seventh brand/package slice.
+`@onemem/brand` now contains source-controlled logo SVGs and social/OG SVG
+templates under the directories it already exported. The active social campaign
+identity is recorded as `onememe.xyz` and `@OneMemAI`; `onemem.ai` remains a
+historical placeholder in older architecture docs until a deliberate DNS/docs
+migration pass. A new structure shard guards the brand package asset inventory,
+dimensions, and public identity strings. PNG exports, live social accounts,
+DNS, video assets, and dashboard mark consolidation remain separate follow-ups.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:
@@ -501,13 +510,16 @@ Use subagents for independent lanes with disjoint write scopes:
 2. Decide and implement the final Walrus mirror artifact shape: full static
    dashboard rewrite vs. smaller public verifier shell, then run `site-builder`
    and record the returned Walrus URL.
-3. Continue hosted/manual wallet verification for CLI delegate registration,
+3. Generate final PNG/video exports from the `@onemem/brand` SVG source assets
+   once final social/submission upload requirements are known, and confirm
+   `onememe.xyz` DNS/hosting.
+4. Continue hosted/manual wallet verification for CLI delegate registration,
    hosted share execution, and hosted holder self-revoke when real
    wallet/Enoki/MemWal config is available.
-4. Protocol-backed claim/transfer and owner-driven revoke remain separate
+5. Protocol-backed claim/transfer and owner-driven revoke remain separate
    follow-up designs.
-5. Re-run affected quality gates and write verification before claiming done.
-6. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
+6. Re-run affected quality gates and write verification before claiming done.
+7. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
    publish the missing npm packages plus fresh provider patch versions
    (`@onemem/vercel-ai-provider@0.1.2`,
    `@onemem/openai-agents@0.1.3`,

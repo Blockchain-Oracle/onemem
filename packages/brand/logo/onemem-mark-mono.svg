@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">OneMem monochrome mark</title>
+  <desc id="desc">A single-color OneMem memory cube mark.</desc>
+  <rect width="64" height="64" rx="14" fill="currentColor"/>
+  <path d="M18 22.5 32 15l14 7.5v18.8L32 49l-14-7.7z" fill="none" stroke="#ffffff" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M18 22.5 32 30l14-7.5M32 30v19" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".72"/>
+</svg>

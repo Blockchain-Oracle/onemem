@@ -276,3 +276,10 @@
   while keeping repo-local source APIs documented. New structure tests guard
   `pnpm registry:status` language, provider helper drift notes, published MCP
   install guidance, and runtime marketplace/npm/hook-proof separation.
+- Implemented Brand Assets Package Readiness. `packages/brand/logo/` now has
+  six source SVG logo assets and `packages/brand/og-images/` now has five
+  fixed-size social/OG SVG templates carrying `onememe.xyz` and `@OneMemAI`.
+  The package README documents the asset inventory and PNG-export boundary, the
+  marketing docs record current brand-package status, and
+  `tests/structure/brand-assets.test.ts` guards the inventory, dimensions,
+  public identity strings, and non-placeholder source assets.
