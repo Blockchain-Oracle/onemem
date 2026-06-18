@@ -73,17 +73,19 @@ Two SDKs, identical surface: `@onemem/sdk-ts` (TypeScript) + `onemem-sdk-python`
 
 ---
 
-## Implementation status (historical design-phase snapshot)
+## Implementation status
 
-Updated by coding agent as work ships.
+Use this table as scoped current orientation. Current API truth lives in
+`packages/sdk-ts/src/` and `packages/sdk-python/onemem/`; registry truth comes
+from `pnpm registry:status`.
 
 | Component | Status |
 |---|---|
-| `@onemem/sdk-ts` skeleton | ⏳ pending |
-| `@onemem/sdk-ts` namespace ops | ⏳ pending |
-| `@onemem/sdk-ts` trace emit | ⏳ pending |
-| `@onemem/sdk-ts` published to npm | ⏳ pending |
-| `onemem-sdk-python` skeleton | ⏳ pending |
-| `onemem-sdk-python` parity with TS | ⏳ pending |
-| `onemem-sdk-python` published to PyPI | ⏳ pending |
-| Compatibility contract live | ⏳ pending |
+| `@onemem/sdk-ts` skeleton | Built; `src/index.ts` exports client, generated addresses, namespace, trace, memory, Seal, Walrus, and Move types. |
+| `@onemem/sdk-ts` namespace ops | Built; `NamespacesAPI` covers create, share ReadOnly/ReadWrite, holder self-revoke, admin revoke, and read helpers. |
+| `@onemem/sdk-ts` trace emit | Built; `TracesAPI` covers session start/end, action append/close, verification, and Walrus/Seal payload helpers. |
+| `@onemem/sdk-ts` published to npm | Current on npm at `0.6.0`. Re-check with `pnpm registry:status`. |
+| `onemem-sdk-python` skeleton | Built repo-locally at `0.2.0`; package exports RPC, trace verification, hashing, memory helpers, and generated addresses. |
+| `onemem-sdk-python` parity with TS | Partial; read/verify and memory bridge helpers are present, but full TS write-transaction parity remains future work. |
+| `onemem-sdk-python` published to PyPI | ⏳ pending; `pnpm registry:status` currently reports `onemem-sdk-python` as missing. |
+| Compatibility contract live | Source-level compatibility and generated address manifests are live; registry parity and Python write parity remain explicit release boundaries. |

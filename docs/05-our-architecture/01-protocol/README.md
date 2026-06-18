@@ -76,19 +76,22 @@ Per the design-rules in the parent README:
 
 ---
 
-## Implementation status (historical design-phase snapshot)
+## Implementation status
 
-Originally intended to be updated during the design phase. Use current code and
-Context Engineering artifacts for live status.
+Use this table as a scoped current orientation. For exact deployment addresses,
+check `config/networks.json`, `contracts/onemem/Published.toml`, and generated
+SDK address artifacts. For proof, run `sui move test` and
+`bash scripts/verify-mainnet.sh testnet` with the current testnet Sui CLI.
 
 | Component | Status |
 |---|---|
-| Move package skeleton | ⏳ pending |
-| `MemoryNamespace` struct | ⏳ pending |
-| `TraceSession` struct | ⏳ pending |
-| `ActionCall` struct + Merkle chain | ⏳ pending |
-| `NamespaceCapability` + transfer | ⏳ pending |
-| `seal_approve` policy | ⏳ pending |
-| `event::emit_authenticated` events | ⏳ pending |
-| Upgrade dynamic field | ⏳ pending |
-| Mainnet deployment | ⏳ pending |
+| Move package skeleton | Built in `contracts/onemem` with six source modules and 40 Move tests. |
+| `MemoryNamespace` struct | Built in `namespace.move`; covered by namespace, capability, Seal, and integration tests. |
+| `TraceSession` struct | Built in `trace.move`; covered by trace lifecycle, compatibility, integration, and Merkle tests. |
+| `ActionCall` struct + Merkle chain | Built in `trace.move`; `merkle_chain_tests.move` proves off-chain reconstruction catches tampering. |
+| `NamespaceCapability` + transfer | Built in `namespace.move`; ReadOnly/ReadWrite/Admin capability mint, transfer, revoke, and admin revoke paths are tested. |
+| `seal_approve` policy | Built in `seal_policy.move`; capability and inactive-namespace checks are tested. |
+| `event::emit_authenticated` events | Built in `events.move`; SDK/dashboard verifiers consume emitted trace and action events. |
+| Upgrade dynamic field | Built in `version.move`; package upgrade dry-run and live testnet package v2 are verified. |
+| Testnet deployment | Live package v2: `0xc2e839c719e1c61222440f5661199e68de5413d8cfb49dd8bae3223e92fcf138`. Registry object remains stable. |
+| Mainnet deployment | ⏳ pending; no mainnet package ID is recorded in `config/networks.json`. |

@@ -28,20 +28,20 @@ This folder is the **design phase** of OneMem. Each sub-group is organized per b
 
 ---
 
-## Status table (historical design-phase snapshot)
+## Current Status Orientation
 
 | Sub-group | Status | Notes |
 |---|---|---|
-| `00-overview/` | 🔄 in flight (Phase 1) | Writing now |
-| `01-protocol/` | ⏳ pending | Phase 2; sequential |
-| `02-sdks/` | ⏳ pending | Phase 3; parallel after protocol |
-| `03-runtimes/` | ⏳ pending | Phase 4; parallel after SDKs |
-| `04-frameworks/` | ⏳ pending | Phase 4; parallel with runtimes |
-| `05-cli/` | ⏳ pending | Phase 5; parallel after SDKs |
-| `06-dashboard/` | ⏳ pending | Phase 5; parallel with CLI |
-| `07-marketing-and-docs/` | ⏳ pending | Phase 6; parallel with dashboard |
-| `08-demos-and-tests/` | ⏳ pending | Phase 7; final |
-| `09-stretch/` | ⏳ pending | Phase 7; final |
+| `00-overview/` | Historical design context | Active status now lives in `.thoughts/wiki/` plus current source and CI. |
+| `01-protocol/` | Built + testnet deployed | Move source/tests are live; testnet package v2 is recorded. Mainnet remains pending. |
+| `02-sdks/` | TS built/published; Python source built | `@onemem/sdk-ts@0.6.0` is current on npm. `onemem-sdk-python@0.2.0` is repo-local and missing from PyPI. |
+| `03-runtimes/` | Built with proof boundaries | MCP/OpenClaw current on npm; Claude/Codex marketplace install works; npm/plugin hook live proof gaps remain explicit. |
+| `04-frameworks/` | Source built; registry drift remains | Provider source includes trace + explicit memory helpers; published npm/PyPI artifacts still lag local versions. |
+| `05-cli/` | Source built; registry gaps remain | TS/Python CLI source and docs are current; `@onemem/cli` and `onemem-cli` are not yet public registry packages. |
+| `06-dashboard/` | Local/hosted source built | Local and hosted app builds/smokes exist. Hosted DNS deploy and Walrus Sites mirror remain external deploy evidence. |
+| `07-marketing-and-docs/` | Partial current docs | `apps/docs` and landing source exist; public domain deployment remains separate. |
+| `08-demos-and-tests/` | Executable demos + CI matrix | Four safe testnet demo harnesses and deterministic demo matrix are built. |
+| `09-stretch/` | Deferred | Nautilus/TEE and v0.2+ marketplace/reputation work remain stretch scope. |
 
 ---
 
