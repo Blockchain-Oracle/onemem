@@ -282,7 +282,7 @@ module onemem::trace {
         namespace::assert_writes_to(cap, ns);
         // construct ActionCall with PENDING status
         // prev_hash = session.merkle_root
-        // content_hash = sha256(tool_name + input_hash + parent_call_id_bytes)  // output_hash filled at close_call
+        // content_hash = sha256(tool_name + input_hash + parent_call_id_bytes)
         // append as dynamic field of session
         // update session.last_call_id, session.merkle_root, session.call_count
         // update ns.merkle_root, ns.last_action_call_id
@@ -291,7 +291,7 @@ module onemem::trace {
 
     /// Entry: close a previously-appended call with its output.
     /// Recomputes content_hash to include output; updates session merkle_root accordingly.
-    public entry fun close_call(
+    public entry fun close_call_with_namespace(
         session: &mut TraceSession,
         ns: &mut MemoryNamespace,
         cap: &NamespaceCapability<ReadWrite>,
@@ -313,8 +313,9 @@ module onemem::trace {
     }
 
     /// Entry: end the session.
-    public entry fun end_session(
+    public entry fun close_session_with_namespace(
         session: &mut TraceSession,
+        ns: &mut MemoryNamespace,
         cap: &NamespaceCapability<ReadWrite>,
         status: u8,
         clock: &Clock,
@@ -357,8 +358,8 @@ Shared helpers for the version-as-dynamic-field pattern. See `upgrade-strategy.m
 | `namespace::admin_revoke_capability` | `&Admin` | Mark a capability ID revoked under the namespace; object remains but gates reject it |
 | `trace::open_session` | `&ReadWrite` | Begin a trace session |
 | `trace::emit_call` | `&ReadWrite` | Append an ActionCall (PENDING) — updates session + namespace Merkle |
-| `trace::close_call` | `&ReadWrite` + namespace marker check | Close call with output (SUCCESS/FAILURE/etc) — finalizes content_hash |
-| `trace::close_session` | `&ReadWrite` + namespace marker check | Mark session COMPLETED/FAILED/ABORTED |
+| `trace::close_call_with_namespace` | `&ReadWrite` + namespace marker check | Close call with output (SUCCESS/FAILURE/etc) — finalizes content_hash |
+| `trace::close_session_with_namespace` | `&ReadWrite` + namespace marker check | Mark session COMPLETED/FAILED/ABORTED |
 
 ---
 

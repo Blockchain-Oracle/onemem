@@ -150,7 +150,7 @@ public struct TraceSession has key {
 **Lifecycle:**
 - Created via `onemem::trace::open_session(namespace, rw_cap, agent_id, env, sdk_ver, clock, ctx)` — requires `&NamespaceCapability<ReadWrite>`
 - Each `ActionCall` is appended via `onemem::trace::emit_call(session, namespace, rw_cap, ...)`
-- Closed via `onemem::trace::close_session(session, namespace, rw_cap, status, clock, ctx)`
+- Closed via `onemem::trace::close_session_with_namespace(session, namespace, rw_cap, status, clock, ctx)`
 
 ---
 
@@ -222,7 +222,7 @@ public struct TraceEvent has copy, drop, store {
 
 **Lifecycle:**
 - Created via `onemem::trace::emit_call(session, namespace, rw_cap, parent_call_id, ...)` — held as dynamic field of `TraceSession`
-- Updated via `onemem::trace::close_call(session, namespace, rw_cap, call_id, output_data, ctx)` (transitions PENDING → SUCCESS/FAILURE)
+- Updated via `onemem::trace::close_call_with_namespace(session, namespace, rw_cap, call_id, output_data, ctx)` (transitions PENDING → SUCCESS/FAILURE)
 - Never destroyed (verifiability)
 
 ---

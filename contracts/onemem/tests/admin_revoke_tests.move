@@ -173,7 +173,7 @@ fun revoked_rw_cap_cannot_close_existing_call() {
     let mut session = ts::take_shared<TraceSession>(&scenario);
     let cap = ts::take_from_address<NamespaceCapability<ReadWrite>>(&scenario, BOB);
     let clk = clock::create_for_testing(scenario.ctx());
-    trace::close_call(
+    trace::close_call_with_namespace(
         &mut session,
         &ns,
         &cap,

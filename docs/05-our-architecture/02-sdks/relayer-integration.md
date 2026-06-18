@@ -143,7 +143,7 @@ plugin hook fires: PostToolUse(Read, file_contents)
        output: { file_contents: "..." },
      }, "SUCCESS")
        │
-       (Seal encrypt output → Walrus upload → Sui PTB trace::close_call)
+       (Seal encrypt output → Walrus upload → Sui PTB trace::close_call_with_namespace)
 ```
 
 ---

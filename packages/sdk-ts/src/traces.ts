@@ -4,8 +4,8 @@
 // Methods mirror the shared SDK surface (docs/.../shared-api-surface.md):
 //   startSession(args)  → trace::open_session   (returns shared TraceSession)
 //   appendCall(args)    → trace::emit_call      (returns minted call ID)
-//   closeCall(args)     → trace::close_call     (records output + status)
-//   endSession(args)    → trace::close_session  (locks merkle root + status)
+//   closeCall(args)     → trace::close_call_with_namespace
+//   endSession(args)    → trace::close_session_with_namespace
 //   getCalls/getSession/listSessions/replaySession → read helpers
 //   verifySession(id)   → off-chain chain walk; reads chain, recomputes
 //                         every content_hash, asserts session.merkle_root
@@ -215,7 +215,7 @@ export class TracesAPI {
     );
     const tx = new Transaction();
     tx.moveCall({
-      target: `${packageId}::trace::close_call`,
+      target: `${packageId}::trace::close_call_with_namespace`,
       arguments: [
         tx.object(args.sessionId),
         tx.object(args.namespaceId),
@@ -235,7 +235,7 @@ export class TracesAPI {
     const { packageId } = this.client.addresses;
     const tx = new Transaction();
     tx.moveCall({
-      target: `${packageId}::trace::close_session`,
+      target: `${packageId}::trace::close_session_with_namespace`,
       arguments: [
         tx.object(args.sessionId),
         tx.object(args.namespaceId),

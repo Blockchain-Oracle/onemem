@@ -216,7 +216,7 @@ ns.last_action_call_id = Some(call_id);
 // Emit ActionCallEmitted with all the relevant hashes
 ```
 
-### On `trace::close_call`
+### On `trace::close_call_with_namespace`
 
 When the output is filled in, we recompute `content_hash` to include output. This means `session.merkle_root` AT FINALIZATION TIME differs from `merkle_root` AT APPEND TIME.
 
@@ -224,7 +224,7 @@ When the output is filled in, we recompute `content_hash` to include output. Thi
 - `prev_hash` on the call object = predecessor's content_hash AT FINALIZATION time
 - `content_hash` on the call object = this call's final content_hash (with output)
 
-`session.merkle_root` is updated on close_call to reflect the finalized chain. Until all calls in a session are closed, the merkle root is "in flight" — clients see "session pending close" status.
+`session.merkle_root` is finalized through the trace call lifecycle. Until all calls in a session are closed, the merkle root is "in flight" — clients see "session pending close" status.
 
 For sessions where calls are written synchronously (most cases), append+close happen in the same PTB, so this isn't visible. Async cases (long-running calls) see the in-flight state.
 

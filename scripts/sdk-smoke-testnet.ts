@@ -135,6 +135,7 @@ async function main() {
   for (const [i, callId] of callIds.entries()) {
     await onemem.traces.closeCall({
       sessionId: session.sessionId,
+      namespaceId: created.namespaceId,
       rwCapId: rw.capId,
       callId,
       output: {
@@ -149,6 +150,7 @@ async function main() {
   console.log("\n==> 6. traces.endSession (COMPLETED)");
   await onemem.traces.endSession({
     sessionId: session.sessionId,
+    namespaceId: created.namespaceId,
     rwCapId: rw.capId,
     status: SessionStatus.Completed,
   });

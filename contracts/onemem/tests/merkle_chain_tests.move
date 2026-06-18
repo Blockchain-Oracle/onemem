@@ -120,7 +120,7 @@ fun full_session_merkle_root_matches_offchain_walk() {
     assert!(trace::call_count(&session) == 3, 2);
 
     // Close + assert root locked
-    trace::close_session(&mut session, &ns, &rw, trace::session_status_completed(), &clk, scenario.ctx());
+    trace::close_session_with_namespace(&mut session, &ns, &rw, trace::session_status_completed(), &clk, scenario.ctx());
     assert!(trace::status(&session) == trace::session_status_completed(), 3);
     assert!(*trace::merkle_root(&session) == after_c, 4);
     assert!(option::is_some(trace::ended_at(&session)), 5);

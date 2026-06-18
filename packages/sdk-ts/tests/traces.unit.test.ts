@@ -2,11 +2,19 @@
 // private resolvePayload() (the content→Walrus upload + hash-derivation +
 // optional Seal-encrypt logic) through a minimal mocked client.
 
+import { Transaction } from "@mysten/sui/transactions";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { describe, expect, it, vi } from "vitest";
 
-import { CallStatus } from "../src/index.js";
+import { CallStatus, SessionStatus } from "../src/index.js";
 import { TracePayloadError, TracesAPI } from "../src/traces.js";
+
+const IDS = {
+  session: "0x0000000000000000000000000000000000000000000000000000000000000001",
+  namespace: "0x0000000000000000000000000000000000000000000000000000000000000002",
+  cap: "0x0000000000000000000000000000000000000000000000000000000000000003",
+  call: "0x0000000000000000000000000000000000000000000000000000000000000004",
+} as const;
 
 function tracesWith(
   uploadBlob: ReturnType<typeof vi.fn>,
@@ -88,5 +96,57 @@ describe("TracesAPI.resolvePayload", () => {
     expect(blob).toBe("walrus:pre");
     expect(hash).toBe(h);
     expect(uploadBlob).not.toHaveBeenCalled();
+  });
+});
+
+describe("TracesAPI trace close targets", () => {
+  it("targets the namespace-aware Move function for closeCall", async () => {
+    const moveCall = vi.spyOn(Transaction.prototype, "moveCall");
+    const uploadBlob = vi.fn().mockResolvedValue("walrus:out");
+    const execute = vi.fn().mockResolvedValue({ digest: "0xtx" });
+    const api = new TracesAPI({
+      addresses: { packageId: "0xpkg" },
+      requireWalrus: () => ({ uploadBlob }),
+      execute,
+      // biome-ignore lint/suspicious/noExplicitAny: minimal OneMem stub for PTB target assertion
+    } as any);
+
+    await api.closeCall({
+      sessionId: IDS.session,
+      namespaceId: IDS.namespace,
+      rwCapId: IDS.cap,
+      callId: IDS.call,
+      output: { content: new Uint8Array([1]) },
+      status: CallStatus.Success,
+    });
+
+    expect(moveCall).toHaveBeenCalledWith(
+      expect.objectContaining({ target: "0xpkg::trace::close_call_with_namespace" }),
+    );
+    expect(execute).toHaveBeenCalledTimes(1);
+    moveCall.mockRestore();
+  });
+
+  it("targets the namespace-aware Move function for endSession", async () => {
+    const moveCall = vi.spyOn(Transaction.prototype, "moveCall");
+    const execute = vi.fn().mockResolvedValue({ digest: "0xtx" });
+    const api = new TracesAPI({
+      addresses: { packageId: "0xpkg" },
+      execute,
+      // biome-ignore lint/suspicious/noExplicitAny: minimal OneMem stub for PTB target assertion
+    } as any);
+
+    await api.endSession({
+      sessionId: IDS.session,
+      namespaceId: IDS.namespace,
+      rwCapId: IDS.cap,
+      status: SessionStatus.Completed,
+    });
+
+    expect(moveCall).toHaveBeenCalledWith(
+      expect.objectContaining({ target: "0xpkg::trace::close_session_with_namespace" }),
+    );
+    expect(execute).toHaveBeenCalledTimes(1);
+    moveCall.mockRestore();
   });
 });

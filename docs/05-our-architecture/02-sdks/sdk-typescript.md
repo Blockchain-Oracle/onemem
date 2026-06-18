@@ -283,7 +283,7 @@ export async function appendCall(this: OneMem, sessionId: string, callData: Call
 export async function closeCall(this: OneMem, sessionId: string, callId: string, outputData: OutputData, status: CallStatus, level?: Level) {
   // 1. Encrypt output via Seal /manual
   // 2. Upload to Walrus
-  // 3. PTB: trace::close_call(session, namespace, cap, call_id, walrus_output_blob, output_hash, status, clock)
+  // 3. PTB: trace::close_call_with_namespace(session, namespace, cap, call_id, walrus_output_blob, output_hash, status, clock)
   // 4. Return { suiTxDigest }
 }
 

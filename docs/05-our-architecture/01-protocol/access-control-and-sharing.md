@@ -85,8 +85,8 @@ public fun assert_cap_for_namespace<KIND>(cap: &NamespaceCapability<KIND>, ns: &
 |---|---|
 | `trace::open_session` | `&NamespaceCapability<ReadWrite>` |
 | `trace::emit_call` | `&NamespaceCapability<ReadWrite>` |
-| `trace::close_call` | `&NamespaceCapability<ReadWrite>` + namespace revoke marker check |
-| `trace::close_session` | `&NamespaceCapability<ReadWrite>` + namespace revoke marker check |
+| `trace::close_call_with_namespace` | `&NamespaceCapability<ReadWrite>` + namespace revoke marker check |
+| `trace::close_session_with_namespace` | `&NamespaceCapability<ReadWrite>` + namespace revoke marker check |
 | `namespace::mint_capability_*` | `&NamespaceCapability<Admin>` |
 | `namespace::revoke_capability` | owned `NamespaceCapability<KIND>` consumed by holder |
 | `namespace::admin_revoke_capability` | `&NamespaceCapability<Admin>`; records cap ID revoked under namespace |

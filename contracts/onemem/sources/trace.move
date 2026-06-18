@@ -1,31 +1,6 @@
-/// TraceSession + ActionCall — the Merkle-chained verifiable trace primitive.
-/// Per docs/05-our-architecture/01-protocol/data-model.md + events-and-attestation.md.
-///
-/// A `TraceSession` is a shared object that an agent runtime opens at the
-/// start of a logical operation and closes at the end. Each tool call /
-/// memory write the agent performs becomes an `ActionCall` stored as a
-/// dynamic field on the session (keyed by call_id).
-///
-/// The Merkle chain mechanic:
-///   - `content_hash` of each ActionCall = sha256(tool_name || tool_namespace ||
-///     input_hash || serialize(parent_call_id))
-///   - `prev_hash` of each call = the previous call's content_hash
-///     (or the session's initial zero merkle_root for the first call)
-///   - Session-level `merkle_root` advances via chain_hash(running, content) =
-///     sha256(running || content). Off-chain walkers re-compute and compare.
-///
-/// Cross-runtime composition: two sessions in two runtimes referencing the
-/// same parent_call_id are part of the same logical operation. The contract
-/// stores parent_call_id as an opaque ID; the runtime layer propagates it
-/// via env vars (ONEMEM_PARENT_CALL_ID).
-///
-/// v0.1 scope notes:
-///   - `events: vector<TraceEvent>` and `level` fields from the architecture
-///     are deferred to v0.2 to fit the Day 6-8 time-box. The chain itself is
-///     the load-bearing trust primitive; per-call event log is icing.
-///   - Events here use `sui::event::emit` (not `event::emit_authenticated`);
-///     Epic 4 will refactor to the authenticated variant. The Merkle chain +
-///     consensus-signed tx still gives strong verifiability today.
+/// Merkle-chained trace primitive. A shared `TraceSession` owns per-call
+/// `ActionCall` dynamic fields; each call's `content_hash` points to the
+/// previous call so off-chain verifiers can recompute `merkle_root`.
 module onemem::trace;
 
 // === Imports ===
@@ -45,6 +20,7 @@ const ECallNotFound: u64 = 1;
 const ECallAlreadyClosed: u64 = 2;
 const EBadStatus: u64 = 3;
 const EWrongSessionNamespace: u64 = 4;
+const ENamespaceRequiredForClose: u64 = 5;
 
 // === Constants ===
 
@@ -168,7 +144,7 @@ public fun open_session(
 }
 
 /// Append a new ActionCall to the session's Merkle chain. Returns the
-/// minted call's ID (caller passes it to `close_call` later). Aborts:
+/// minted call's ID (caller passes it to `close_call_with_namespace` later). Aborts:
 ///   - ESessionClosed if status != ACTIVE
 ///   - EWrongSessionNamespace if `ns` is not the session's namespace
 ///   - via namespace::assert_active / assert_cap_for_namespace
@@ -237,9 +213,22 @@ public fun emit_call(
     call_id
 }
 
-/// Record an output for a previously emitted call. Idempotent only in the
-/// sense that a closed call cannot be re-closed (aborts ECallAlreadyClosed).
+/// Deprecated compatibility wrapper. Use `close_call_with_namespace`; this old
+/// ABI cannot check namespace-scoped admin revoke markers.
 public fun close_call(
+    _session: &mut TraceSession,
+    _cap: &NamespaceCapability<ReadWrite>,
+    _call_id: ID,
+    _walrus_output_blob: String,
+    _output_hash: vector<u8>,
+    _status: u8,
+    _clock: &Clock,
+    _ctx: &mut TxContext,
+) {
+    abort ENamespaceRequiredForClose
+}
+
+public fun close_call_with_namespace(
     session: &mut TraceSession,
     ns: &MemoryNamespace,
     cap: &NamespaceCapability<ReadWrite>,
@@ -270,9 +259,18 @@ public fun close_call(
     );
 }
 
-/// Close the session with a final status (COMPLETED / FAILED / ABORTED).
-/// Locks merkle_root. Subsequent emit_call aborts ESessionClosed.
+/// Deprecated compatibility wrapper. Use `close_session_with_namespace`.
 public fun close_session(
+    _session: &mut TraceSession,
+    _cap: &NamespaceCapability<ReadWrite>,
+    _final_status: u8,
+    _clock: &Clock,
+    _ctx: &mut TxContext,
+) {
+    abort ENamespaceRequiredForClose
+}
+
+public fun close_session_with_namespace(
     session: &mut TraceSession,
     ns: &MemoryNamespace,
     cap: &NamespaceCapability<ReadWrite>,
