@@ -6,7 +6,7 @@
 - `/cli-login` — callback target for `onemem login` from the CLI
 - `/onboarding` — first-time MemWalAccount mint via sponsored tx
 - `/share` — owner-initiated sponsored ReadOnly/ReadWrite capability minting plus read-only event-backed history
-- `/share/[capability_id]` — public recipient capability object view with holder self-revoke command; no claim tx
+- `/share/[capability_id]` — public recipient capability object view with hosted holder self-revoke; no claim tx
 - `/verify/[session_id]` — **PUBLIC chain verifier** (no login; see `route-verify-public.md`)
 - `/dashboard/*` — authenticated shared routes from `@onemem/dashboard`
 

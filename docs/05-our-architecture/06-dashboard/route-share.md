@@ -85,7 +85,7 @@ SDK derives:
 Server attempts to read the MemoryNamespace summary
   ↓
 Page renders capability owner, namespace metadata, Suiscan links,
-and an optional connected-account owner comparison
+connected-account owner comparison, and holder self-revoke action
 ```
 
 The minted capability already belongs to the owner shown by Sui. There is no
@@ -100,7 +100,8 @@ separate hosted claim transaction in contract v0.1.
   share mint already transfers ownership to the recipient address.
 - Owner-driven revoke is not supported by the v0.1 Move contract. The current
   contract supports holder self-revoke by consuming the capability object the
-  holder owns.
+  holder owns; hosted recipient pages expose that self-revoke flow for the
+  connected holder wallet.
 - Share history is not server-persisted by the hosted app. Hosted `/share`
   reads Sui events through `GET /api/share/history` and the SDK history reader.
 - Public verifier links remain separate from namespace capability sharing.
@@ -119,7 +120,8 @@ onemem namespace revoke <capability-id>
 ```
 
 The revoke command is holder self-revoke. Revoking an Admin cap requires the CLI
-`--allow-admin` override.
+`--allow-admin` override; hosted recipient pages require a safety
+acknowledgement before preparing Admin-cap self-revoke.
 
 ---
 

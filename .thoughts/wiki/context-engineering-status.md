@@ -285,8 +285,9 @@ Recipient Capability Self-Revoke is the twenty-sixth hosted/prototype slice.
 Hosted `/share/[capability_id]` now explains the only revoke path supported by
 contract v0.1: the capability holder can consume their own capability object via
 `onemem namespace revoke <capability-id>`. Admin capability pages include the
-CLI's `--allow-admin` safety flag. Owner-driven revocation and hosted
-wallet-signed revoke remain future protocol/product work.
+CLI's `--allow-admin` safety flag. Owner-driven revocation remains future
+protocol/product work. Hosted wallet-signed holder self-revoke is handled by the
+Hosted Holder Self-Revoke slice.
 
 Single Trace Replay Export is the twenty-seventh dashboard/prototype slice.
 Dashboard `/trace/[session_id]` now exposes a proof-scoped single-session JSON
@@ -388,6 +389,33 @@ This is same-namespace, multi-session research-memory continuity proof with
 mocked tools/runtime; it does not claim real web search, PDF extraction, Hermes
 execution, MemWal semantic recall, Walrus plaintext, or Seal decryptability.
 
+Multi-Agent Coordination Executable Demo is the thirty-eighth demo-readiness
+slice. `demos/multi-agent-coordination` now records a mocked Claude Code
+orchestrator plus mocked Hermes and CrewAI specialists as three real Sui testnet
+`TraceSession`s in one namespace. Live proof verified all three sessions through
+the TS CLI. Runtime execution remains mocked, and no LangGraph or full
+cross-session dashboard tree claim is made.
+
+Demo Matrix CI Gate is the thirty-ninth demo-readiness slice. Root
+`test:demo-matrix` runs tests, typechecks, lints, and builds across all four
+demo packages, and CI now runs that gate before the broader monorepo checks.
+Live `demo:trace` writes remain manual/on-demand because they mint real Sui
+testnet objects.
+
+Release Auth Gate and Registry Publication Preflight are the fortieth
+release-readiness slice. Release now keeps Changesets release PR automation
+available when registry credentials are absent and only attempts npm/PyPI upload
+when the configured gates are present. `pnpm registry:status` now reports the
+current npm/PyPI truth table; strict mode fails until missing/drifted packages
+are actually published.
+
+Hosted Holder Self-Revoke is the forty-first hosted/prototype slice. Hosted
+recipient capability pages now expose contract v0.1 holder self-revoke through
+the same wallet-signed Enoki sponsorship boundary used by hosted sharing. The
+action is enabled only for the connected address owner, Admin caps require a
+safety acknowledgement, and owner-driven revoke remains explicitly unsupported
+until protocol v0.2.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:
@@ -415,8 +443,9 @@ Use subagents for independent lanes with disjoint write scopes:
 
 1. Continue the docs/status inventory for remaining stale package READMEs and
    runtime docs found by the docs audit.
-2. Continue hosted/manual wallet verification for CLI delegate registration and
-   hosted share execution when real wallet/Enoki/MemWal config is available.
+2. Continue hosted/manual wallet verification for CLI delegate registration,
+   hosted share execution, and hosted holder self-revoke when real
+   wallet/Enoki/MemWal config is available.
 3. Protocol-backed claim/transfer and owner-driven revoke remain separate
    follow-up designs.
 4. Re-run affected quality gates and write verification before claiming done.

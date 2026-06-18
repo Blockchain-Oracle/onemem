@@ -5,181 +5,42 @@ import {
   type SuiTransactionBlockResponse,
 } from "@mysten/sui/jsonRpc";
 import { Transaction } from "@mysten/sui/transactions";
+import { SUI_CLOCK_OBJECT_ID, toBase64 } from "@mysten/sui/utils";
+import { addressesFor, NamespaceKind } from "@onemem/sdk-ts";
 import {
-  isValidSuiAddress,
-  isValidSuiObjectId,
-  SUI_CLOCK_OBJECT_ID,
-  toBase64,
-} from "@mysten/sui/utils";
-import { addressesFor, NamespaceKind, type SuiNetwork } from "@onemem/sdk-ts";
+  assertAction,
+  assertAddress,
+  assertCapabilityKind,
+  assertDigest,
+  assertHostedSponsorshipConfigured,
+  assertObjectId,
+  assertSignature,
+  capabilityKindForAction,
+  capabilityMintFunction,
+  type EnokiProvisioningNetwork,
+  type ExecuteSponsoredProvisioningInput,
+  moveTargets,
+  type PrepareSponsoredProvisioningInput,
+  resolveProvisioningNetwork,
+  type SponsoredProvisioningDeps,
+  type SponsoredProvisioningExecuted,
+  type SponsoredProvisioningPrepared,
+  type SponsoredProvisioningRequest,
+  type SponsoredTransactionRequest,
+  uniqueAddresses,
+} from "./sponsored-provisioning-shared";
 
-export type SponsoredProvisioningAction =
-  | "namespace-create"
-  | "rw-cap-mint"
-  | "ro-cap-share"
-  | "rw-cap-share";
-type EnokiProvisioningNetwork = Exclude<SuiNetwork, "local">;
-export type SponsoredCapabilityKind = "ReadOnly" | "ReadWrite";
-
-export interface PrepareSponsoredProvisioningInput {
-  readonly action: SponsoredProvisioningAction;
-  readonly sender: string;
-  readonly network?: string;
-  readonly label?: string;
-  readonly namespaceId?: string;
-  readonly adminCapId?: string;
-  readonly recipient?: string;
-}
-
-export interface ExecuteSponsoredProvisioningInput {
-  readonly action: SponsoredProvisioningAction;
-  readonly digest: string;
-  readonly signature: string;
-  readonly network?: string;
-}
-
-export interface SponsoredProvisioningPrepared {
-  readonly ok: true;
-  readonly action: SponsoredProvisioningAction;
-  readonly network: EnokiProvisioningNetwork;
-  readonly digest: string;
-  readonly bytes: string;
-  readonly sender: string;
-  readonly namespaceName?: string;
-  readonly namespaceId?: string;
-  readonly adminCapId?: string;
-  readonly recipient?: string;
-  readonly capKind?: SponsoredCapabilityKind;
-  readonly allowedMoveCallTargets: readonly string[];
-  readonly allowedAddresses: readonly string[];
-}
-
-export interface SponsoredProvisioningExecuted {
-  readonly ok: true;
-  readonly action: SponsoredProvisioningAction;
-  readonly network: EnokiProvisioningNetwork;
-  readonly txDigest: string;
-  readonly namespaceId?: string;
-  readonly adminCapId?: string;
-  readonly roCapId?: string;
-  readonly rwCapId?: string;
-  readonly sharedCapId?: string;
-  readonly capKind?: SponsoredCapabilityKind;
-}
-
-interface SponsoredTransactionRequest {
-  readonly network: EnokiProvisioningNetwork;
-  readonly transactionKindBytes: string;
-  readonly sender: string;
-  readonly allowedMoveCallTargets: string[];
-  readonly allowedAddresses: string[];
-}
-
-export interface SponsoredProvisioningDeps {
-  readonly createSponsoredTransaction?: (
-    args: SponsoredTransactionRequest,
-  ) => Promise<{ readonly digest: string; readonly bytes: string }>;
-  readonly executeSponsoredTransaction?: (
-    args: Pick<ExecuteSponsoredProvisioningInput, "digest" | "signature">,
-  ) => Promise<{ readonly digest: string }>;
-  readonly waitForTransaction?: (
-    network: EnokiProvisioningNetwork,
-    digest: string,
-  ) => Promise<SuiTransactionBlockResponse>;
-}
-
-export interface SponsoredProvisioningRequest {
-  readonly action: SponsoredProvisioningAction;
-  readonly network: EnokiProvisioningNetwork;
-  readonly sender: string;
-  readonly allowedMoveCallTargets: readonly string[];
-  readonly allowedAddresses: readonly string[];
-  readonly namespaceName?: string;
-  readonly namespaceId?: string;
-  readonly adminCapId?: string;
-  readonly recipient?: string;
-  readonly capKind?: SponsoredCapabilityKind;
-}
-
-export class ProvisioningConfigError extends Error {
-  readonly code = "not_configured";
-}
-
-export class ProvisioningValidationError extends Error {
-  readonly code = "bad_request";
-}
-
-const ACTIONS = new Set<SponsoredProvisioningAction>([
-  "namespace-create",
-  "rw-cap-mint",
-  "ro-cap-share",
-  "rw-cap-share",
-]);
-
-function getEnokiPrivateKey(env = process.env): string {
-  return env.ENOKI_PRIVATE_KEY ?? env.ENOKI_SECRET_KEY ?? "";
-}
-
-export function hasHostedSponsorshipConfig(env = process.env): boolean {
-  return getEnokiPrivateKey(env).length > 0;
-}
-
-export function assertHostedSponsorshipConfigured(env = process.env): string {
-  const key = getEnokiPrivateKey(env);
-  if (!key) {
-    throw new ProvisioningConfigError(
-      "Hosted sponsorship is not configured. Set ENOKI_PRIVATE_KEY on the server.",
-    );
-  }
-  return key;
-}
-
-export function resolveProvisioningNetwork(
-  value?: string,
-  env = process.env,
-): EnokiProvisioningNetwork {
-  const raw = value ?? env.NEXT_PUBLIC_SUI_NETWORK ?? env.SUI_NETWORK ?? "testnet";
-  if (raw !== "testnet" && raw !== "mainnet" && raw !== "devnet") {
-    throw new ProvisioningValidationError(`unsupported Sui network: ${raw}`);
-  }
-  return raw;
-}
-
-function assertAction(value: string): SponsoredProvisioningAction {
-  if (ACTIONS.has(value as SponsoredProvisioningAction))
-    return value as SponsoredProvisioningAction;
-  throw new ProvisioningValidationError(
-    "action must be namespace-create, rw-cap-mint, ro-cap-share, or rw-cap-share",
-  );
-}
-
-function assertAddress(value: unknown, label: string): string {
-  if (typeof value !== "string" || !isValidSuiAddress(value)) {
-    throw new ProvisioningValidationError(`${label} must be a valid Sui address`);
-  }
-  return value;
-}
-
-function assertObjectId(value: unknown, label: string): string {
-  if (typeof value !== "string" || !isValidSuiObjectId(value)) {
-    throw new ProvisioningValidationError(`${label} must be a valid Sui object id`);
-  }
-  return value;
-}
-
-function assertDigest(value: unknown): string {
-  if (typeof value !== "string" || value.length < 20) {
-    throw new ProvisioningValidationError("digest is required");
-  }
-  return value;
-}
-
-function assertSignature(value: unknown): string {
-  if (typeof value !== "string" || value.length < 20) {
-    throw new ProvisioningValidationError("signature is required");
-  }
-  return value;
-}
+export {
+  assertHostedSponsorshipConfigured,
+  type ExecuteSponsoredProvisioningInput,
+  hasHostedSponsorshipConfig,
+  type PrepareSponsoredProvisioningInput,
+  ProvisioningConfigError,
+  ProvisioningValidationError,
+  resolveProvisioningNetwork,
+  type SponsoredCapabilityKind,
+  type SponsoredProvisioningAction,
+} from "./sponsored-provisioning-shared";
 
 function namespaceName(sender: string, label: unknown): string {
   const raw = typeof label === "string" && label.trim() ? label.trim() : "hosted";
@@ -195,26 +56,6 @@ function namespaceName(sender: string, label: unknown): string {
 function suiClient(network: EnokiProvisioningNetwork) {
   const addresses = addressesFor(network);
   return { addresses, client: new SuiJsonRpcClient({ network, url: addresses.rpcUrl }) };
-}
-
-function capabilityKindForAction(action: SponsoredProvisioningAction): SponsoredCapabilityKind {
-  return action === "ro-cap-share" ? "ReadOnly" : "ReadWrite";
-}
-
-function capabilityMintFunction(action: SponsoredProvisioningAction): string {
-  return action === "ro-cap-share" ? "mint_capability_readonly" : "mint_capability_readwrite";
-}
-
-function moveTargets(packageId: string, action: SponsoredProvisioningAction): readonly string[] {
-  const target =
-    action === "namespace-create"
-      ? `${packageId}::namespace::create`
-      : `${packageId}::namespace::${capabilityMintFunction(action)}`;
-  return [target];
-}
-
-function uniqueAddresses(...addresses: string[]): readonly string[] {
-  return [...new Set(addresses)];
 }
 
 function findCreatedObject(tx: SuiTransactionBlockResponse, objectType: string): string {
@@ -260,6 +101,20 @@ export function resolveSponsoredProvisioningRequest(
     };
   }
 
+  if (action === "cap-self-revoke") {
+    const capId = assertObjectId(input.capId, "capId");
+    const capKind = assertCapabilityKind(input.capKind);
+    return {
+      action,
+      network,
+      sender,
+      allowedMoveCallTargets: moveTargets(addresses.packageId, action),
+      allowedAddresses: [sender],
+      capId,
+      capKind,
+    };
+  }
+
   const namespaceId = assertObjectId(input.namespaceId, "namespaceId");
   const adminCapId = assertObjectId(input.adminCapId, "adminCapId");
   const recipient = action === "rw-cap-mint" ? sender : assertAddress(input.recipient, "recipient");
@@ -296,6 +151,18 @@ async function buildTransactionKindBytes(
       ],
     });
   } else {
+    if (request.action === "cap-self-revoke") {
+      tx.moveCall({
+        target: `${addresses.packageId}::namespace::revoke_capability`,
+        typeArguments: [`${addresses.packageId}::namespace::${request.capKind}`],
+        arguments: [tx.object(request.capId ?? "")],
+      });
+      return {
+        ...request,
+        txBytes: await tx.build({ client, onlyTransactionKind: true }),
+      };
+    }
+
     tx.moveCall({
       target: `${addresses.packageId}::namespace::${capabilityMintFunction(request.action)}`,
       arguments: [
@@ -341,6 +208,7 @@ export async function prepareSponsoredProvisioning(
     namespaceName: built.namespaceName,
     namespaceId: built.namespaceId,
     adminCapId: built.adminCapId,
+    capId: built.capId,
     recipient: built.recipient,
     capKind: built.capKind,
     allowedMoveCallTargets: built.allowedMoveCallTargets,
@@ -381,6 +249,17 @@ export async function executeSponsoredProvisioning(
       `${addresses.packageId}::namespace::NamespaceCapability<${addresses.packageId}::namespace::Admin>`,
     );
     return { ok: true, action, network, txDigest, namespaceId, adminCapId };
+  }
+
+  if (action === "cap-self-revoke") {
+    return {
+      ok: true,
+      action,
+      network,
+      txDigest,
+      revokedCapId: assertObjectId(input.capId, "capId"),
+      capKind: assertCapabilityKind(input.capKind),
+    };
   }
 
   const capKind = capabilityKindForAction(action);

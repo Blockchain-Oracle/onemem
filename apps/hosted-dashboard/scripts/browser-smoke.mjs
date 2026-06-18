@@ -220,7 +220,8 @@ async function expectMissingShareSponsorshipConfig(url) {
   const recipient = `0x${"2".padStart(64, "0")}`;
   const namespaceId = `0x${"3".padStart(64, "0")}`;
   const adminCapId = `0x${"4".padStart(64, "0")}`;
-  const res = await fetch(`${url}/api/share/sponsored/prepare`, {
+  const capId = `0x${"5".padStart(64, "0")}`;
+  const shareRes = await fetch(`${url}/api/share/sponsored/prepare`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -231,10 +232,31 @@ async function expectMissingShareSponsorshipConfig(url) {
       adminCapId,
     }),
   });
-  const body = await res.json();
-  check(res.status === 503, "share prepare reports missing private key");
-  check(body?.code === "not_configured", "share prepare missing-config code");
-  check(!JSON.stringify(body).includes("ENOKI_SECRET_KEY="), "share prepare does not leak key");
+  const shareBody = await shareRes.json();
+  check(shareRes.status === 503, "share prepare reports missing private key");
+  check(shareBody?.code === "not_configured", "share prepare missing-config code");
+  check(
+    !JSON.stringify(shareBody).includes("ENOKI_SECRET_KEY="),
+    "share prepare does not leak key",
+  );
+
+  const revokeRes = await fetch(`${url}/api/share/sponsored/prepare`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "cap-self-revoke",
+      sender,
+      capId,
+      capKind: "ReadOnly",
+    }),
+  });
+  const revokeBody = await revokeRes.json();
+  check(revokeRes.status === 503, "share self-revoke prepare reports missing private key");
+  check(revokeBody?.code === "not_configured", "share self-revoke missing-config code");
+  check(
+    !JSON.stringify(revokeBody).includes("ENOKI_SECRET_KEY="),
+    "share self-revoke does not leak key",
+  );
 }
 
 async function expectCliLoginLookup(url) {

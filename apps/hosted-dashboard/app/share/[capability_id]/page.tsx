@@ -115,7 +115,12 @@ function CapabilityView({ data }: { readonly data: ShareCapabilityPageData }) {
           />
         </div>
 
-        <ShareCapabilityAccountHint ownerAddress={capability.ownerAddress} />
+        <ShareCapabilityAccountHint
+          capabilityId={capability.id}
+          capabilityKind={capability.kind}
+          network={data.network}
+          ownerAddress={capability.ownerAddress}
+        />
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 18 }}>
           <a className="xlink" href={data.suiscanCapability} target="_blank" rel="noreferrer">

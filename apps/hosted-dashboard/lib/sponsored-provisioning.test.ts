@@ -125,6 +125,40 @@ describe("sponsored provisioning guardrails", () => {
     expect(prepared.allowedMoveCallTargets[0]).toMatch(/::namespace::mint_capability_readwrite$/);
   });
 
+  it("resolves holder self-revoke requests with a strict target and sender-only address allowlist", () => {
+    const prepared = resolveSponsoredProvisioningRequest({
+      action: "cap-self-revoke",
+      sender,
+      capId,
+      capKind: "ReadOnly",
+    });
+
+    expect(prepared.action).toBe("cap-self-revoke");
+    expect(prepared.capId).toBe(capId);
+    expect(prepared.capKind).toBe("ReadOnly");
+    expect(prepared.allowedAddresses).toEqual([sender]);
+    expect(prepared.allowedMoveCallTargets[0]).toMatch(/::namespace::revoke_capability$/);
+  });
+
+  it("validates holder self-revoke cap id and kind", () => {
+    expect(() =>
+      resolveSponsoredProvisioningRequest({
+        action: "cap-self-revoke",
+        sender,
+        capId: "not-an-object",
+        capKind: "ReadOnly",
+      }),
+    ).toThrow(ProvisioningValidationError);
+    expect(() =>
+      resolveSponsoredProvisioningRequest({
+        action: "cap-self-revoke",
+        sender,
+        capId,
+        capKind: "Owner" as "ReadOnly",
+      }),
+    ).toThrow(ProvisioningValidationError);
+  });
+
   it("parses executed ReadOnly share capabilities from transaction object changes", async () => {
     const executed = await executeSponsoredProvisioning(
       { action: "ro-cap-share", digest: "digest".repeat(5), signature: "sig".repeat(8) },
@@ -142,6 +176,53 @@ describe("sponsored provisioning guardrails", () => {
     expect(executed.capKind).toBe("ReadOnly");
     expect(executed.roCapId).toBe(capId);
     expect(executed.sharedCapId).toBe(capId);
+  });
+
+  it("returns revoked capability metadata after holder self-revoke execution succeeds", async () => {
+    const executed = await executeSponsoredProvisioning(
+      {
+        action: "cap-self-revoke",
+        digest: "digest".repeat(5),
+        signature: "sig".repeat(8),
+        capId,
+        capKind: "Admin",
+      },
+      env({ ENOKI_PRIVATE_KEY: "secret" }),
+      {
+        executeSponsoredTransaction: async () => ({ digest: "tx".repeat(16) }),
+        waitForTransaction: async () =>
+          ({
+            effects: { status: { status: "success" } },
+            objectChanges: [],
+          }) as never,
+      },
+    );
+
+    expect(executed.action).toBe("cap-self-revoke");
+    expect(executed.capKind).toBe("Admin");
+    expect(executed.revokedCapId).toBe(capId);
+  });
+
+  it("rejects failed holder self-revoke transactions", async () => {
+    await expect(
+      executeSponsoredProvisioning(
+        {
+          action: "cap-self-revoke",
+          digest: "digest".repeat(5),
+          signature: "sig".repeat(8),
+          capId,
+          capKind: "ReadWrite",
+        },
+        env({ ENOKI_PRIVATE_KEY: "secret" }),
+        {
+          executeSponsoredTransaction: async () => ({ digest: "tx".repeat(16) }),
+          waitForTransaction: async () =>
+            ({
+              effects: { status: { status: "failure", error: "owner mismatch" } },
+            }) as never,
+        },
+      ),
+    ).rejects.toThrow(/owner mismatch/);
   });
 
   it("parses executed ReadWrite share capabilities from transaction object changes", async () => {

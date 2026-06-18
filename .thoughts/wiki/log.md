@@ -224,3 +224,16 @@
   framework-provider registry evidence, and explicit deferred boundaries for
   Python memory helpers and Mem0-style ergonomics. Structure tests guard against
   stale pending rows returning.
+- Added Registry Publication Preflight. Root `pnpm registry:status` now checks
+  all local publishable npm and PyPI package versions against public registry
+  metadata without credentials or upload side effects. Current registry truth:
+  core SDK/MCP and framework provider packages are current; CLI/dashboard/Codex
+  and Claude plugin packages are missing; `hermes-onemem` is drifted
+  (`0.2.0` local vs `0.1.0` PyPI). Strict mode fails until publication catches
+  up.
+- Implemented Hosted Holder Self-Revoke. Hosted recipient capability pages now
+  prepare and execute `namespace::revoke_capability<KIND>` through the existing
+  wallet-signed Enoki sponsorship boundary. The UI only enables the action when
+  the connected wallet matches the on-chain address owner, Admin caps require a
+  safety acknowledgement, and owner-driven revoke remains a v0.2 protocol
+  boundary.
