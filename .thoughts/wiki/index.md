@@ -445,6 +445,12 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-18-brand-raster-domain-readiness.md`
 - Brand Raster And Domain Readiness verification:
   `../verification/2026-06-18-brand-raster-domain-readiness.md`
+- Walrus Static Verifier Shell research:
+  `../research/2026-06-18-walrus-static-verifier-shell.md`
+- Walrus Static Verifier Shell plan:
+  `../plans/2026-06-18-walrus-static-verifier-shell.md`
+- Walrus Static Verifier Shell verification:
+  `../verification/2026-06-18-walrus-static-verifier-shell.md`
 
 ## Maintenance Notes
 

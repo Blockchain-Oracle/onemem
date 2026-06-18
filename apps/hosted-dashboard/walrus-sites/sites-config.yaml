@@ -2,11 +2,12 @@
 # The deploy wrapper uses site-builder directly:
 #   site-builder --context=<network> deploy --epochs <N> <dist>
 #
-# Keep this file as repo-local mirror metadata until the final static artifact
-# and SuiNS object mapping are chosen.
+# Keep this file as repo-local mirror metadata. The current checked-in artifact
+# is the public verifier shell; the full hosted dashboard mirror remains future
+# work until server-backed routes have static replacements.
 
-# Build artifacts (static output)
-source: ./out
+# Static artifact directory.
+source: ./verifier
 
 # Suins domain (optional; set after first deploy)
 # domain: onemem.wal.app
@@ -19,4 +20,4 @@ force_refresh: false
 
 # Resource routes — Walrus Sites maps URL paths to blobs.
 routes:
-  "/*": "out/$path"
+  "/*": "verifier/index.html"

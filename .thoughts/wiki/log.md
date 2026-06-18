@@ -288,3 +288,10 @@
   structure shard validates PNG signatures and dimensions from file headers, and
   package/marketing docs record that `onememe.xyz` is the campaign identity but
   not a live DNS-backed website yet.
+- Implemented Walrus Static Verifier Shell. The manual Walrus Sites workflow
+  and deploy script now default to a checked-in static verifier artifact instead
+  of missing `apps/hosted-dashboard/out`; the shell verifies TraceSession
+  Merkle integrity in-browser through public Sui JSON-RPC. Local deploy
+  preflights, focused structure test, full structure suite, and static curl
+  smoke passed. Live Walrus URL and Chrome extension browser proof remain
+  unclaimed.

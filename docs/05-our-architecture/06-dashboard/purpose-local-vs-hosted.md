@@ -321,7 +321,7 @@ public trace, they hit hosted's public `/verify/[id]`.
 | Hosted `/share` owner capability minting/history | Built for sponsored ReadOnly/ReadWrite capability creation and event-backed owner history |
 | **`/verify/[session_id]` public page (NEW v0.1 addition)** | Built |
 | `/share/[capability_id]` recipient capability view | Built as read-only object inspection; claim transfer remains pending |
-| Walrus Sites mirror deploy | Deploy preflight/wrapper built; live `site-builder` deploy URL and full static mirror remain pending |
+| Walrus Sites mirror deploy | Static public verifier shell and deploy preflight built; live `site-builder` deploy URL and full dashboard mirror remain pending |
 
 ---
 

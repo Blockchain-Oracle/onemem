@@ -1,0 +1,26 @@
+{
+  "headers": {
+    "/index.html": {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "max-age=300"
+    },
+    "/styles.css": {
+      "Content-Type": "text/css; charset=utf-8",
+      "Cache-Control": "max-age=300"
+    },
+    "/app.js": {
+      "Content-Type": "application/javascript; charset=utf-8",
+      "Cache-Control": "max-age=300"
+    }
+  },
+  "routes": {
+    "/verify/*": "/index.html",
+    "/verify": "/index.html"
+  },
+  "metadata": {
+    "description": "OneMem public verifier for Sui TraceSession Merkle-chain integrity.",
+    "project_url": "https://github.com/Blockchain-Oracle/onemem",
+    "creator": "OneMem"
+  },
+  "site_name": "OneMem Public Verifier"
+}

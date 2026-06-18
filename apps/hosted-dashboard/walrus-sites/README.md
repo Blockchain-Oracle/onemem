@@ -1,6 +1,8 @@
 # Walrus Sites mirror — apps/hosted-dashboard
 
-Decentralized mirror deploy of `app.onemem.ai`. Same build artifacts; deployed via Walrus Sites for censorship-resistance + as fallback if Vercel is down.
+Decentralized Walrus Sites deploy surface for `app.onemem.ai` fallback work.
+The current checked-in artifact is a small public verifier shell, not the full
+hosted dashboard.
 
 ## Why this exists
 
@@ -11,11 +13,17 @@ Per `docs/05-our-architecture/06-dashboard/walrus-sites-mirror.md`:
 
 ## Current boundary
 
-The deploy wrapper is real, but the hosted dashboard is not yet a complete
-static Walrus mirror. The app currently has server-backed API routes and
-force-dynamic pages for public verify/share. The script therefore expects a
-prebuilt static artifact directory and fails loudly if `out/index.html` is
-missing.
+The deploy wrapper is real and now defaults to a checked-in static artifact:
+`apps/hosted-dashboard/walrus-sites/verifier`.
+
+That artifact verifies a OneMem `TraceSession` directly in the browser through
+public Sui JSON-RPC. It recomputes the Merkle root from
+`ActionCallEmittedEvent` rows and shows the proof boundary.
+
+The full hosted dashboard is still not a complete static Walrus mirror. It has
+server-backed API routes and force-dynamic hosted pages. Do not claim a full
+dashboard mirror until those routes have static/browser-side replacements and a
+live `site-builder` deployment returns a Walrus URL.
 
 Do not use `next export -o out`; that command path is invalid for the current
 Next.js toolchain in this repo.
@@ -29,13 +37,16 @@ bash scripts/deploy-walrus-sites.sh
 Or validate without deploying:
 
 ```bash
-bash scripts/deploy-walrus-sites.sh --check --dist apps/hosted-dashboard/out
+bash scripts/deploy-walrus-sites.sh --check
 ```
 
 The GitHub Action has the same static-artifact preflight:
 
 ```bash
-gh workflow run deploy-walrus-sites.yml --field epochs=26 --field context=mainnet --field dist=apps/hosted-dashboard/out
+gh workflow run deploy-walrus-sites.yml \
+  --field epochs=26 \
+  --field context=mainnet \
+  --field dist=apps/hosted-dashboard/walrus-sites/verifier
 ```
 
 ## After deploy

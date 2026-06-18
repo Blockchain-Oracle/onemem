@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# Deploy a prebuilt static OneMem dashboard artifact to Walrus Sites.
+# Deploy a prebuilt static OneMem artifact to Walrus Sites.
 #
 # Official Walrus shape:
 #   site-builder --context=<network> deploy --epochs <N> <DIST>
 #
 # This script intentionally does not run Next.js export. The hosted dashboard is
-# partly server-backed today, so callers must provide a real static artifact.
+# partly server-backed today, so the default artifact is the checked-in static
+# public verifier shell.
 
 set -euo pipefail
 
 MODE="deploy"
-DIST="${WALRUS_DIST:-apps/hosted-dashboard/out}"
+DIST="${WALRUS_DIST:-apps/hosted-dashboard/walrus-sites/verifier}"
 EPOCHS="${WALRUS_EPOCHS:-26}"
 CONTEXT="${WALRUS_CONTEXT:-mainnet}"
 SITE_BUILDER="${SITE_BUILDER_BIN:-site-builder}"
@@ -23,7 +24,7 @@ Usage: bash scripts/deploy-walrus-sites.sh [options]
 Options:
   --check              Validate the static artifact and print the deploy command.
   --dry-run            Validate and print the deploy command without executing it.
-  --dist <path>        Static site directory to deploy. Default: apps/hosted-dashboard/out
+  --dist <path>        Static site directory to deploy. Default: apps/hosted-dashboard/walrus-sites/verifier
   --epochs <number>    Walrus storage epochs to fund. Default: 26
   --context <name>     site-builder context/network. Default: mainnet
   --object-id <id>     Existing Walrus Site object ID to update.

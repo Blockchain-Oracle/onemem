@@ -256,7 +256,7 @@ dashboard README no longer marks built local/hosted routes as pending, keeps
 Walrus Sites mirror deployment unproven, and structure tests now guard the
 known built dashboard route rows from regressing to stale pending labels.
 
-Walrus Sites Deploy Readiness is the latest dashboard deployment slice. The
+Walrus Sites Deploy Readiness is the twenty-fourth dashboard deployment slice. The
 Walrus mirror script is no longer a no-op skeleton: it validates a real static
 artifact, supports check/dry-run modes, and calls `site-builder` only when a
 valid artifact exists. The deploy workflow no longer runs the invalid
@@ -264,7 +264,15 @@ valid artifact exists. The deploy workflow no longer runs the invalid
 remain pending until a static artifact and funded `site-builder` environment are
 available.
 
-CLI Command Surface Refresh is the twenty-fourth docs/status slice. The
+Walrus Static Verifier Shell is the current dashboard deployment slice. The
+repo now has a checked-in static verifier at
+`apps/hosted-dashboard/walrus-sites/verifier`, and both the local deploy script
+and manual GitHub workflow default to that real artifact. The shell performs
+browser-side Sui JSON-RPC verification for TraceSession Merkle integrity and
+keeps the proof boundary explicit. Live Walrus deployment URL, mainnet package
+support, and full hosted-dashboard static mirroring remain pending.
+
+CLI Command Surface Refresh is the twenty-fifth docs/status slice. The
 load-bearing CLI command-surface doc now describes the actual current v0.1 TS
 CLI and Python read-only mirror instead of the larger planned surface, the CLI
 README status table reflects built TS/Python packages, and structure tests guard
@@ -515,9 +523,9 @@ Use subagents for independent lanes with disjoint write scopes:
 
 1. Continue deeper docs/status inventory for stale historical architecture pages
    that are not current entry points.
-2. Decide and implement the final Walrus mirror artifact shape: full static
-   dashboard rewrite vs. smaller public verifier shell, then run `site-builder`
-   and record the returned Walrus URL.
+2. Run a live `site-builder` deployment for the static public verifier shell
+   and record the returned Walrus URL; full dashboard static mirroring remains
+   separate future work.
 3. Render the brand video/animated bumper once final submission video
    requirements are known, and configure/confirm `onememe.xyz` DNS/hosting.
 4. Continue hosted/manual wallet verification for CLI delegate registration,

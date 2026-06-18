@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="OneMem public verifier for Sui TraceSession Merkle-chain integrity."
+    />
+    <title>OneMem Public Verifier</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero" aria-labelledby="title">
+        <div class="brand">
+          <span class="mark" aria-hidden="true">OM</span>
+          <span>OneMem</span>
+        </div>
+        <h1 id="title">Public Trace Verifier</h1>
+        <p>
+          Verify a OneMem TraceSession directly from Sui object and event data.
+        </p>
+      </section>
+
+      <section class="panel" aria-labelledby="verify-title">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Sui testnet</p>
+            <h2 id="verify-title">TraceSession</h2>
+          </div>
+          <span id="statusBadge" class="badge neutral">Idle</span>
+        </div>
+
+        <form id="verifyForm" class="form">
+          <label for="network">Network</label>
+          <select id="network" name="network">
+            <option value="testnet" selected>Testnet</option>
+            <option value="mainnet" disabled>Mainnet pending package</option>
+          </select>
+
+          <label for="sessionId">Session object ID</label>
+          <input
+            id="sessionId"
+            name="sessionId"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="0x..."
+            required
+          />
+
+          <button id="verifyButton" type="submit">Verify</button>
+        </form>
+
+        <noscript>
+          <p class="notice">
+            JavaScript is required for browser-side Sui JSON-RPC verification.
+          </p>
+        </noscript>
+
+        <p id="message" class="message" role="status" aria-live="polite">
+          Enter a TraceSession ID to recompute its Merkle root from on-chain
+          events.
+        </p>
+      </section>
+
+      <section id="result" class="result" hidden>
+        <div class="grid">
+          <article>
+            <h2>Session</h2>
+            <dl id="sessionFacts"></dl>
+          </article>
+          <article>
+            <h2>Verification</h2>
+            <dl id="verifyFacts"></dl>
+          </article>
+        </div>
+
+        <article>
+          <h2>Action Calls</h2>
+          <div id="calls" class="calls"></div>
+        </article>
+
+        <article class="boundary">
+          <h2>Proof Boundary</h2>
+          <p>
+            This verifies Sui event ordering, the prev_hash chain, and the
+            TraceSession Merkle root. It does not prove plaintext content,
+            external tool execution, Walrus blob availability, Seal decryptions,
+            or semantic correctness.
+          </p>
+        </article>
+      </section>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
