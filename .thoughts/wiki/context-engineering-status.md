@@ -517,8 +517,10 @@ three provider `0.1.1` packages. Live npm publication uploaded
 `@onemem/brand@0.1.2`, `@onemem/cli@0.1.0`, `@onemem/dashboard@0.1.2`,
 `@onemem/claude-code-plugin@0.1.0`, `@onemem/codex-plugin@0.1.0`,
 `@onemem/openai-agents@0.1.3`, and `@onemem/vercel-ai-provider@0.1.2`.
-Changesets created matching git tags at commit `0759f2c`. `pnpm
-registry:status --strict` and `pnpm release:preflight --strict` pass.
+Changesets created matching git tags across commits `0759f2c`, `ec3fae5`, and
+`18292d4`. `pnpm registry:status --strict` and `pnpm release:preflight --strict`
+pass. GitHub Actions repository secrets `NPM_TOKEN` and `PYPI_TOKEN` are
+configured for future release workflow runs.
 
 ## Documentation Standing
 

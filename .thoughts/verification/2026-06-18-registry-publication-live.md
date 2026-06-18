@@ -55,8 +55,11 @@ bash -n scripts/publish-all.sh
 PUBLISH_ALL_DRY_RUN=1 mise exec -- bash scripts/publish-all.sh python
 mise exec -- pnpm test:structure
 git diff --check
+npm pack @onemem/brand@0.1.2 --json
+npm view @onemem/dashboard@0.1.2 version dist.tarball --json
 mise exec -- pnpm registry:status --strict
 mise exec -- pnpm release:preflight --strict
+gh secret list -R Blockchain-Oracle/onemem --app actions
 ```
 
 Observed proof:
@@ -64,12 +67,19 @@ Observed proof:
 - `test:structure` passed 427/427 tests before publication.
 - `git diff --check` passed.
 - Live PyPI publish command exited 0 after uploading all six Python packages.
-- Live npm publish command exited 0 and reported the seven expected packages as
-  published successfully.
+- Live npm publish commands exited 0 across the initial, domain-refresh, and
+  final asset-refresh passes. The final pass published only
+  `@onemem/brand@0.1.2` and `@onemem/dashboard@0.1.2`, as expected.
+- The packed `@onemem/brand@0.1.2` tarball contains the current campaign domain
+  strings: `onemem.xyz`, `docs.onemem.xyz`, and `x.com/OneMemAI`.
+- `npm view @onemem/dashboard@0.1.2` returned version `0.1.2` and the public
+  registry tarball URL.
 - `pnpm registry:status --strict` exited 0 and reported every npm/PyPI package
   as `current`.
 - `pnpm release:preflight --strict` exited 0 with "all current" for npm and
   PyPI and no missing shipped markers.
+- GitHub Actions repository secrets `NPM_TOKEN` and `PYPI_TOKEN` are configured
+  for `Blockchain-Oracle/onemem` for future release workflow runs.
 
 ## Boundaries
 
@@ -77,5 +87,5 @@ Observed proof:
   config only; they were not written to repo files.
 - This verifies registry publication, not Vercel deployment, DNS, trusted
   Claude/Codex live hook execution, or hosted wallet popup flows.
-- CI secrets/trusted publishing still need to be configured separately for
-  future automated releases.
+- GitHub Actions token secrets are configured, but npm trusted publishing is not
+  claimed.
