@@ -27,13 +27,13 @@ export const ADDRESSES: Readonly<Partial<Record<SuiNetwork, OneMemAddresses>>> =
     network: "testnet",
     rpcUrl: "https://fullnode.testnet.sui.io:443",
     suiscanBase: "https://suiscan.xyz/testnet",
-    packageId: "0x64c14fc069fe3d3584b8474b4e9b58beb55373767edecedf6e4c53732d4ceafc",
+    packageId: "0xc2e839c719e1c61222440f5661199e68de5413d8cfb49dd8bae3223e92fcf138",
     registryId: "0x3c78a19edad83c6e7d62b4ccd2941531b7b0551f499b961e89ca8355c7ae16e0",
     registryAdminCapId: "0x37cc50ed36d5da9ba043e599683f0b961f1b655c42e7dba0f832aa35d52f3d68",
     upgradeCapId: "0x2834843d375d7c74d2eba35b8a1919dcd686c11e62e0993fa39577f1bb8151a9",
     deployerAddress: "0x633dbf84ab127de37c212dfe4ceb75ee254ae26ad78a68e6b8289c7be60c235a",
-    txDigest: "YmVNipzKTpa8wJd3aD9WmWfoMUEyekcYfMcpZSpjb1x",
-    deployedAt: "2026-05-26T16:06:02Z",
+    txDigest: "6aARmWJadHzwCf6iF3PooZKVSypHTL7jREsWUZEwqrhP",
+    deployedAt: "2026-06-18T12:01:45Z",
   } satisfies OneMemAddresses),
 });
 

@@ -6,6 +6,7 @@ import { describe, test } from "node:test";
 import { ROOT } from "./helpers";
 
 const migrateScript = () => readFileSync(join(ROOT, "scripts/migrate-contract.sh"), "utf8");
+const verifyScript = () => readFileSync(join(ROOT, "scripts/verify-mainnet.sh"), "utf8");
 
 describe("deployment scripts", () => {
   describe("contract migration safety", () => {
@@ -71,6 +72,21 @@ describe("deployment scripts", () => {
       assert.match(script, /published-at/, "Published.toml update must refresh published-at");
       assert.match(
         script,
+        /PUBLISHED_VERSION_BEFORE_UPGRADE/,
+        "Published.toml package version must be captured before Sui CLI mutates it",
+      );
+      assert.match(
+        script,
+        /DESIRED_PUBLISHED_VERSION=\$\(\(PUBLISHED_VERSION_BEFORE_UPGRADE \+ 1\)\)/,
+        "Published.toml package version must be pinned to previous + 1",
+      );
+      assert.doesNotMatch(
+        script,
+        /version \+ 1 if version else 1/,
+        "Published.toml updater must not double-increment the Sui CLI updated value",
+      );
+      assert.match(
+        script,
         /pnpm exec tsx scripts\/codegen-move-types\.ts/,
         "TypeScript generated addresses must refresh",
       );
@@ -88,6 +104,17 @@ describe("deployment scripts", () => {
       assert.match(script, /Could not parse new package ID/);
       assert.match(script, /Could not parse transaction digest/);
       assert.match(script, /Full JSON:/, "parse failures must show the raw Sui response");
+    });
+
+    test("verify script accepts upgraded shared object type origins", () => {
+      const script = verifyScript();
+      assert.match(script, /REG_TYPE_SUFFIX="::registry::OneMemRegistry"/);
+      assert.match(script, /REG_TYPE_PACKAGE=/);
+      assert.doesNotMatch(
+        script,
+        /EXPECTED_REG_TYPE="\$\{PACKAGE_ID\}::registry::OneMemRegistry"/,
+        "shared registry objects keep their original package type after upgrades",
+      );
     });
   });
 });

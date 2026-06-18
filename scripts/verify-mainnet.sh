@@ -58,14 +58,24 @@ echo "    ✓ Package object readable"
 echo "==> 2. Checking OneMemRegistry shared object..."
 REG_JSON="$(sui client object "$REGISTRY_ID" --json 2>&1)" || { echo "FAIL: registry not found"; exit 1; }
 REG_TYPE="$(echo "$REG_JSON" | jq -r '.objType // empty')"
-EXPECTED_REG_TYPE="${PACKAGE_ID}::registry::OneMemRegistry"
-if [ "$REG_TYPE" != "$EXPECTED_REG_TYPE" ]; then
-  echo "FAIL: registry has wrong type"
-  echo "  expected: $EXPECTED_REG_TYPE"
-  echo "  got:      $REG_TYPE"
+REG_TYPE_SUFFIX="::registry::OneMemRegistry"
+case "$REG_TYPE" in
+  *"$REG_TYPE_SUFFIX")
+    REG_TYPE_PACKAGE="${REG_TYPE%"$REG_TYPE_SUFFIX"}"
+    ;;
+  *)
+    echo "FAIL: registry has wrong type"
+    echo "  expected suffix: $REG_TYPE_SUFFIX"
+    echo "  got:      $REG_TYPE"
+    exit 1
+    ;;
+esac
+if [[ "$REG_TYPE_PACKAGE" != 0x* ]]; then
+  echo "FAIL: registry type package is malformed"
+  echo "  got: $REG_TYPE"
   exit 1
 fi
-echo "    ✓ Registry type matches"
+echo "    ✓ Registry type matches OneMemRegistry ($REG_TYPE_PACKAGE)"
 
 # 3. Version dynamic field is present + readable.
 # CLI shape: { "dynamicFields": [ { "fieldObject": { "json": { "name": "<base64>", "value": "<int>" } } } ] }.

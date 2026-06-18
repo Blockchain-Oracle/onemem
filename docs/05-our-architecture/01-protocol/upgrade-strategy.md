@@ -146,6 +146,18 @@ At v0.1 we publish ONCE (`sui client publish`). Any future upgrades use `sui cli
 
 **Upgrade cap policy:** the `UpgradeCap` from `sui client publish` is initially owned by the deployer (the OneMem team). At v0.2+ this could move to a multisig or DAO governance. At v0.1, deployer-owned is fine (single point of trust for hackathon scope).
 
+After a package upgrade, long-lived shared objects keep the package ID from the
+type that created them. For example, the testnet `OneMemRegistry` created by the
+original package still has type `<original>::registry::OneMemRegistry` even when
+`config/networks.json` points SDK calls at the latest package. Verification
+scripts must therefore check the object type suffix, not pin the registry object
+type to the latest package ID.
+
+`sui client upgrade` can update `Published.toml` itself. The OneMem migration
+script captures the pre-upgrade package version before invoking the live command
+and rewrites `Published.toml` to exactly `previous + 1`, matching the package
+object's `content.Package.version`.
+
 ### Operational dry-run
 
 Before a live upgrade, rehearse the exact source with:

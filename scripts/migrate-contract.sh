@@ -84,6 +84,22 @@ if [ -z "$CURRENT_PACKAGE_ID" ]; then
   exit 1
 fi
 
+PUBLISHED_VERSION_BEFORE_UPGRADE="0"
+if [ -f "$PUBLISHED_TOML" ]; then
+  parsed_version="$(
+    awk -v section="[published.$NETWORK]" '
+      $0 == section { in_section = 1; next }
+      in_section && /^\[/ { exit }
+      in_section && $1 == "version" { print $3; exit }
+    ' "$PUBLISHED_TOML"
+  )"
+  case "$parsed_version" in
+    ""|*[!0-9]*) PUBLISHED_VERSION_BEFORE_UPGRADE="0" ;;
+    *) PUBLISHED_VERSION_BEFORE_UPGRADE="$parsed_version" ;;
+  esac
+fi
+DESIRED_PUBLISHED_VERSION=$((PUBLISHED_VERSION_BEFORE_UPGRADE + 1))
+
 PREVIOUS_ENV="$(sui client active-env 2>/dev/null || true)"
 
 echo "==> Switching to $NETWORK"
@@ -94,6 +110,7 @@ echo "==> Sui CLI: $SUI_BIN ($SUI_VERSION)"
 echo "==> Active address: $ACTIVE_ADDRESS"
 echo "==> Current package ID: $CURRENT_PACKAGE_ID"
 echo "==> UpgradeCap: $UPGRADE_CAP_ID"
+echo "==> Published.toml version after upgrade will be $DESIRED_PUBLISHED_VERSION"
 
 run_upgrade() {
   local mode="$1"
@@ -168,7 +185,7 @@ jq \
 echo "==> Updated $NETWORKS_JSON (.networks.$NETWORK package + tx digest)"
 
 SUI_TOOLCHAIN_VERSION="$(sui --version | awk '{print $2}' | sed 's/-.*//')"
-uv run python - "$PUBLISHED_TOML" "$NETWORK" "$NEW_PACKAGE_ID" "$CURRENT_PACKAGE_ID" "$UPGRADE_CAP_ID" "$SUI_TOOLCHAIN_VERSION" <<'PY'
+uv run python - "$PUBLISHED_TOML" "$NETWORK" "$NEW_PACKAGE_ID" "$CURRENT_PACKAGE_ID" "$UPGRADE_CAP_ID" "$SUI_TOOLCHAIN_VERSION" "$DESIRED_PUBLISHED_VERSION" <<'PY'
 from __future__ import annotations
 
 import re
@@ -176,7 +193,7 @@ import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-network, package_id, previous_package_id, upgrade_cap, toolchain = sys.argv[2:]
+network, package_id, previous_package_id, upgrade_cap, toolchain, desired_version = sys.argv[2:]
 section = f"[published.{network}]"
 lines = path.read_text().splitlines()
 
@@ -189,7 +206,7 @@ if start is None:
             section,
             f'published-at = "{package_id}"',
             f'original-id = "{previous_package_id or package_id}"',
-            "version = 1",
+            f"version = {desired_version}",
             f'toolchain-version = "{toolchain}"',
             f'upgrade-capability = "{upgrade_cap}"',
         ]
@@ -204,7 +221,6 @@ else:
         len(lines),
     )
     existing: dict[str, int] = {}
-    version = 0
     original_id = previous_package_id or package_id
     for i in range(start + 1, end):
         match = re.match(r"([A-Za-z0-9_-]+)\s*=\s*(.*)", lines[i].strip())
@@ -212,15 +228,13 @@ else:
             continue
         key, value = match.groups()
         existing[key] = i
-        if key == "version":
-            version = int(value)
-        elif key == "original-id":
+        if key == "original-id":
             original_id = value.strip().strip('"') or original_id
 
     updates = {
         "published-at": f'"{package_id}"',
         "original-id": f'"{original_id}"',
-        "version": str(version + 1 if version else 1),
+        "version": str(desired_version),
         "toolchain-version": f'"{toolchain}"',
         "upgrade-capability": f'"{upgrade_cap}"',
     }
