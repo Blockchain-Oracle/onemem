@@ -5,6 +5,11 @@ Records each Hermes agent session as a **verifiable on-chain TraceSession** on
 Sui — Merkle-chained `ActionCall`s with content stored on Walrus and encrypted
 with Seal.
 
+**Publication note, 2026-06-18:** this README describes repo-local
+`hermes-onemem@0.2.0`. `pnpm registry:status` currently reports PyPI latest as
+`0.1.0`; do not claim the `0.2.0` package is publicly installed until registry
+status reports it current.
+
 ## How it works
 
 `OneMemProvider` implements Hermes's `agent.memory_provider.MemoryProvider`. It

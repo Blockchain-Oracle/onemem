@@ -74,9 +74,12 @@ pip install onemem-livekit
 pip install onemem-elevenlabs
 ```
 
-Registry check, 2026-06-17: the five framework provider package names above are
-public. Registry publication is still separate from runtime plugin/CLI package
-publication.
+Registry check, 2026-06-18: the five framework provider package names exist on
+public registries, but source is ahead of published artifacts. Local source has
+`@onemem/vercel-ai-provider@0.1.2`, `@onemem/openai-agents@0.1.3`, and Python
+providers `0.1.1`; npm/PyPI latest artifacts are still one patch behind and do
+not contain the explicit memory helper APIs. Run `pnpm registry:status` before
+claiming provider helper publication.
 
 ---
 

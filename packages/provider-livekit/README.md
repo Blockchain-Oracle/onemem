@@ -4,6 +4,12 @@ Record **LiveKit Agents** voice sessions as **verifiable on-chain OneMem
 TraceSessions** (Sui + Walrus + Seal) — every conversation turn + tool/function
 call captured as Merkle-chained `ActionCall`s anyone can verify.
 
+**Publication note, 2026-06-18:** this README describes repo-local
+`onemem-livekit@0.1.1`. `pnpm registry:status` currently reports PyPI latest as
+`0.1.0`, which does not include `create_onemem_memory(...)`; use source or wait
+for registry status to report `0.1.1` current before relying on that helper from
+PyPI.
+
 ## Usage
 
 ```python
@@ -52,7 +58,7 @@ auto-provisioned), `ONEMEM_TRACE_CMD` (override the CLI invocation).
 
 ## Scope (v0.1)
 
-Trace capture and explicit memory recall/capture are shipped. Native LiveKit
-memory subclassing and automatic memory injection remain tracked follow-ups.
-Spec:
+Trace capture and explicit memory recall/capture are shipped in repo-local
+source. Native LiveKit memory subclassing and automatic memory injection remain
+tracked follow-ups. Spec:
 `docs/05-our-architecture/04-frameworks/livekit-voice-provider.md`.

@@ -29,19 +29,23 @@ MCP-compatible runtime (Claude Code, Cursor, Codex, Windsurf, Cline, …).
 ## Install into Claude Code
 
 ```bash
-# from a built checkout
-claude mcp add onemem -- node /absolute/path/to/packages/mcp-server/dist/index.js
-# or, once published:  claude mcp add onemem -- npx -y @onemem/mcp
+claude mcp add onemem -- npx -y @onemem/mcp@latest
 ```
 
-Or add to `.mcp.json` / your client's MCP config:
+From a development checkout, use the built local entry instead:
+
+```bash
+claude mcp add onemem -- node /absolute/path/to/packages/mcp-server/dist/index.js
+```
+
+Or add the published server to `.mcp.json` / your client's MCP config:
 
 ```json
 {
   "mcpServers": {
     "onemem": {
-      "command": "node",
-      "args": ["/absolute/path/to/packages/mcp-server/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@onemem/mcp@latest"],
       "env": { "SUI_NETWORK": "testnet" }
     }
   }

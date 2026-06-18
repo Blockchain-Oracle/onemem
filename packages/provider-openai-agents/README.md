@@ -4,6 +4,12 @@ Record **OpenAI Agents SDK** runs as **verifiable on-chain OneMem TraceSessions*
 (Sui + Walrus + Seal) — every tool call + the final output captured as
 Merkle-chained `ActionCall`s anyone can verify.
 
+**Publication note, 2026-06-18:** this README describes repo-local
+`@onemem/openai-agents@0.1.3`. `pnpm registry:status` currently reports npm
+latest as `0.1.2`, which does not include `createOneMemMemory(...)`; use source
+or wait for registry status to report `0.1.3` current before relying on that
+helper from npm.
+
 ## Usage
 
 ```ts
@@ -68,8 +74,9 @@ credentials and env vars are both supported by the shared runtime resolver.
 
 ## Scope (v0.1)
 
-Trace capture is automatic through Runner lifecycle events. Memory
-recall/capture is shipped as the explicit `createOneMemMemory()` helper.
+Trace capture is automatic through Runner lifecycle events. In repo-local
+source, memory recall/capture is shipped as the explicit `createOneMemMemory()`
+helper.
 Verify/replay tools and automatic memory extraction remain tracked follow-ups.
 Requires `@openai/agents` v0.11+ (peer dependency). Spec:
 `docs/05-our-architecture/04-frameworks/openai-agents-tools.md`.

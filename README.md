@@ -12,6 +12,11 @@ exists for historical context, but day-to-day work now follows the Context
 Engineering router in `AGENTS.md` and the artifacts under
 `.thoughts/`.
 
+Registry publication is still catching up to source for several packages. Before
+claiming an install path is live on npm or PyPI, run `pnpm registry:status`; the
+Release workflow can be green even when package upload is skipped for missing
+credentials.
+
 ## Where to start
 
 | You want to... | Read this |

@@ -4,6 +4,12 @@ Record **CrewAI** crew runs as **verifiable on-chain OneMem TraceSessions**
 (Sui + Walrus + Seal) — every agent step + task captured as Merkle-chained
 `ActionCall`s anyone can verify.
 
+**Publication note, 2026-06-18:** this README describes repo-local
+`onemem-crewai@0.1.1`. `pnpm registry:status` currently reports PyPI latest as
+`0.1.0`, which does not include `create_onemem_memory(...)`; use source or wait
+for registry status to report `0.1.1` current before relying on that helper from
+PyPI.
+
 ## Usage
 
 ```python
@@ -59,7 +65,7 @@ auto-provisioned), `ONEMEM_TRACE_CMD` (override the CLI invocation).
 
 ## Scope (v0.1)
 
-Trace capture and explicit memory recall/capture are shipped. The Mem0-style
-`memory_config={"provider": "onemem"}` automatic memory integration is a tracked
-follow-up. Spec:
+Trace capture and explicit memory recall/capture are shipped in repo-local
+source. The Mem0-style `memory_config={"provider": "onemem"}` automatic memory
+integration is a tracked follow-up. Spec:
 `docs/05-our-architecture/04-frameworks/crewai-provider.md`.

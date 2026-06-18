@@ -8,6 +8,10 @@ pipx install onemem-cli   # exposes the `onemem-py` command
 onemem-py verify <session-id>
 ```
 
+**Publication note, 2026-06-18:** this README describes repo-local
+`onemem-cli@0.1.0`. `pnpm registry:status` currently reports `onemem-cli` as
+missing from PyPI, so use the workspace package until PyPI publication lands.
+
 `onemem-py` coexists with the TS CLI's `onemem` binary.
 
 ## Commands

@@ -11,6 +11,13 @@ description: "Record and verify your first on-chain agent trace in under a minut
 npm install -g @onemem/cli
 ```
 
+<Note>
+Registry note, 2026-06-18: this command is the target public install path.
+`pnpm registry:status` currently reports `@onemem/cli` and
+`@onemem/dashboard` as missing from npm, so use a built checkout until registry
+publication catches up.
+</Note>
+
 ## 2. Provision (zero-config)
 
 `init` resolves a signer (env key → Sui keystore → a generated, persisted wallet) and provisions a namespace + ReadWrite cap on testnet — no browser, no manual setup.
@@ -30,6 +37,12 @@ It prints the namespace + cap and the env vars any runtime can use:
 ## 3. Instrument your runtime
 
 Pick your stack — each is one line. Traces start recording automatically.
+
+<Note>
+Provider examples below describe current source. Some helper APIs are in local
+patch versions that public npm/PyPI artifacts have not caught up to yet; check
+`pnpm registry:status` before treating them as published install proof.
+</Note>
 
 <CodeGroup>
 ```bash Claude Code

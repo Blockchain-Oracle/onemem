@@ -421,6 +421,16 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-18-cli-dashboard-launcher.md`
 - CLI Dashboard Launcher verification:
   `../verification/2026-06-18-cli-dashboard-launcher.md`
+- Registry-Aware Current Docs research:
+  `../research/2026-06-18-registry-aware-current-docs.md`
+- Registry-Aware Current Docs spec:
+  `../specs/2026-06-18-registry-aware-current-docs.md`
+- Registry-Aware Current Docs stories:
+  `../stories/2026-06-18-registry-aware-current-docs.md`
+- Registry-Aware Current Docs plan:
+  `../plans/2026-06-18-registry-aware-current-docs.md`
+- Registry-Aware Current Docs verification:
+  `../verification/2026-06-18-registry-aware-current-docs.md`
 
 ## Maintenance Notes
 

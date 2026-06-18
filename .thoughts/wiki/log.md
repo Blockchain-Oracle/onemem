@@ -266,3 +266,8 @@
   install guidance if the binary is missing. Current CLI/dashboard docs now
   treat the launcher as implemented; structure tests guard against moving it
   back into deferred command lists.
+- Implemented Registry-Aware Current Docs. Package READMEs and public docs now
+  mark missing/drifted npm and PyPI publication state near install/API examples
+  while keeping repo-local source APIs documented. New structure tests guard
+  `pnpm registry:status` language, provider helper drift notes, published MCP
+  install guidance, and runtime marketplace/npm/hook-proof separation.

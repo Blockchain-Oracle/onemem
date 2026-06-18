@@ -29,7 +29,7 @@ OneMem ships a plugin or MCP integration for every coding-agent runtime users ac
 | **Claude Code** | Native plugin + MCP | More slash commands | `../../02-inspirations/claude-mem/` + `../../03-target-runtimes/README.md` |
 | **OpenClaw** | Native plugin (uses `oc-memwal` underneath) | Feature-parity expansion | `../../02-inspirations/memwal-incubation/README.md` |
 | **Hermes Agent** | Standalone PyPI provider | Multi-provider composition | `../../03-target-runtimes/README.md` + `../../../TRACE_AND_PROVIDERS.md` §2 |
-| **Codex CLI** | Native Codex plugin with bundled `@onemem/mcp`; optional trusted hooks | Marketplace packaging + live hook proof | `../../03-target-runtimes/codex-cli-deep.md` |
+| **Codex CLI** | Native Codex plugin with bundled `@onemem/mcp`; optional trusted hooks | npm package publication + live hook proof | `../../03-target-runtimes/codex-cli-deep.md` |
 | **Cursor** | Via `@onemem/mcp` | (No native plugin SDK exists) | `../../03-target-runtimes/cursor-mcp-deep.md` |
 | **Windsurf** | Via `@onemem/mcp` | (No native plugin SDK) | (similar to Cursor) |
 | **OpenCode** | Via `@onemem/mcp` | TBD | (MCP-capable only) |
@@ -49,7 +49,11 @@ Codex's MCP-first plugin + MCP server coverage for the rest).
 3. **Coexist, don't replace.** Claude Code plugin runs alongside claude-mem. OpenClaw plugin uses oc-memwal underneath. Mem0 plugin can coexist with OneMem plugin if the user wants both.
 4. **One MCP server fits all.** `@onemem/mcp` serves every MCP-capable runtime; ship once, distribute everywhere.
 5. **Hook contract per runtime documented from researched docs**, not invented. See `03-target-runtimes/` for the source-of-truth hook contracts.
-6. **Install command must be 1-line.** `/plugin install onemem` (Claude Code), `openclaw plugins install @onemem/oc-onemem` (OpenClaw), `pip install hermes-onemem` (Hermes), `npx mcp-add @onemem/mcp` (MCP-capable).
+6. **Install command must be 1-line once published.** Repository marketplace
+   install is current for Claude/Codex plugin packages, `openclaw plugins install
+   @onemem/oc-onemem` is current, and `@onemem/mcp` is current on npm. Run
+   `pnpm registry:status` before claiming npm/PyPI install proof for missing or
+   drifted runtime packages.
 7. **License: Apache-2.0** (matches claude-mem now that we verified — see `02-inspirations/claude-mem/CLAUDE_MEM_DOCS_TECH.md`).
 
 ---
@@ -110,3 +114,9 @@ This is the canonical mapping. Per-runtime docs reference back to this matrix.
 | `@onemem/codex-plugin` | Built; package tests pass; live hook proof pending |
 | Codex via MCP wired | Built through `packages/plugin-codex/.mcp.json` and manual config path |
 | Cursor / Windsurf / Antigravity via MCP docs | Universal MCP path documented; native runtime work deferred |
+
+Registry check, 2026-06-18: `@onemem/mcp` and `@onemem/oc-onemem` are current
+on npm. `@onemem/claude-code-plugin` and `@onemem/codex-plugin` are missing on
+npm, and `hermes-onemem@0.2.0` is ahead of PyPI latest `0.1.0`. Keep registry
+publication separate from repository marketplace install and script-level hook
+proof.

@@ -1,6 +1,6 @@
 # Context Engineering Status: OneMem
 
-Date: 2026-06-17
+Date: 2026-06-18
 
 ## Active Entry Points
 
@@ -455,6 +455,14 @@ fails with install guidance when the dashboard binary is missing. Current CLI,
 dashboard, and public docs now list `onemem dashboard` as implemented instead of
 deferred; browser auto-open remains intentionally out of scope.
 
+Registry-Aware Current Docs is the forty-sixth docs/release-boundary slice.
+Current package READMEs and public docs now distinguish repo-local source truth
+from public npm/PyPI availability. Missing packages (`@onemem/cli`,
+`@onemem/dashboard`, `@onemem/claude-code-plugin`, `@onemem/codex-plugin`,
+`onemem-cli`, `onemem-sdk-python`) and drifted provider/Hermes versions are
+called out near install/API examples, with `pnpm registry:status` as the live
+truth command. This does not publish packages or change runtime behavior.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:
@@ -480,8 +488,8 @@ Use subagents for independent lanes with disjoint write scopes:
 
 ## Immediate Cleanup Queue
 
-1. Continue the docs/status inventory for remaining stale package READMEs and
-   runtime docs found by the docs audit.
+1. Continue deeper docs/status inventory for stale historical architecture pages
+   that are not current entry points.
 2. Continue hosted/manual wallet verification for CLI delegate registration,
    hosted share execution, and hosted holder self-revoke when real
    wallet/Enoki/MemWal config is available.

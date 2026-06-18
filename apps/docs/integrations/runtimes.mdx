@@ -15,7 +15,9 @@ claude plugin install onemem@onemem
 ```
 
 Hooks `SessionStart`, `PostToolUse`, and `SessionEnd` record a Merkle-chained
-TraceSession per session.
+TraceSession per session when the plugin is installed, configured, and hooks run.
+The GitHub repository marketplace path is current; npm publication for
+`@onemem/claude-code-plugin` is still missing per `pnpm registry:status`.
 
 ## Codex
 
@@ -51,6 +53,13 @@ pip install hermes-onemem
 ```
 
 Subclasses Hermes's `MemoryProvider` ABC; buffers turns + tool calls + delegations and flushes one verifiable trace per run via the `onemem-trace` bridge.
+
+<Note>
+Registry note, 2026-06-18: `@onemem/mcp`, `@onemem/oc-onemem`, and
+`@onemem/sdk-ts` are current on npm. CLI/dashboard/Codex/Claude plugin npm
+packages are missing, and `hermes-onemem@0.2.0` is ahead of PyPI latest
+`0.1.0`. Use `pnpm registry:status` for current publication truth.
+</Note>
 
 <Note>
 All runtime integrations are defensive: a OneMem failure should never break your

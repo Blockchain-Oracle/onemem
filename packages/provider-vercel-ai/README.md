@@ -4,6 +4,12 @@ Wrap any **Vercel AI SDK** model so every model call is recorded as a
 **verifiable on-chain OneMem TraceSession** (Sui + Walrus + Seal) — Merkle-chained
 `ActionCall`s with content stored on Walrus and Seal-encrypted.
 
+**Publication note, 2026-06-18:** this README describes repo-local
+`@onemem/vercel-ai-provider@0.1.2`. `pnpm registry:status` currently reports npm
+latest as `0.1.1`, which does not include `createOneMemMemory(...)`; use source
+or wait for registry status to report `0.1.2` current before relying on that
+helper from npm.
+
 ## Usage
 
 ```ts
@@ -68,8 +74,9 @@ resolver.
 
 ## Scope (v0.1)
 
-Trace capture is automatic for `model.generate` / `model.stream`. Memory
-recall/capture is shipped as the explicit `createOneMemMemory()` helper.
+Trace capture is automatic for `model.generate` / `model.stream`. In repo-local
+source, memory recall/capture is shipped as the explicit `createOneMemMemory()`
+helper.
 Automatic memory extraction and per-tool-call interception remain tracked
 follow-ups.
 

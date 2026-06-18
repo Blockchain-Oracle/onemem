@@ -11,6 +11,11 @@ npm install -g @onemem/dashboard
 npx @onemem/cli verify <session-id>
 ```
 
+**Publication note, 2026-06-18:** this README describes the repo-local
+`@onemem/cli@0.1.0` source. `pnpm registry:status` currently reports
+`@onemem/cli` and `@onemem/dashboard` as missing from npm, so use a built
+checkout until registry status reports them current.
+
 ## Commands
 
 | Command | What it does | Needs |
