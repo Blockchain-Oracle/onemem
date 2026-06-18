@@ -17,6 +17,7 @@ execution was intentionally out of scope for this slice.
 - `.thoughts/plans/2026-06-18-contract-migration-hardening.md`
 - `scripts/migrate-contract.sh`
 - `tests/structure/deploy-scripts.test.ts`
+- `scripts/codegen-move-python.py`
 - `packages/sdk-python/onemem/generated/addresses.py`
 
 ## Requirement Traceability
@@ -61,15 +62,16 @@ execution was intentionally out of scope for this slice.
 - `mise exec -- pnpm exec turbo run test --force`: pass, 16 Turbo tasks.
 - `mise exec -- pnpm test:structure`: pass, 407 tests.
 - `mise exec -- pnpm test:demo-matrix`: pass, 17 Turbo tasks.
+- `mise exec -- uv run ruff check .`: pass.
+- `mise exec -- uv run pyright`: pass, 0 errors.
 - `mise exec -- uv run pytest packages/sdk-python`: pass, 12 passed, 1 skipped.
 - `git diff --check`: pass.
 
 ## Deviations From Plan
 
-- The Python generated address file changed during the planned codegen check.
-  The change is deterministic output from the current generator and is included
-  because the hardened migration script now invokes that generator after live
-  upgrades.
+- CI caught that the current Python codegen emitted `typing.Mapping`, while
+  Ruff requires `collections.abc.Mapping`. The generator was updated so future
+  upgrade-time codegen remains lint-clean.
 
 ## Gaps And Risks
 
