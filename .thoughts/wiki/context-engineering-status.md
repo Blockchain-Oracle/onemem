@@ -522,6 +522,24 @@ Changesets created matching git tags across commits `0759f2c`, `ec3fae5`, and
 pass. GitHub Actions repository secrets `NPM_TOKEN` and `PYPI_TOKEN` are
 configured for future release workflow runs.
 
+Vercel Public Deployment is the fifty-first deployment-readiness slice. The
+landing and hosted-dashboard Vercel projects are linked under
+`blockchain-oracles-projects`, SSO deployment protection is disabled, and both
+production aliases return public HTTP 200:
+`https://onemem-landing.vercel.app` and
+`https://onemem-hosted-dashboard.vercel.app`. Landing CTAs now route to the
+hosted dashboard instead of `localhost`, root `prepare` skips Lefthook outside a
+git worktree for Vercel builds, Turbo declares Vercel build env inputs, and the
+dashboard Next config uses stable `typedRoutes`. Chrome verified landing,
+hosted home, and the real testnet public verifier route with no console errors.
+Vercel accepted `onemem.xyz` for landing and `app.onemem.xyz` for hosted
+dashboard, but both require DNS changes before they are live:
+`A onemem.xyz 76.76.21.21` and `A app.onemem.xyz 76.76.21.21`, or Vercel
+nameservers. Remaining boundaries: custom DNS is not verified, docs hosting is
+not deployed, and hosted wallet sign-in is not ready because Enoki auth
+providers/origins are not configured even though `/api/enoki/status` reports the
+private key valid.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:
@@ -553,10 +571,12 @@ Use subagents for independent lanes with disjoint write scopes:
    and record the returned Walrus URL; full dashboard static mirroring remains
    separate future work.
 3. Render the brand video/animated bumper once final submission video
-   requirements are known, and configure/confirm `onemem.xyz` DNS/hosting.
-4. Link or authenticate Vercel projects for landing/docs/hosted-dashboard,
-   deploy previews first, verify URLs/logs, then production and DNS records.
-5. Continue hosted/manual wallet verification for CLI delegate registration,
+   requirements are known.
+4. Update DNS for the Vercel-attached landing and hosted dashboard domains
+   (`A onemem.xyz 76.76.21.21`, `A app.onemem.xyz 76.76.21.21`) and verify the
+   live custom URLs. Decide/deploy docs hosting for `docs.onemem.xyz`.
+5. Configure Enoki auth providers/client IDs and allowed origins, then continue
+   hosted/manual wallet verification for CLI delegate registration,
    hosted share execution, and hosted holder self-revoke when real
    wallet/Enoki/MemWal config is available.
 6. Protocol-backed claim/transfer and owner-driven revoke remain separate
