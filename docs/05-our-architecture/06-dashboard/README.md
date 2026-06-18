@@ -77,7 +77,7 @@ This is the **headline visual surface** — judges + users see this first.
 | Local deploy (`localhost:4040`) | Built as `@onemem/dashboard` with `build`, `start`, `dev`, and `browser:smoke` scripts. |
 | Hosted app shell | Built as `@onemem/hosted-dashboard` with hosted-only routes, API guardrails, production build, and browser smoke coverage. |
 | Hosted production deployment (`app.onemem.ai`) | External deploy step; current repo proves the app build/smoke, not live DNS deployment. |
-| Walrus Sites mirror | ⏳ pending deploy evidence. |
+| Walrus Sites mirror | Deploy preflight/wrapper built; live `site-builder` deploy URL and full static mirror remain pending. |
 
 ---
 

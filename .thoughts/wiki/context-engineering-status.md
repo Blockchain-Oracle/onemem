@@ -256,6 +256,14 @@ dashboard README no longer marks built local/hosted routes as pending, keeps
 Walrus Sites mirror deployment unproven, and structure tests now guard the
 known built dashboard route rows from regressing to stale pending labels.
 
+Walrus Sites Deploy Readiness is the latest dashboard deployment slice. The
+Walrus mirror script is no longer a no-op skeleton: it validates a real static
+artifact, supports check/dry-run modes, and calls `site-builder` only when a
+valid artifact exists. The deploy workflow no longer runs the invalid
+`next export -o out` command. Live Walrus URL evidence and a full static mirror
+remain pending until a static artifact and funded `site-builder` environment are
+available.
+
 CLI Command Surface Refresh is the twenty-fourth docs/status slice. The
 load-bearing CLI command-surface doc now describes the actual current v0.1 TS
 CLI and Python read-only mirror instead of the larger planned surface, the CLI
@@ -490,13 +498,16 @@ Use subagents for independent lanes with disjoint write scopes:
 
 1. Continue deeper docs/status inventory for stale historical architecture pages
    that are not current entry points.
-2. Continue hosted/manual wallet verification for CLI delegate registration,
+2. Decide and implement the final Walrus mirror artifact shape: full static
+   dashboard rewrite vs. smaller public verifier shell, then run `site-builder`
+   and record the returned Walrus URL.
+3. Continue hosted/manual wallet verification for CLI delegate registration,
    hosted share execution, and hosted holder self-revoke when real
    wallet/Enoki/MemWal config is available.
-3. Protocol-backed claim/transfer and owner-driven revoke remain separate
+4. Protocol-backed claim/transfer and owner-driven revoke remain separate
    follow-up designs.
-4. Re-run affected quality gates and write verification before claiming done.
-5. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
+5. Re-run affected quality gates and write verification before claiming done.
+6. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
    publish the missing npm packages plus fresh provider patch versions
    (`@onemem/vercel-ai-provider@0.1.2`,
    `@onemem/openai-agents@0.1.3`,

@@ -28,19 +28,34 @@ Limitations:
 
 ---
 
+## Current deploy boundary
+
+Current implementation status:
+
+- `scripts/deploy-walrus-sites.sh` is a real preflight/deploy wrapper around
+  `site-builder`.
+- The hosted dashboard still contains server-backed API routes and force-dynamic
+  pages for public verify/share.
+- The current Next.js toolchain does not support the old
+  `next export -o out` command path used in early design notes.
+- A live Walrus Sites URL remains pending until a valid static artifact exists
+  and `site-builder` runs in a funded Sui/WAL environment.
+
 ## Build pipeline
 
 ```bash
-# 1. Build static export
-cd packages/dashboard
-NEXT_OUTPUT_MODE=export pnpm build
-# → produces ./out/ with static HTML + JS
+# 1. Build or provide a static artifact directory.
+# The artifact must contain index.html and should not be the repo root.
+DIST=apps/hosted-dashboard/out
 
-# 2. Walrus Sites deploy
-site-builder deploy ./out --site-name onemem-dashboard
+# 2. Validate without deploying.
+bash scripts/deploy-walrus-sites.sh --check --dist "$DIST" --epochs 26 --context mainnet
+
+# 3. Walrus Sites deploy.
+bash scripts/deploy-walrus-sites.sh --dist "$DIST" --epochs 26 --context mainnet
 # → returns Site Object ID + URL like https://<base32-hash>.wal.app
 
-# 3. (Optional) Map a SuiNS name
+# 4. (Optional) Map a SuiNS name
 sui client call --package <suins_pkg> --module suins --function set_target_object \
   --args <my_suins_name> <site_object_id>
 # → onemem.wal.app now points at this deploy

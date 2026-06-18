@@ -1,7 +1,11 @@
-# Walrus Sites mirror deploy config for apps/hosted-dashboard.
-# Builder: site-builder (Walrus Sites CLI). Run via scripts/deploy-walrus-sites.sh.
+# Walrus Sites mirror notes for apps/hosted-dashboard.
+# The deploy wrapper uses site-builder directly:
+#   site-builder --context=<network> deploy --epochs <N> <dist>
+#
+# Keep this file as repo-local mirror metadata until the final static artifact
+# and SuiNS object mapping are chosen.
 
-# Build artifacts (next export output)
+# Build artifacts (static output)
 source: ./out
 
 # Suins domain (optional; set after first deploy)

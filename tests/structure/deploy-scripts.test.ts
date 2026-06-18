@@ -7,6 +7,9 @@ import { ROOT } from "./helpers";
 
 const migrateScript = () => readFileSync(join(ROOT, "scripts/migrate-contract.sh"), "utf8");
 const verifyScript = () => readFileSync(join(ROOT, "scripts/verify-mainnet.sh"), "utf8");
+const walrusScript = () => readFileSync(join(ROOT, "scripts/deploy-walrus-sites.sh"), "utf8");
+const walrusWorkflow = () =>
+  readFileSync(join(ROOT, ".github/workflows/deploy-walrus-sites.yml"), "utf8");
 
 describe("deployment scripts", () => {
   describe("contract migration safety", () => {
@@ -115,6 +118,31 @@ describe("deployment scripts", () => {
         /EXPECTED_REG_TYPE="\$\{PACKAGE_ID\}::registry::OneMemRegistry"/,
         "shared registry objects keep their original package type after upgrades",
       );
+    });
+  });
+
+  describe("Walrus Sites mirror deploy safety", () => {
+    test("deploy script validates a real static artifact before site-builder", () => {
+      const script = walrusScript();
+      assert.doesNotMatch(script, /skeleton/i, "Walrus deploy script must not be a no-op");
+      assert.match(script, /--check/, "script must expose a preflight mode");
+      assert.match(script, /--dry-run/, "script must expose a dry-run mode");
+      assert.match(script, /static artifact directory not found/);
+      assert.match(script, /static artifact must contain index\.html/);
+      assert.match(script, /refusing to deploy the repository root/);
+      assert.match(script, /site-builder.*--context=\$CONTEXT.*deploy.*--epochs/s);
+      assert.match(script, /command -v "\$SITE_BUILDER"/);
+    });
+
+    test("workflow no longer calls removed next export command", () => {
+      const workflow = walrusWorkflow();
+      assert.doesNotMatch(workflow, /next export -o out/);
+      assert.match(workflow, /Validate Walrus Sites static artifact/);
+      assert.match(workflow, /--check/);
+      assert.match(workflow, /dist:/);
+      assert.match(workflow, /context:/);
+      assert.match(workflow, /sui client switch --env "\$\{\{ inputs\.context \}\}"/);
+      assert.match(workflow, /WALRUS_DIST: \$\{\{ inputs\.dist \}\}/);
     });
   });
 });

@@ -8,6 +8,16 @@ on:
         required: true
         type: string
         default: "26"
+      context:
+        description: "Walrus Sites site-builder context"
+        required: true
+        type: string
+        default: "mainnet"
+      dist:
+        description: "Prebuilt static artifact directory"
+        required: true
+        type: string
+        default: "apps/hosted-dashboard/out"
 
 concurrency:
   group: deploy-walrus-sites
@@ -32,11 +42,19 @@ jobs:
       - name: Install TS deps
         run: pnpm install --frozen-lockfile
 
-      - name: Build hosted-dashboard (static export)
+      - name: Build hosted-dashboard
         working-directory: apps/hosted-dashboard
         env:
           NEXT_PUBLIC_DEPLOY_TARGET: walrus-sites
-        run: pnpm build && pnpm exec next export -o out
+        run: pnpm build
+
+      - name: Validate Walrus Sites static artifact
+        run: |
+          bash scripts/deploy-walrus-sites.sh \
+            --check \
+            --dist "${{ inputs.dist }}" \
+            --epochs "${{ inputs.epochs }}" \
+            --context "${{ inputs.context }}"
 
       - name: Configure Sui CLI
         env:
@@ -44,9 +62,11 @@ jobs:
         run: |
           mkdir -p ~/.sui/sui_config
           echo "$SUI_KEYSTORE" > ~/.sui/sui_config/sui.keystore
-          sui client switch --env mainnet
+          sui client switch --env "${{ inputs.context }}"
 
       - name: Deploy to Walrus Sites
         env:
           WALRUS_EPOCHS: ${{ inputs.epochs }}
+          WALRUS_CONTEXT: ${{ inputs.context }}
+          WALRUS_DIST: ${{ inputs.dist }}
         run: bash scripts/deploy-walrus-sites.sh

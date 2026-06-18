@@ -111,6 +111,11 @@
   reports the built local/hosted routes accurately, keeps Walrus Sites mirror
   deploy evidence pending, and structure tests guard known built route rows
   from drifting back to stale pending status.
+- Implemented Walrus Sites Deploy Readiness. The Walrus mirror script now
+  validates static artifacts, supports check/dry-run, and calls `site-builder`
+  instead of exiting as a skeleton; the deploy workflow no longer runs the
+  invalid `next export -o out` command. Live Walrus URL evidence remains
+  pending until a real static artifact and funded deployment environment exist.
 - Implemented CLI Command Surface Refresh. The CLI architecture README now
   reports TS and Python CLI status accurately, the load-bearing command-surface
   file now lists only the current v0.1 commands, package/public CLI references
