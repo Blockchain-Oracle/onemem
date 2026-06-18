@@ -12,8 +12,8 @@
   <path d="M122 134 144 122l22 12v29.6L144 176l-22-12.4z" fill="none" stroke="#d4ff5e" stroke-width="6" stroke-linejoin="round"/>
   <path d="M122 134 144 146l22-12M144 146v30" fill="none" stroke="#8f7cff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="220" y="165" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="78" font-weight="800" letter-spacing="-2">OneMem</text>
-  <text x="100" y="276" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="54" font-weight="800">Etherscan for AI agents.</text>
-  <text x="102" y="338" fill="#c9c5bd" font-family="Hanken Grotesk, Arial, sans-serif" font-size="29" font-weight="600">Encrypted memory on Walrus. Merkle-chained actions on Sui.</text>
+  <text x="100" y="276" fill="#f8f6f0" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="49" font-weight="800">Persistent memory for AI agents.</text>
+  <text x="102" y="338" fill="#c9c5bd" font-family="Hanken Grotesk, Arial, sans-serif" font-size="29" font-weight="600">Encrypted on Walrus. Anchored and provable on Sui.</text>
   <text x="100" y="532" fill="#d4ff5e" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="25">onememe.xyz</text>
   <text x="770" y="532" fill="#0090ff" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="25">verify - replay - share</text>
   <text x="976" y="104" fill="#d4ff5e" font-family="JetBrains Mono, SFMono-Regular, Consolas, monospace" font-size="22">@OneMemAI</text>

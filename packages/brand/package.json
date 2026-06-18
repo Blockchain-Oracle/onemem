@@ -8,13 +8,15 @@
     "./tokens.css": "./tokens.css",
     "./logo/*": "./logo/*",
     "./fonts/*": "./fonts/*",
-    "./og-images/*": "./og-images/*"
+    "./og-images/*": "./og-images/*",
+    "./vendor-logos/*": "./vendor-logos/*"
   },
   "files": [
     "tokens.css",
     "logo",
     "fonts",
     "og-images",
+    "vendor-logos",
     "README.md",
     "LICENSE"
   ],

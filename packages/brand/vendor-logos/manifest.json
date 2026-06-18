@@ -1,0 +1,341 @@
+{
+  "generatedAt": "2026-06-18",
+  "purpose": "Local logo inventory for OneMem social assets, demo videos, logo grids, and integration diagrams.",
+  "usageCaution": "Third-party logos are trademarks of their respective owners. Use only for truthful integration/provider/runtime identification and do not imply endorsement.",
+  "sources": {
+    "simpleIcons": {
+      "package": "simple-icons@16.23.0",
+      "site": "https://simpleicons.org/",
+      "repository": "https://github.com/simple-icons/simple-icons",
+      "licenseNote": "Simple Icons is CC0, but brand trademarks and individual brand licenses/guidelines still apply."
+    },
+    "lobeIcons": {
+      "package": "@lobehub/icons-static-svg@1.91.0",
+      "repository": "https://github.com/lobehub/lobe-icons",
+      "npm": "https://www.npmjs.com/package/@lobehub/icons-static-svg",
+      "licenseNote": "MIT package; brand trademarks still apply."
+    }
+  },
+  "assets": [
+    {
+      "id": "sui",
+      "label": "Sui",
+      "category": "core-protocol",
+      "files": ["svg/sui.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=sui",
+      "brandGuidelines": "https://www.sui.io/brand"
+    },
+    {
+      "id": "walrus",
+      "label": "Walrus",
+      "category": "core-protocol",
+      "files": ["svg/walrus-icon.svg", "svg/walrus-docs.svg", "png/walrus-logo.png"],
+      "sourceType": "official-site",
+      "source": "https://walrus.xyz/",
+      "notes": "PNG logo came from Walrus organization metadata. SVG docs/icon marks came from docs.wal.app."
+    },
+    {
+      "id": "seal",
+      "label": "Seal",
+      "category": "core-protocol",
+      "files": ["svg/seal.svg"],
+      "sourceType": "official-docs",
+      "source": "https://seal-docs.wal.app/"
+    },
+    {
+      "id": "memwal",
+      "label": "MemWal / Walrus Memory",
+      "category": "core-protocol",
+      "files": ["svg/walrus-docs.svg", "svg/walrus-icon.svg"],
+      "sourceType": "official-docs",
+      "source": "https://docs.wal.app/walrus-memory/getting-started/what-is-walrus-memory",
+      "status": "no-standalone-logo-found",
+      "notes": "Use Walrus Memory/Walrus docs artwork unless an official standalone MemWal mark is provided."
+    },
+    {
+      "id": "mem0",
+      "label": "Mem0",
+      "category": "comparison-anchor",
+      "files": ["svg/mem0-light.svg"],
+      "sourceType": "official-site-metadata",
+      "source": "https://mem0.ai/",
+      "notes": "Use only when discussing the Mem0-style memory comparison, not as a OneMem dependency logo."
+    },
+    {
+      "id": "claude-code",
+      "label": "Claude Code",
+      "category": "native-runtime",
+      "files": ["svg/claude-code.svg", "svg/claude-code-color.svg", "svg/claude-code-text.svg"],
+      "sourceType": "simple-icons+lobe-icons",
+      "source": "https://simpleicons.org/?q=claude%20code"
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "category": "runtime-family",
+      "files": ["svg/claude.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=claude"
+    },
+    {
+      "id": "anthropic",
+      "label": "Anthropic",
+      "category": "runtime-family",
+      "files": ["svg/anthropic.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=anthropic"
+    },
+    {
+      "id": "codex",
+      "label": "Codex",
+      "category": "native-runtime",
+      "files": ["svg/codex.svg", "svg/codex-color.svg", "svg/codex-text.svg"],
+      "sourceType": "lobe-icons",
+      "source": "https://github.com/lobehub/lobe-icons"
+    },
+    {
+      "id": "openai",
+      "label": "OpenAI",
+      "category": "provider-family",
+      "files": ["svg/openai.svg", "svg/openai-text.svg"],
+      "sourceType": "lobe-icons",
+      "source": "https://openai.com/brand/"
+    },
+    {
+      "id": "openclaw",
+      "label": "OpenClaw",
+      "category": "native-runtime",
+      "aliases": ["OpenClaude spoken alias in notes"],
+      "files": ["svg/openclaw.svg", "svg/openclaw-color.svg", "svg/openclaw-text.svg"],
+      "sourceType": "lobe-icons",
+      "source": "https://github.com/lobehub/lobe-icons",
+      "notes": "The implemented OneMem package is @onemem/oc-onemem."
+    },
+    {
+      "id": "hermes-agent",
+      "label": "Hermes Agent",
+      "category": "native-runtime",
+      "aliases": ["Hermes", "Nous Hermes Agent"],
+      "files": [
+        "svg/hermes-agent.svg",
+        "svg/hermes-agent-text.svg",
+        "svg/nous-research.svg",
+        "svg/nous-research-text.svg"
+      ],
+      "sourceType": "lobe-icons",
+      "source": "https://github.com/lobehub/lobe-icons"
+    },
+    {
+      "id": "model-context-protocol",
+      "label": "Model Context Protocol",
+      "category": "mcp",
+      "aliases": ["MCP"],
+      "files": ["svg/model-context-protocol.svg", "svg/mcp.svg", "svg/mcp-text.svg"],
+      "sourceType": "simple-icons+lobe-icons",
+      "source": "https://modelcontextprotocol.io/"
+    },
+    {
+      "id": "cursor",
+      "label": "Cursor",
+      "category": "mcp-runtime-target",
+      "files": ["svg/cursor.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=cursor"
+    },
+    {
+      "id": "windsurf",
+      "label": "Windsurf",
+      "category": "mcp-runtime-target",
+      "files": ["svg/windsurf.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=windsurf"
+    },
+    {
+      "id": "opencode",
+      "label": "OpenCode",
+      "category": "mcp-runtime-target",
+      "files": ["svg/opencode.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=opencode"
+    },
+    {
+      "id": "cline",
+      "label": "Cline",
+      "category": "mcp-runtime-target",
+      "files": ["svg/cline.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=cline"
+    },
+    {
+      "id": "github-copilot",
+      "label": "GitHub Copilot",
+      "category": "mcp-runtime-target",
+      "aliases": ["VS Code Copilot"],
+      "files": ["svg/github-copilot.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=github%20copilot"
+    },
+    {
+      "id": "antigravity",
+      "label": "Antigravity",
+      "category": "mcp-runtime-target",
+      "aliases": ["Gemini-family MCP client"],
+      "files": [
+        "svg/antigravity.svg",
+        "svg/antigravity-color.svg",
+        "svg/antigravity-text.svg",
+        "svg/google-gemini.svg",
+        "svg/google.svg"
+      ],
+      "sourceType": "lobe-icons+simple-icons",
+      "source": "https://github.com/lobehub/lobe-icons"
+    },
+    {
+      "id": "vercel-ai-sdk",
+      "label": "Vercel AI SDK",
+      "category": "framework-provider",
+      "files": ["svg/vercel-ai-sdk.svg", "svg/vercel.svg"],
+      "sourceType": "official-brand-page+simple-icons",
+      "source": "https://vercel.com/geist/brands",
+      "notes": "AI SDK wordmark shape was transcribed from Vercel's public Geist brand page payload."
+    },
+    {
+      "id": "openai-agents",
+      "label": "OpenAI Agents SDK",
+      "category": "framework-provider",
+      "files": ["svg/openai.svg", "svg/openai-text.svg"],
+      "sourceType": "lobe-icons",
+      "source": "https://openai.com/brand/"
+    },
+    {
+      "id": "crewai",
+      "label": "CrewAI",
+      "category": "framework-provider",
+      "files": ["svg/crewai.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=crewai"
+    },
+    {
+      "id": "livekit",
+      "label": "LiveKit Agents",
+      "category": "framework-provider",
+      "files": ["svg/livekit.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=livekit"
+    },
+    {
+      "id": "elevenlabs",
+      "label": "ElevenLabs Conversational AI",
+      "category": "framework-provider",
+      "files": ["svg/elevenlabs.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=elevenlabs"
+    },
+    {
+      "id": "nextjs",
+      "label": "Next.js",
+      "category": "app-surface-tooling",
+      "files": ["svg/nextjs.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=next.js"
+    },
+    {
+      "id": "react",
+      "label": "React",
+      "category": "app-surface-tooling",
+      "files": ["svg/react.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=react"
+    },
+    {
+      "id": "docusaurus",
+      "label": "Docusaurus",
+      "category": "app-surface-tooling",
+      "files": ["svg/docusaurus.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=docusaurus"
+    },
+    {
+      "id": "typescript",
+      "label": "TypeScript",
+      "category": "sdk-tooling",
+      "files": ["svg/typescript.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=typescript"
+    },
+    {
+      "id": "python",
+      "label": "Python",
+      "category": "sdk-tooling",
+      "files": ["svg/python.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=python"
+    },
+    {
+      "id": "nodejs",
+      "label": "Node.js",
+      "category": "sdk-tooling",
+      "files": ["svg/nodejs.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=node.js"
+    },
+    {
+      "id": "npm",
+      "label": "npm",
+      "category": "package-distribution",
+      "files": ["svg/npm.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=npm"
+    },
+    {
+      "id": "pypi",
+      "label": "PyPI",
+      "category": "package-distribution",
+      "files": ["svg/pypi.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=pypi"
+    },
+    {
+      "id": "pnpm",
+      "label": "pnpm",
+      "category": "package-distribution",
+      "files": ["svg/pnpm.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=pnpm"
+    },
+    {
+      "id": "github",
+      "label": "GitHub",
+      "category": "project-surface",
+      "files": ["svg/github.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=github"
+    },
+    {
+      "id": "x",
+      "label": "X",
+      "category": "social-surface",
+      "files": ["svg/x.svg"],
+      "sourceType": "simple-icons",
+      "source": "https://simpleicons.org/?q=x"
+    }
+  ],
+  "openQuestions": [
+    {
+      "label": "OpenClaude",
+      "status": "not-found-in-repo",
+      "notes": "No OneMem package or docs target named OpenClaude was found. Current implemented native runtime is OpenClaw."
+    },
+    {
+      "label": "CYRs",
+      "status": "unclear-spoken-alias",
+      "notes": "No matching OneMem integration name was found. Cursor, Cline, and Cyrus-like aliases should be clarified before adding a logo."
+    },
+    {
+      "label": "Standalone MemWal logo",
+      "status": "not-located",
+      "notes": "Use Walrus Memory/Walrus docs artwork for now."
+    }
+  ]
+}

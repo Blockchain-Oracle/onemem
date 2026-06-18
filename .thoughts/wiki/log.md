@@ -294,3 +294,11 @@
   Merkle integrity in-browser through public Sui JSON-RPC. Local deploy
   preflights, focused structure test, full structure suite, static curl smoke,
   and Chrome extension browser proof passed. Live Walrus URL remains unclaimed.
+- Added Ship-Readiness Go and product-copy cleanup. The replacement Go prompt is
+  now `.thoughts/plans/2026-06-18-ship-readiness-go.md`; active
+  landing/docs/brand copy now leads with decentralized persistent memory for AI
+  agents; social SVG and PNG exports were refreshed; `@onemem/brand` now
+  includes a checked-in `vendor-logos/` inventory guarded by structure tests.
+  Current blockers are precise: local npm token returns 401, no npm/PyPI/Vercel
+  env tokens are exported, no repo secrets/variables are visible, and no local
+  Vercel auth/project link exists.

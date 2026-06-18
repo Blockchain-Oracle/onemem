@@ -4,9 +4,9 @@ import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OneMem — Verifiable agent memory + trace",
+  title: "OneMem - Decentralized persistent memory for AI agents",
   description:
-    "Etherscan for AI agents. Every memory encrypted on Walrus, every action a Merkle-chained attestation on Sui. Verify, replay, and share what your agent did — across every runtime.",
+    "Decentralized persistent memory for AI agents. Store encrypted memories on Walrus, anchor activity on Sui, and carry agent context across runtimes.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

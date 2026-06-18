@@ -5,10 +5,10 @@ description: "Verifiable, cross-runtime memory + action traces for AI agents on 
 
 # OneMem
 
-OneMem is **Etherscan for AI agents**. It gives any agent two things its runtime can't:
+OneMem is **decentralized persistent memory for AI agents**. It gives any agent two things its runtime can't keep reliably across tools:
 
-1. **Verifiable memory** — every memory is a Seal-encrypted blob on Walrus, access-controlled by an on-chain namespace. Portable across runtimes, decryptable only by delegate-key holders.
-2. **Verifiable action trace** — every tool / skill / MCP call is a Merkle-chained `ActionCall` anchored on Sui. Anyone can replay it, and anyone can **verify** it — no login, no trust in us.
+1. **Portable memory** - every memory is a Seal-encrypted blob on Walrus, access-controlled by an on-chain namespace. Portable across runtimes, decryptable only by delegate-key holders.
+2. **Verifiable action history** - every tool / skill / MCP call can be recorded as a Merkle-chained `ActionCall` anchored on Sui. Anyone can replay it, and anyone can **verify** it - no login, no trust in us.
 
 Built on the Walrus-track stack: **Sui** (anchoring) · **Walrus** (blob storage) · **Seal** (threshold encryption) · **MemWal** (memory relayer).
 
@@ -34,7 +34,7 @@ OneMem uses Seal's **`/manual`** flow: content is encrypted client-side before i
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Install OneMem and record your first verifiable trace in under a minute.
+    Install OneMem and write your first persistent memory in under a minute.
   </Card>
   <Card title="Verify a trace" icon="badge-check" href="/concepts/verify">
     Understand what verification proves — and what it doesn't.

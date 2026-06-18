@@ -496,6 +496,19 @@ signatures and dimensions from file headers. DNS verification found that
 `onememe.xyz` and `www.onememe.xyz` currently have no A/AAAA records, so the
 campaign identity is not yet a live deployed website.
 
+Ship-Readiness Go And Product Copy is the forty-ninth ship-readiness slice.
+`.thoughts/plans/2026-06-18-ship-readiness-go.md` is the replacement autonomous
+Go prompt: audit truth first, publish only with valid auth, deploy only with
+verified Vercel/project linkage, prove hooks/wallets only with real on-chain
+evidence, and keep the product story memory-first. Active landing/docs/brand
+copy now leads with decentralized persistent memory for AI agents instead of
+"Etherscan for AI agents" or "Stop trusting agents"; GitHub/OG and product-card
+SVG plus PNG exports were refreshed. `@onemem/brand` now exports a checked-in
+`vendor-logos/` inventory for launch graphics, with manifest/source coverage in
+the brand structure shard. Current local auth proof: no exported npm/PyPI/Vercel
+tokens, no GitHub repo secrets/variables visible, and the local npm token line
+returns 401 on `npm whoami`; publication and Vercel deployment remain unclaimed.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:
@@ -528,13 +541,15 @@ Use subagents for independent lanes with disjoint write scopes:
    separate future work.
 3. Render the brand video/animated bumper once final submission video
    requirements are known, and configure/confirm `onememe.xyz` DNS/hosting.
-4. Continue hosted/manual wallet verification for CLI delegate registration,
+4. Link or authenticate Vercel projects for landing/docs/hosted-dashboard,
+   deploy previews first, verify URLs/logs, then production and DNS records.
+5. Continue hosted/manual wallet verification for CLI delegate registration,
    hosted share execution, and hosted holder self-revoke when real
    wallet/Enoki/MemWal config is available.
-5. Protocol-backed claim/transfer and owner-driven revoke remain separate
+6. Protocol-backed claim/transfer and owner-driven revoke remain separate
    follow-up designs.
-6. Re-run affected quality gates and write verification before claiming done.
-7. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
+7. Re-run affected quality gates and write verification before claiming done.
+8. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
    publish the missing npm packages plus fresh provider patch versions
    (`@onemem/vercel-ai-provider@0.1.2`,
    `@onemem/openai-agents@0.1.3`,

@@ -29,6 +29,36 @@ const SOCIAL_PNG_EXPORTS = {
   "packages/brand/og-images/demo-video-cover.png": [1920, 1080],
 } as const;
 
+const REQUIRED_VENDOR_IDS = [
+  "sui",
+  "walrus",
+  "seal",
+  "memwal",
+  "claude-code",
+  "codex",
+  "openclaw",
+  "hermes-agent",
+  "model-context-protocol",
+  "vercel-ai-sdk",
+  "openai-agents",
+  "crewai",
+  "livekit",
+  "elevenlabs",
+] as const;
+
+type VendorManifest = {
+  purpose: string;
+  usageCaution: string;
+  assets: Array<{
+    id: string;
+    label: string;
+    category: string;
+    files: string[];
+    sourceType: string;
+    source: string;
+  }>;
+};
+
 function read(rel: string): string {
   return readFileSync(join(ROOT, rel), "utf8");
 }
@@ -37,12 +67,12 @@ function readBytes(rel: string): Buffer {
   return readFileSync(join(ROOT, rel));
 }
 
-function assertSvg(rel: string) {
+function assertSvg(rel: string, minLength = 300) {
   assert.ok(exists(rel), `${rel} must exist`);
   const svg = read(rel);
   assert.match(svg, /<svg[\s>]/, `${rel} must be SVG`);
   assert.match(svg, /<\/svg>\s*$/, `${rel} must close the SVG root`);
-  assert.ok(svg.length > 300, `${rel} must not be an empty placeholder`);
+  assert.ok(svg.length > minLength, `${rel} must not be an empty placeholder`);
   assert.doesNotMatch(svg, /TODO|placeholder|lorem/i, `${rel} must be production copy`);
 }
 
@@ -62,8 +92,10 @@ describe("brand package assets", () => {
     );
     assert.equal(pkg.exports["./logo/*"], "./logo/*");
     assert.equal(pkg.exports["./og-images/*"], "./og-images/*");
+    assert.equal(pkg.exports["./vendor-logos/*"], "./vendor-logos/*");
     assert.ok(pkg.files.includes("logo"));
     assert.ok(pkg.files.includes("og-images"));
+    assert.ok(pkg.files.includes("vendor-logos"));
   });
 
   test("canonical logo SVGs exist and use the cube memory/proof mark", () => {
@@ -111,5 +143,44 @@ describe("brand package assets", () => {
     assert.match(readme, /@OneMemAI/);
     assert.match(readme, /SVG source assets/);
     assert.match(readme, /platform-ready PNG exports/i);
+  });
+
+  test("vendor logo manifest maps supported ecosystem marks to checked-in files", () => {
+    assert.ok(exists("packages/brand/vendor-logos/README.md"));
+    const manifest = readJson<VendorManifest>("packages/brand/vendor-logos/manifest.json");
+
+    assert.match(manifest.purpose, /OneMem social assets/);
+    assert.match(manifest.usageCaution, /Third-party logos are trademarks/);
+    assert.ok(manifest.assets.length >= 30, "vendor inventory must be broad enough for launch art");
+
+    const ids = new Set<string>();
+    for (const asset of manifest.assets) {
+      assert.ok(asset.id, "vendor asset id is required");
+      assert.ok(asset.label, `${asset.id} label is required`);
+      assert.ok(asset.category, `${asset.id} category is required`);
+      assert.ok(asset.sourceType, `${asset.id} sourceType is required`);
+      assert.ok(asset.source, `${asset.id} source is required`);
+      assert.ok(asset.files.length > 0, `${asset.id} must list at least one file`);
+      assert.equal(ids.has(asset.id), false, `${asset.id} must be unique`);
+      ids.add(asset.id);
+
+      for (const file of asset.files) {
+        assert.doesNotMatch(file, /\.\./, `${asset.id} file paths must stay in vendor-logos`);
+        assert.match(file, /^(svg|png)\/.+\.(svg|png)$/);
+        const rel = `packages/brand/vendor-logos/${file}`;
+        assert.ok(exists(rel), `${rel} must exist`);
+        if (file.endsWith(".svg")) {
+          assertSvg(rel, 100);
+        } else {
+          const png = readBytes(rel);
+          assert.ok(png.length > 1000, `${rel} must not be an empty placeholder`);
+          assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", `${rel} signature`);
+        }
+      }
+    }
+
+    for (const id of REQUIRED_VENDOR_IDS) {
+      assert.ok(ids.has(id), `vendor logo manifest must include ${id}`);
+    }
   });
 });

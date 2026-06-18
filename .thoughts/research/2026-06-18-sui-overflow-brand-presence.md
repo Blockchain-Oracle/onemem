@@ -4,6 +4,8 @@
 
 Check whether public Sui Overflow evidence supports investing in OneMem brand, social, motion, demo video, and banner assets before submission.
 
+Product-positioning correction: use `2026-06-18-onemem-product-code-audit.md` as the source of truth for what OneMem is. This note only covers why brand/social assets matter for Sui Overflow.
+
 ## Sources Checked
 
 - Sui Overflow 2026 official site: https://overflow.sui.io/
@@ -47,11 +49,12 @@ Check whether public Sui Overflow evidence supports investing in OneMem brand, s
   - warm paper: `oklch(0.992 0.004 95)`
   - ink: `oklch(0.235 0.013 65)`
   - type: Bricolage Grotesque, Hanken Grotesk, JetBrains Mono
-- The landing page already carries strong copy:
+- Existing landing page copy includes verify-first phrases:
   - "Stop trusting your AI agent. Verify it."
   - "Verifiable agent memory + trace, for every runtime."
   - "Etherscan for AI agents."
   - "Every memory encrypted on Walrus, every action a Merkle-chained attestation on Sui."
+- The code audit corrects this framing: these phrases should not be treated as the primary product positioning. OneMem should lead with decentralized persistent agent memory; verification/provenance is supporting evidence.
 - Abu clarified the public domain is `onememe.xyz`.
 - Abu selected the X handle `@OneMemAI`.
 - `onemem.ai` is used as the target landing domain in repo docs, but `curl -I https://www.onemem.ai/` currently returns `server: Parking/1.0` and HTTP 405. The apex `https://onemem.ai/` timed out in a 10s curl test.
@@ -61,7 +64,7 @@ Check whether public Sui Overflow evidence supports investing in OneMem brand, s
 
 - Brand and social polish matter because Sui Overflow explicitly includes community voting, public shortlisting, demo days, and post-hackathon visibility. A project that is easy to recognize and share has an advantage in those public surfaces.
 - A static product is probably not enough. The event itself sets a motion/interactive expectation through its award-winning 2025 site and promotional video.
-- OneMem should keep its current technical identity instead of starting from a blank brand: dark technical base, violet/indigo memory layer, lime verification moment, and sea-blue chain links.
+- OneMem should keep its current technical identity instead of starting from a blank brand: dark technical base, violet/indigo memory layer, lime as a restrained persistence/provenance moment, and sea-blue chain links.
 - OneMem needs a real logo system and social kit. The repo currently has tokens and a small app icon, but not export-ready logo lockups, X/Discord banners, OG images, or animation keyframes.
 - The brand package gap is not just cosmetic. `packages/brand/package.json` exports `./logo/*` and `./og-images/*`, so empty directories make the published package promise misleading.
 - Repo/docs references to `onemem.ai` should be treated as stale or placeholder until intentionally changed. Public brand assets should point to `onememe.xyz` and `@OneMemAI`.

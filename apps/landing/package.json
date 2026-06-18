@@ -2,7 +2,7 @@
   "name": "@onemem/landing",
   "version": "0.0.0",
   "private": true,
-  "description": "onemem.ai marketing landing page",
+  "description": "OneMem marketing landing page",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {

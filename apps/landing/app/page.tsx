@@ -1,77 +1,6 @@
 import { Icon } from "@/components/Icon";
 import { VerifyDemo } from "@/components/VerifyDemo";
-
-const PROBLEMS = [
-  [
-    "memory",
-    "Memory is trapped",
-    "Every app keeps its own silo. Switch tools and your agent forgets everything — there's no portable, shared memory.",
-  ],
-  [
-    "search",
-    "Actions are invisible",
-    '"It sent money / made a video / did research" — but which skill, which model, what inputs? The trace is gone the moment the run ends.',
-  ],
-  [
-    "shield",
-    "Nothing is provable",
-    "No way to show a teammate, an auditor, or a skeptic that the agent did exactly what it claims — untampered.",
-  ],
-] as const;
-
-const STEPS = [
-  [
-    "1",
-    "Install",
-    "One line adds OneMem to your agent runtime. No rewrites, no SDK gymnastics.",
-    "$ npm create onemem@latest",
-  ],
-  [
-    "2",
-    "Use your agent normally",
-    "Memories and every tool / skill / MCP call are captured automatically — encrypted and chained as they happen.",
-    'agent.run("send 5 USDC to Maya")',
-  ],
-  [
-    "3",
-    "Verify & share",
-    "Open the dashboard or CLI, walk the chain, and watch it turn green. Share a public proof link with anyone.",
-    "$ onemem verify 0x7a3f…d201",
-  ],
-] as const;
-
-const PILLARS = [
-  [
-    "01",
-    "memory",
-    "Verifiable memory",
-    "Encrypted Walrus blobs, threshold-encrypted with Seal, access-controlled by on-chain namespaces. Cross-device sync without trusting a vendor.",
-  ],
-  [
-    "02",
-    "trace",
-    "Action trace + replay",
-    "Every tool / skill / MCP call captured as a Merkle-chained node. Replay any run purely from chain + Walrus — no original runtime needed.",
-  ],
-  [
-    "03",
-    "everywhere",
-    "Cross-runtime",
-    "The same memory namespace and trace format across every runtime and framework. One dashboard for all of them.",
-  ],
-] as const;
-
-const INTEGRATIONS = [
-  ["bolt", "Claude Code"],
-  ["cube", "Hermes"],
-  ["settings", "Cursor"],
-  ["branch", "OpenClaw"],
-  ["bolt", "Vercel AI SDK"],
-  ["bolt", "OpenAI Agents"],
-  ["branch", "CrewAI"],
-  ["apps", "LiveKit"],
-  ["apps", "ElevenLabs"],
-] as const;
+import { INTEGRATIONS, PILLARS, PROBLEMS, STEPS } from "./landing-content";
 
 export default function LandingPage() {
   return (
@@ -85,7 +14,7 @@ export default function LandingPage() {
         <div className="lp-nav-links">
           <a href="http://localhost:4040">Dashboard</a>
           <a href="#integrations">Integrations</a>
-          <a href="#demo">Verify demo</a>
+          <a href="#demo">Live proof</a>
         </div>
         <a
           className="btn btn-primary btn-sm"
@@ -101,17 +30,17 @@ export default function LandingPage() {
         <div className="container hero-inner">
           <div>
             <span className="hero-kicker">
-              <Icon name="shield" size={14} />
-              Stop trusting your AI agent. Verify it.
+              <Icon name="memory" size={14} />
+              Decentralized persistent memory for AI agents.
             </span>
             <h1>
-              Verifiable agent <span className="em">memory</span> +{" "}
-              <span className="em">trace</span>, for every runtime.
+              One <span className="em">memory layer</span> for every{" "}
+              <span className="em">agent runtime</span>.
             </h1>
             <p className="sub">
               Every memory your agent writes is an encrypted blob on Walrus. Every action it takes
               is a Merkle-chained attestation on Sui. Open one dashboard — across Claude Code,
-              Hermes, Cursor and more — and <strong>verify, replay, and share</strong> exactly what
+              Hermes, Cursor and more — and <strong>search, replay, and prove</strong> exactly what
               it did.
             </p>
             <div className="hero-cta">
@@ -121,7 +50,7 @@ export default function LandingPage() {
               </a>
               <a className="btn btn-ghost" href="#demo">
                 <Icon name="play" size={16} />
-                Watch the verify demo
+                Watch the proof demo
               </a>
             </div>
             <div className="hero-meta">
@@ -179,8 +108,8 @@ export default function LandingPage() {
             </span>
             <h2>Agents are powerful, stateless, and impossible to audit.</h2>
             <p>
-              You can't see what your agent actually did, you can't take its memory with you, and
-              you certainly can't prove any of it to anyone else.
+              Your agent's useful context gets scattered across tools, logs, and local machines.
+              OneMem gives that context a portable memory namespace with a verifiable history.
             </p>
           </div>
           <div className="steps">
@@ -210,7 +139,7 @@ export default function LandingPage() {
             <span className="eyebrow">
               <span className="tick">✦</span>How it works
             </span>
-            <h2>Three steps to a verifiable agent.</h2>
+            <h2>Three steps to persistent agent memory.</h2>
           </div>
           <div className="steps">
             {STEPS.map(([no, title, body, code]) => (
@@ -254,10 +183,10 @@ export default function LandingPage() {
             <span className="eyebrow">
               <span className="tick">✦</span>The signature moment
             </span>
-            <h2>Verification turns the page green.</h2>
+            <h2>Proof turns the page green.</h2>
             <p>
               Click Verify and OneMem walks every call, recomputes each hash, and compares it to the
-              on-chain root. When the chain holds, the whole view lights up.
+              on-chain root. Memory stays encrypted; integrity is public.
             </p>
           </div>
           <div style={{ display: "flex", justifyContent: "center" }}>
@@ -304,8 +233,10 @@ export default function LandingPage() {
           <span className="eyebrow" style={{ justifyContent: "center" }}>
             <span className="tick">✦</span>Get started
           </span>
-          <h2 style={{ marginTop: 16 }}>Stop trusting. Start verifying.</h2>
-          <p className="sub">Install in under a minute. Watch your first trace turn green.</p>
+          <h2 style={{ marginTop: 16 }}>Give every agent a memory layer.</h2>
+          <p className="sub">
+            Install in under a minute. Store a memory, run a trace, and prove it.
+          </p>
           <div className="cta" style={{ marginTop: 24 }}>
             <a className="btn btn-primary" href="http://localhost:4040">
               <Icon name="bolt" size={16} />

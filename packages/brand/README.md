@@ -12,8 +12,8 @@ See `docs/02-inspirations/BRAND_AND_SURFACES.md` for the canonical brand spec.
 - Product: OneMem
 - Public domain for the current social campaign: `onememe.xyz`
 - X handle: `@OneMemAI`
-- Motto: "Every memory. Every action. Proven."
-- Sharper social line: "Stop trusting agents. Verify them."
+- Motto: "One memory layer for every agent."
+- Sharper social line: "Decentralized persistent memory for AI agents."
 
 ## Assets
 
@@ -46,6 +46,17 @@ The SVG files are the source-controlled design source. The PNG files are
 committed upload artifacts generated from those SVGs; do not hand-edit raster
 copies as the source of truth.
 
+Vendor and ecosystem logo assets live in `vendor-logos/`:
+
+- `vendor-logos/manifest.json` - source map for every third-party logo.
+- `vendor-logos/README.md` - usage rules, quick picks, and known gaps.
+- `vendor-logos/svg/` - preferred vector marks for Sui, Walrus, Seal, Mem0,
+  Claude Code, Codex, OpenClaw, Hermes Agent, MCP, Cursor, Windsurf, OpenCode,
+  Cline, GitHub Copilot, Gemini/Antigravity, Vercel AI SDK, OpenAI, CrewAI,
+  LiveKit, ElevenLabs, and SDK/app tooling.
+- `vendor-logos/png/` - raster fallbacks where only a clean official raster was
+  located.
+
 ## Domain Status
 
 `onememe.xyz` is the current campaign identity, but DNS is not live in this
@@ -54,8 +65,8 @@ DNS resolves and the landing page is actually served.
 
 ## Usage Rules
 
-- Violet/indigo is the memory and trace identity.
-- Lime is reserved for verified/decrypted/proof-passed moments.
+- Violet/indigo is the memory and runtime identity.
+- Lime is reserved for successful persistence, provenance, or proof-passed moments.
 - Sui blue is reserved for chain or explorer affordances.
-- Keep social assets dark, technical, and proof-oriented; avoid generic AI
+- Keep social assets dark, technical, and memory-oriented; avoid generic AI
   gradients, brains, and abstract blob decoration.
