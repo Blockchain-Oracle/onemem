@@ -7,9 +7,9 @@
 
 OneMem framework providers currently focus on verifiable trace capture. They
 observe framework lifecycle events, buffer calls locally, then write a
-`TraceSession` through the shared TypeScript trace bridge. The TypeScript
-providers also expose explicit memory helpers backed by `@onemem/sdk-ts/runtime`;
-Python provider memory helpers remain follow-up work.
+`TraceSession` through the shared TypeScript trace bridge. TypeScript and Python
+providers also expose explicit memory helpers: recall before a framework call,
+capture after it, and keep memory failures from breaking host workflows.
 
 ## Implemented Packages
 
@@ -17,9 +17,9 @@ Python provider memory helpers remain follow-up work.
 |---|---|---|---|---|
 | Vercel AI SDK | `@onemem/vercel-ai-provider` | TypeScript | Trace model calls via `withOneMem(...)`; explicit memory recall/capture via `createOneMemMemory(...)` | `packages/provider-vercel-ai/README.md` |
 | OpenAI Agents SDK | `@onemem/openai-agents` | TypeScript | Trace runner lifecycle via `createTracedRunner(...)` / `attachOneMem(...)`; explicit memory recall/capture via `createOneMemMemory(...)` | `packages/provider-openai-agents/README.md` |
-| CrewAI | `onemem-crewai` | Python | Trace `step_callback` / `task_callback`; Mem0-style `memory_config` deferred | `packages/provider-crewai/README.md` |
-| LiveKit Agents | `onemem-livekit` | Python | Trace voice turns and function tools through `OneMemTracer.attach(...)` | `packages/provider-livekit/README.md` |
-| ElevenLabs Conversational AI | `onemem-elevenlabs` | Python | Trace transcript turns and client tools through callbacks/wrappers | `packages/provider-elevenlabs/README.md` |
+| CrewAI | `onemem-crewai` | Python | Trace `step_callback` / `task_callback`; explicit memory recall/capture via `create_onemem_memory(...)`; native CrewAI adapter deferred | `packages/provider-crewai/README.md` |
+| LiveKit Agents | `onemem-livekit` | Python | Trace voice turns and function tools through `OneMemTracer.attach(...)`; explicit memory recall/capture via `create_onemem_memory(...)` | `packages/provider-livekit/README.md` |
+| ElevenLabs Conversational AI | `onemem-elevenlabs` | Python | Trace transcript turns and client tools through callbacks/wrappers; explicit memory recall/capture via `create_onemem_memory(...)` | `packages/provider-elevenlabs/README.md` |
 
 Hermes is tracked under runtime plugins, not this framework table:
 `packages/plugin-hermes/README.md`.
@@ -37,8 +37,8 @@ Hermes is tracked under runtime plugins, not this framework table:
 These are accepted follow-up areas, not current claims:
 
 - Automatic memory extraction/tool wiring for Vercel AI SDK and OpenAI Agents.
-- Memory recall/capture helpers inside CrewAI, LiveKit, and ElevenLabs
-  providers.
+- Native/automatic framework memory adapters inside CrewAI, LiveKit, and
+  ElevenLabs providers.
 - LangGraph, LangChain, AutoGen, LlamaIndex, Google ADK, Pipecat, Mastra, and
   Agno provider packages.
 - Per-tool-call interception beyond what each current framework exposes today.

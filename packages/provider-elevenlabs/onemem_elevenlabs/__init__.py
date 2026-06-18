@@ -16,7 +16,8 @@ Spec: docs/05-our-architecture/04-frameworks/elevenlabs-voice-provider.md
 
 from __future__ import annotations
 
+from .memory import create_onemem_memory
 from .tracer import OneMemTracer
 
 __version__ = "0.1.0"
-__all__ = ["OneMemTracer"]
+__all__ = ["OneMemTracer", "create_onemem_memory"]

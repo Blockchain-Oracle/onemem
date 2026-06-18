@@ -26,9 +26,11 @@ attachOneMem(runner, { agentId: "my-agent" });
 <CodeGroup>
 ```python CrewAI
 from crewai import Crew
-from onemem_crewai import OneMemTracer
+from onemem_crewai import OneMemTracer, create_onemem_memory
 
 tracer = OneMemTracer(agent_id="crew")
+memory = create_onemem_memory()
+prompt = memory.recall_context("Plan the task")
 crew = Crew(
     agents=[...],
     tasks=[...],
@@ -36,24 +38,29 @@ crew = Crew(
     task_callback=tracer.task,
 )
 crew.kickoff()
+memory.capture("Crew result: ...")
 tracer.flush()
 ```
 
 ```python LiveKit
-from onemem_livekit import OneMemTracer
+from onemem_livekit import OneMemTracer, create_onemem_memory
+memory = create_onemem_memory()
+context = memory.recall_context("What does this caller prefer?")
 OneMemTracer(agent_id="voice").attach(session)
 ```
 
 ```python ElevenLabs
-from onemem_elevenlabs import OneMemTracer
+from onemem_elevenlabs import OneMemTracer, create_onemem_memory
 tracer = OneMemTracer(agent_id="voice")
+memory = create_onemem_memory()
+context = memory.recall_context("What should the voice agent remember?")
 conv = Conversation(client, agent_id, requires_auth=True,
                     client_tools=tracer.wrap_tools(ClientTools()),
                     **tracer.callbacks())
 ```
 </CodeGroup>
 
-The Python providers shell out to the `onemem-trace` Node CLI for the on-chain write (Walrus/Seal are JS-only), so no Python Sui deps are required.
+The Python providers shell out to the `onemem-trace` Node CLI for the on-chain trace write (Walrus/Seal are JS-first). Their explicit memory helpers use `onemem-sdk-python`'s `MemoryClient` bridge for MemWal recall/capture and stay defensive when memory is disabled or unavailable.
 
 <Note>
 Every provider is fire-and-forget and never breaks the host run. JS providers guard their listeners; Python providers flush off-thread and retain on unconfirmed writes.

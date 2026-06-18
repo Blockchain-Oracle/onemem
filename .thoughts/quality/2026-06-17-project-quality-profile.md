@@ -33,7 +33,7 @@ Python commands:
 uv sync --all-packages
 uv run ruff check .
 uv run pyright
-uv run pytest packages/sdk-python -q
+uv run pytest packages/sdk-python packages/cli-python packages/plugin-hermes packages/provider-crewai packages/provider-livekit packages/provider-elevenlabs -q
 ```
 
 Move commands:
@@ -76,7 +76,7 @@ For Python changes:
 ```bash
 uv run ruff check .
 uv run pyright
-uv run pytest packages/sdk-python -q
+uv run pytest packages/sdk-python packages/cli-python packages/plugin-hermes packages/provider-crewai packages/provider-livekit packages/provider-elevenlabs -q
 ```
 
 For Move changes:
@@ -112,7 +112,7 @@ Current CI runs:
 - `sui move test`
 - `uv run ruff check .`
 - `uv run pyright`
-- `uv run pytest packages/sdk-python -q`
+- `uv run pytest packages/sdk-python packages/cli-python packages/plugin-hermes packages/provider-crewai packages/provider-livekit packages/provider-elevenlabs -q`
 
 ## Suggested Hooks
 

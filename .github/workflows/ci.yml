@@ -81,4 +81,4 @@ jobs:
         run: uv run pyright
 
       - name: Python test
-        run: uv run pytest packages/sdk-python -q
+        run: uv run pytest packages/sdk-python packages/cli-python packages/plugin-hermes packages/provider-crewai packages/provider-livekit packages/provider-elevenlabs -q

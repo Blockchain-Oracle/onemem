@@ -416,6 +416,16 @@ action is enabled only for the connected address owner, Admin caps require a
 safety acknowledgement, and owner-driven revoke remains explicitly unsupported
 until protocol v0.2.
 
+Python Provider Memory Helpers is the forty-second framework-provider slice.
+CrewAI, LiveKit, and ElevenLabs provider packages now export explicit
+`create_onemem_memory(...)` helpers backed by `onemem-sdk-python`'s
+`MemoryClient`. Helpers support defensive recall/context/capture behavior with
+injected-client tests, provider wheels include the new modules and SDK
+dependency metadata, and CI now runs all Python package tests instead of only
+`packages/sdk-python`. Native CrewAI `memory_config`, LiveKit memory subclassing,
+ElevenLabs memory adapters, and automatic memory extraction remain future
+provider work.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:

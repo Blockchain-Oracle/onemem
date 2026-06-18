@@ -21,6 +21,17 @@ crew.kickoff()
 tracer.flush()   # → one verifiable TraceSession
 ```
 
+Optional explicit memory helper:
+
+```python
+from onemem_crewai import create_onemem_memory
+
+memory = create_onemem_memory(namespace="crew-namespace")
+prompt = memory.recall_context("Plan the research task")
+result = crew.kickoff(inputs={"topic": prompt})
+memory.capture(f"Crew result: {result}")
+```
+
 ## How it works
 
 `OneMemTracer` buffers CrewAI's `step_callback`/`task_callback` events and, on
@@ -29,6 +40,11 @@ tracer.flush()   # → one verifiable TraceSession
 JS-only, so the on-chain write + **zero-config** provisioning of
 namespace/cap/signer happen in the bridge. Defensive: a OneMem failure never
 breaks the crew; a failed flush keeps the buffer so a later `flush()` can retry.
+
+`create_onemem_memory(...)` uses `onemem-sdk-python`'s `MemoryClient` bridge for
+explicit recall/capture. `recall_context(...)` returns the original input when
+memory is disabled, empty, or failing; `capture(...)` returns `False` instead of
+raising when the bridge is unavailable.
 
 ## Prerequisite
 
@@ -43,6 +59,7 @@ auto-provisioned), `ONEMEM_TRACE_CMD` (override the CLI invocation).
 
 ## Scope (v0.1)
 
-Trace-only. The Mem0-style `memory_config={"provider": "onemem"}` memory
-integration is a tracked follow-up. Spec:
+Trace capture and explicit memory recall/capture are shipped. The Mem0-style
+`memory_config={"provider": "onemem"}` automatic memory integration is a tracked
+follow-up. Spec:
 `docs/05-our-architecture/04-frameworks/crewai-provider.md`.

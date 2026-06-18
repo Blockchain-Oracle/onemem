@@ -237,3 +237,10 @@
   the connected wallet matches the on-chain address owner, Admin caps require a
   safety acknowledgement, and owner-driven revoke remains a v0.2 protocol
   boundary.
+- Implemented Python Provider Memory Helpers. CrewAI, LiveKit, and ElevenLabs
+  providers now export explicit `create_onemem_memory(...)` helpers for
+  defensive recall/context/capture over `onemem-sdk-python`'s `MemoryClient`.
+  Provider docs and framework docs now describe the shipped helper boundary,
+  native/automatic framework adapters remain follow-ups, provider wheels include
+  the new modules plus SDK dependency metadata, and CI now tests all Python
+  workspace packages.

@@ -19,6 +19,17 @@ conv = Conversation(
 # ... run the conversation as usual ...
 ```
 
+Optional explicit memory helper:
+
+```python
+from onemem_elevenlabs import create_onemem_memory
+
+memory = create_onemem_memory(namespace="voice-conversation")
+context = memory.recall_context("What does this caller prefer?")
+# Inject `context` into your conversation prompt or agent config.
+memory.capture("User: appointment tomorrow\nAssistant: confirmed reminder")
+```
+
 `callbacks(...)` chains any callbacks you already pass, so OneMem observes
 without displacing your own handlers.
 
@@ -33,6 +44,11 @@ the ElevenLabs SDK is Python and OneMem's trace stack (Walrus/Seal) is JS-only,
 so the on-chain write + **zero-config** provisioning happen in the bridge.
 Defensive: a OneMem failure never breaks the voice conversation.
 
+`create_onemem_memory(...)` uses `onemem-sdk-python`'s `MemoryClient` bridge for
+explicit recall/capture. `recall_context(...)` returns the original text when
+memory is disabled, empty, or failing; `capture(...)` returns `False` instead of
+raising when the bridge is unavailable.
+
 ## Prerequisite
 
 **Node 18+ with `npx` on `PATH`** (the on-chain bridge).
@@ -45,5 +61,7 @@ auto-provisioned), `ONEMEM_TRACE_CMD` (override the CLI invocation).
 
 ## Scope (v0.1)
 
-Trace-only. Memory recall/capture is a tracked follow-up. Spec:
+Trace capture and explicit memory recall/capture are shipped. Native ElevenLabs
+memory-adapter integration and automatic memory injection remain tracked
+follow-ups. Spec:
 `docs/05-our-architecture/04-frameworks/elevenlabs-voice-provider.md`.

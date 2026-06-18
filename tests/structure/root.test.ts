@@ -144,6 +144,20 @@ describe("OneMem monorepo structure", () => {
       assert.match(workflow, /Verify deterministic demo matrix/);
       assert.match(workflow, /pnpm test:demo-matrix/);
     });
+
+    test("CI runs all Python package tests", () => {
+      const workflow = readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8");
+      assert.match(workflow, /uv run pytest packages\/sdk-python/);
+      for (const pkg of [
+        "packages/cli-python",
+        "packages/plugin-hermes",
+        "packages/provider-crewai",
+        "packages/provider-livekit",
+        "packages/provider-elevenlabs",
+      ]) {
+        assert.match(workflow, new RegExp(pkg), `CI Python test step must include ${pkg}`);
+      }
+    });
   });
 
   describe("scripts", () => {

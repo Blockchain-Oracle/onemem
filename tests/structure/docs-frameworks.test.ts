@@ -67,24 +67,28 @@ describe("OneMem monorepo structure", () => {
       }
     });
 
-    test("framework provider overview does not mark TS memory helpers as deferred", () => {
+    test("framework provider overview documents shipped explicit memory helpers", () => {
       const overview = readFileSync(join(ROOT, "docs/04-framework-providers/README.md"), "utf8");
-      for (const pkg of ["@onemem/vercel-ai-provider", "@onemem/openai-agents"]) {
+      const helpers = [
+        ["@onemem/vercel-ai-provider", "createOneMemMemory"],
+        ["@onemem/openai-agents", "createOneMemMemory"],
+        ["onemem-crewai", "create_onemem_memory"],
+        ["onemem-livekit", "create_onemem_memory"],
+        ["onemem-elevenlabs", "create_onemem_memory"],
+      ];
+      for (const [pkg, helper] of helpers) {
         const escaped = pkg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        assert.doesNotMatch(
-          overview,
-          new RegExp(
-            `\\|[^\\n]*\`${escaped}\`[^\\n]*(memory[^\\n]*deferred|deferred[^\\n]*memory)`,
-            "i",
-          ),
-          `framework overview must not mark ${pkg} memory helper support as deferred`,
-        );
         assert.match(
           overview,
-          new RegExp(`\\|[^\\n]*\`${escaped}\`[^\\n]*createOneMemMemory`, "i"),
-          `framework overview must mention createOneMemMemory for ${pkg}`,
+          new RegExp(`\\|[^\\n]*\`${escaped}\`[^\\n]*${helper}`, "i"),
+          `framework overview must mention ${helper} for ${pkg}`,
         );
       }
+      assert.doesNotMatch(overview, /Python provider memory helpers remain follow-up work/i);
+      assert.doesNotMatch(
+        overview,
+        /Memory recall\/capture helpers inside CrewAI, LiveKit, and ElevenLabs/i,
+      );
     });
 
     test("framework architecture status does not mark built providers pending", () => {
@@ -115,8 +119,13 @@ describe("OneMem monorepo structure", () => {
       );
       assert.match(
         architecture,
-        /Python provider memory helpers and the original\s+Mem0-style provider ergonomics remain tracked follow-ups/,
-        "framework architecture README must keep Python memory-helper boundary explicit",
+        /Python providers now ship matching explicit\s+`create_onemem_memory\(\.\.\.\)` helpers/,
+        "framework architecture README must state Python explicit memory helpers are current",
+      );
+      assert.match(
+        architecture,
+        /original Mem0-style\/native provider\s+ergonomics remain tracked follow-ups/,
+        "framework architecture README must keep native provider boundary explicit",
       );
     });
 

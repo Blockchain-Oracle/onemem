@@ -15,9 +15,9 @@ Mem0-style 1-line `provider: "onemem"` integration for every AI app framework. T
 | `README.md` | This file — framework matrix + design principles |
 | `vercel-ai-provider.md` | `@onemem/vercel-ai-provider` — `withOneMem(model, opts)` trace middleware plus explicit `createOneMemMemory(...)` |
 | `openai-agents-tools.md` | `@onemem/openai-agents` — traced runner helpers plus explicit `createOneMemMemory(...)` |
-| `crewai-provider.md` | `onemem-crewai` Python package — current trace callbacks; Mem0-style memory provider remains a follow-up |
-| `livekit-voice-provider.md` | `onemem-livekit` — current trace callbacks for voice turns and tools; memory provider remains a follow-up |
-| `elevenlabs-voice-provider.md` | `onemem-elevenlabs` — current trace callbacks/wrappers; memory provider remains a follow-up |
+| `crewai-provider.md` | `onemem-crewai` Python package — current trace callbacks plus explicit `create_onemem_memory(...)`; Mem0-style memory provider remains a follow-up |
+| `livekit-voice-provider.md` | `onemem-livekit` — current trace callbacks for voice turns/tools plus explicit `create_onemem_memory(...)`; native memory provider remains a follow-up |
+| `elevenlabs-voice-provider.md` | `onemem-elevenlabs` — current trace callbacks/wrappers plus explicit `create_onemem_memory(...)`; native memory adapter remains a follow-up |
 | `trace-emit-contract.md` | **Load-bearing.** How EVERY provider emits `ActionCall` consistently across frameworks |
 | `deferred-frameworks.md` | LangChain / LangGraph / AutoGen / LlamaIndex / Google ADK / Pipecat / Mastra / Agno (all v0.2) |
 
@@ -29,9 +29,9 @@ Mem0-style 1-line `provider: "onemem"` integration for every AI app framework. T
 |---|---|---|---|
 | **Vercel AI SDK** | ✅ | More middleware composability | `withOneMem(model, opts)` |
 | **OpenAI Agents SDK** | ✅ | Tool surface expansion | function tools |
-| **CrewAI** | ✅ | Multi-crew sharing | trace callbacks; memory provider follow-up |
-| **LiveKit** | ✅ | Per-room namespace switching | trace callbacks; memory provider follow-up |
-| **ElevenLabs** | ✅ | Per-conversation namespacing | trace callbacks/wrappers; memory provider follow-up |
+| **CrewAI** | ✅ | Multi-crew sharing | trace callbacks; explicit memory helper; native provider follow-up |
+| **LiveKit** | ✅ | Per-room namespace switching | trace callbacks; explicit memory helper; native provider follow-up |
+| **ElevenLabs** | ✅ | Per-conversation namespacing | trace callbacks/wrappers; explicit memory helper; native adapter follow-up |
 | **LangChain** | v0.2 | — | `OneMemMemory(api_key=...)` class |
 | **LangGraph** | v0.2 | — | SDK wrapper |
 | **AutoGen** | v0.2 | — | SDK wrapper |
@@ -45,9 +45,9 @@ Mem0-style 1-line `provider: "onemem"` integration for every AI app framework. T
 
 In the current repository, v0.1 provider coverage means installable provider
 packages with verifiable trace capture. TypeScript providers also ship explicit
-memory recall/capture helpers. Python provider memory helpers and the original
-Mem0-style provider ergonomics remain tracked follow-ups unless a package README
-states otherwise.
+memory recall/capture helpers. Python providers now ship matching explicit
+`create_onemem_memory(...)` helpers. The original Mem0-style/native provider
+ergonomics remain tracked follow-ups unless a package README states otherwise.
 
 ---
 
@@ -84,14 +84,14 @@ publication.
 
 | Walrus must-have | How frameworks pillar satisfies |
 |---|---|
-| Adding verifiable memory/trace hooks to existing agent frameworks | Current providers add trace capture; TypeScript providers also add explicit memory helpers |
+| Adding verifiable memory/trace hooks to existing agent frameworks | Current providers add trace capture; TypeScript and Python providers also add explicit memory helpers |
 | Multi-agent coordination | All providers emit to the same OneMem namespace → traces compose |
-| Cross-tool / cross-agent memory sharing | One namespace, every framework; Python memory helpers remain follow-up work |
+| Cross-tool / cross-agent memory sharing | One namespace, every framework; explicit memory helpers are available in TS and Python provider packages |
 
 | Surprise dimension | Why judges recognize it |
 |---|---|
 | **5 framework provider packages at v0.1** | Broad trace instrumentation across model SDKs, agent SDKs, Python agent frameworks, and voice agents |
-| **Voice agent providers (LiveKit + ElevenLabs)** | Voice is the under-served frontier; current packages trace voice sessions while memory helpers remain follow-up work |
+| **Voice agent providers (LiveKit + ElevenLabs)** | Voice is the under-served frontier; current packages trace voice sessions and expose explicit memory helpers |
 | **All providers emit to the same ActionCall Move struct** | Cross-framework trace composition — never been done across this many frameworks before |
 
 ---
@@ -112,6 +112,6 @@ publication.
 |---|---|---|---|
 | `@onemem/vercel-ai-provider` | Built/tested: trace model calls via `withOneMem(...)`; explicit memory via `createOneMemMemory(...)` | npm `0.1.1` | Automatic memory extraction and per-tool-call interception |
 | `@onemem/openai-agents` | Built/tested: trace runner lifecycle via `createTracedRunner(...)` / `attachOneMem(...)`; explicit memory via `createOneMemMemory(...)` | npm `0.1.2` | Verify/replay tools and automatic memory extraction |
-| `onemem-crewai` | Built/tested: trace CrewAI `step_callback` / `task_callback` and flush through `onemem-trace` | PyPI `0.1.0` | Mem0-style `memory_config={"provider": "onemem"}` memory provider |
-| `onemem-livekit` | Built/tested: trace voice turns and function tools through `OneMemTracer.attach(...)` | PyPI `0.1.0` | Memory recall/capture helpers and per-room namespace switching |
-| `onemem-elevenlabs` | Built/tested: trace transcript turns and client tools through callbacks/wrappers | PyPI `0.1.0` | Memory recall/capture helpers and per-conversation namespacing |
+| `onemem-crewai` | Built/tested: trace CrewAI callbacks plus explicit memory via `create_onemem_memory(...)` | PyPI `0.1.0` | Mem0-style `memory_config={"provider": "onemem"}` memory provider |
+| `onemem-livekit` | Built/tested: trace voice turns/function tools plus explicit memory via `create_onemem_memory(...)` | PyPI `0.1.0` | Native memory provider and per-room namespace switching |
+| `onemem-elevenlabs` | Built/tested: trace transcript turns/client tools plus explicit memory via `create_onemem_memory(...)` | PyPI `0.1.0` | Native memory adapter and per-conversation namespacing |
