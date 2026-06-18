@@ -60,3 +60,4 @@ coverage/
 
 # Mise local cache
 .mise.local.toml
+.vercel
