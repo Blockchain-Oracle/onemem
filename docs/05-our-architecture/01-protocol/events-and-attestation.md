@@ -93,7 +93,7 @@ public struct TraceSessionStarted has copy, drop {
 }
 ```
 
-Emitted by `trace::start_session`. Authenticated.
+Emitted by `trace::open_session`. Authenticated.
 
 ### 6. `ActionCallEmitted` (the load-bearing event)
 
@@ -117,7 +117,7 @@ public struct ActionCallEmitted has copy, drop {
 }
 ```
 
-Emitted by `trace::append_call`. Authenticated.
+Emitted by `trace::emit_call`. Authenticated.
 
 This is the event clients use to walk + verify the Merkle chain. Indexers (memwal-style + our own) subscribe to this event type to build the live trace tree without reading every `ActionCall` object.
 
@@ -170,7 +170,7 @@ public struct MemoryWritten has copy, drop {
 }
 ```
 
-Emitted by `trace::append_call` when `tool_name == "memwal_write"`. Non-authenticated (memory event is informational; the underlying `ActionCallEmitted` is the authenticated record).
+Emitted by `trace::emit_call` when `tool_name == "memwal_write"`. Non-authenticated (memory event is informational; the underlying `ActionCallEmitted` is the authenticated record).
 
 ---
 
@@ -187,7 +187,7 @@ When a `TraceSession` starts:
 - `session.last_call_id = None`
 - `session.root_call_id = None`
 
-### On `trace::append_call`
+### On `trace::emit_call`
 
 ```
 let content_hash_pending = sha256(

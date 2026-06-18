@@ -67,6 +67,7 @@ export function ShareView({
   const shareCommand = `onemem namespace share ${commandNamespace} <recipient-address> --cap ReadOnly --admin-cap ${commandAdminCap}`;
   const capabilitiesCommand = `onemem namespace capabilities ${commandNamespace}`;
   const revokeCommand = "onemem namespace revoke <capability-id>";
+  const adminRevokeCommand = `onemem namespace admin-revoke ${commandNamespace} <capability-id> --admin-cap ${commandAdminCap}`;
 
   return (
     <>
@@ -242,13 +243,17 @@ export function ShareView({
           <span className="cap-status mono">contract v0.1</span>
         </div>
         <p className="muted" style={{ fontSize: ".9rem", maxWidth: 900 }}>
-          The current Move contract records capability revocation when the holder self-revokes.
-          Owner-driven admin revoke is not supported by this contract version, so this dashboard
-          does not show a fake revoke action.
+          Holders can self-revoke by consuming the capability object they own. Namespace admins can
+          marker-revoke a capability by ID; the object remains, but OneMem gates reject it.
         </p>
         <div className="copyline" style={{ marginTop: 14, maxWidth: 560 }}>
           <span className="cmd mono" style={{ overflowWrap: "anywhere" }}>
             {revokeCommand}
+          </span>
+        </div>
+        <div className="copyline" style={{ marginTop: 10, maxWidth: 760 }}>
+          <span className="cmd mono" style={{ overflowWrap: "anywhere" }}>
+            {adminRevokeCommand}
           </span>
         </div>
         <p className="muted" style={{ fontSize: ".86rem", marginTop: 10, maxWidth: 900 }}>

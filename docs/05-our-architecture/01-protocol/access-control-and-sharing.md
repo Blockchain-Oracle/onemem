@@ -68,11 +68,14 @@ module onemem::seal_policy {
 
 ## Capability mechanics (write/admin operations)
 
-Per `data-model.md` + `move-contract.md`, write/admin operations check capability ownership via `namespace::assert_writes_to`:
+Per `data-model.md` + `move-contract.md`, write/admin operations check
+capability ownership and admin revoke markers via
+`namespace::assert_cap_for_namespace`:
 
 ```move
-public fun assert_writes_to<KIND>(cap: &NamespaceCapability<KIND>, ns: &MemoryNamespace) {
+public fun assert_cap_for_namespace<KIND>(cap: &NamespaceCapability<KIND>, ns: &MemoryNamespace) {
     assert!(cap.namespace_id == object::id(ns), EWrongNamespace);
+    assert!(!is_capability_revoked(cap, ns), ECapabilityRevoked);
 }
 ```
 
@@ -80,18 +83,17 @@ public fun assert_writes_to<KIND>(cap: &NamespaceCapability<KIND>, ns: &MemoryNa
 
 | Function | Required cap |
 |---|---|
-| `trace::start_session` | `&NamespaceCapability<ReadWrite>` or `<Admin>` |
-| `trace::append_call` | `&NamespaceCapability<ReadWrite>` or `<Admin>` |
-| `trace::close_call` | `&NamespaceCapability<ReadWrite>` or `<Admin>` |
-| `trace::end_session` | `&NamespaceCapability<ReadWrite>` or `<Admin>` |
+| `trace::open_session` | `&NamespaceCapability<ReadWrite>` |
+| `trace::emit_call` | `&NamespaceCapability<ReadWrite>` |
+| `trace::close_call` | `&NamespaceCapability<ReadWrite>` + namespace revoke marker check |
+| `trace::close_session` | `&NamespaceCapability<ReadWrite>` + namespace revoke marker check |
 | `namespace::mint_capability_*` | `&NamespaceCapability<Admin>` |
 | `namespace::revoke_capability` | owned `NamespaceCapability<KIND>` consumed by holder |
+| `namespace::admin_revoke_capability` | `&NamespaceCapability<Admin>`; records cap ID revoked under namespace |
 | `namespace::deactivate` / `::reactivate` | `&NamespaceCapability<Admin>` |
 | `namespace::create` | None (anyone can create their own namespace; gets initial Admin cap) |
 
 **The phantom type pattern:** Move's type system rejects passing `&NamespaceCapability<ReadOnly>` to a function expecting `&NamespaceCapability<ReadWrite>`. Compile-time enforcement, zero runtime cost. This is the structural reason "permission" lives at the type level.
-
-**Move 2024.beta nuance:** to allow `<ReadWrite>` OR `<Admin>` for a function, we either (a) define a `Writes` trait/interface (not idiomatic on Sui), or (b) ship two overloads (`append_call_rw` + `append_call_admin`), or (c) accept both as Option and require at least one (the pattern we use for `seal_approve`). For `trace::*` we go with option (c) for ergonomics; SDKs always pass the strongest cap they hold.
 
 ---
 
@@ -132,12 +134,15 @@ The headline-worthy demo moment: "share memory with my teammate = one Sui tx, ga
    });
    ```
 
-   **Note:** v0.1 does not support owner-driven revocation of someone else's
-   cap. Revocation consumes the capability object, so only the holder can
-   self-revoke. Owners can still deactivate/reactivate the namespace globally
-   with an Admin cap.
+   Holder self-revoke consumes the capability object, so only the holder can run
+   this path.
 
-5. **Dashboard surfaces:** hosted `/share/[capability-id]` renders the Sui capability object view: kind, owner, namespace id, namespace summary when available, and Suiscan links. It does not render owner-driven revoke or a claim transaction in v0.1.
+5. **Admin marker-revoke:** namespace admins can run
+   `namespace::admin_revoke_capability(ns, admin, cap_id)`. The holder-owned
+   capability object remains, but future OneMem trace/write/decrypt gates reject
+   it.
+
+6. **Dashboard surfaces:** hosted `/share/[capability-id]` renders the Sui capability object view: kind, owner, namespace id, namespace summary when available, and Suiscan links. It does not render a hosted admin revoke transaction or a claim transaction in v0.1.
 
 ### Gasless via Enoki
 

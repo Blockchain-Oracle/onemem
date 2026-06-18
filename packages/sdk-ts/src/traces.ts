@@ -54,16 +54,16 @@ export interface AppendCallArgs {
 
 export interface CloseCallArgs {
   readonly sessionId: string;
+  readonly namespaceId: string;
   readonly rwCapId: string;
   readonly callId: string;
   readonly output: CallPayload;
-  /** Namespace for Seal encryption — required when `output` is `{ content, encrypt: true }`. */
-  readonly namespaceId?: string;
   readonly status: CallStatus;
 }
 
 export interface EndSessionArgs {
   readonly sessionId: string;
+  readonly namespaceId: string;
   readonly rwCapId: string;
   readonly status: SessionStatus;
 }
@@ -218,6 +218,7 @@ export class TracesAPI {
       target: `${packageId}::trace::close_call`,
       arguments: [
         tx.object(args.sessionId),
+        tx.object(args.namespaceId),
         tx.object(args.rwCapId),
         tx.pure.id(args.callId),
         tx.pure.string(blob),
@@ -237,6 +238,7 @@ export class TracesAPI {
       target: `${packageId}::trace::close_session`,
       arguments: [
         tx.object(args.sessionId),
+        tx.object(args.namespaceId),
         tx.object(args.rwCapId),
         tx.pure.u8(args.status),
         tx.object(SUI_CLOCK_OBJECT_ID),

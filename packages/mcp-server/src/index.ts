@@ -12,7 +12,7 @@
 //   MEMWAL_PACKAGE_ID, MEMWAL_RELAYER_URL
 //
 // Tools: add_memory, search_memory, verify_trace, trace_session, replay_session,
-// share_namespace (6). get/update/delete_memory are NOT exposed because MemWal
+// share_namespace, revoke_namespace_capability (7). get/update/delete_memory are NOT exposed because MemWal
 // 0.0.5 has no get/update/delete primitive (verified) — they need a future
 // tombstone/versioning layer, not fakeable today.
 //
@@ -214,6 +214,43 @@ export function buildServer(onemem: OneMem): McpServer {
           ? await onemem.namespaces.shareReadOnly(args)
           : await onemem.namespaces.shareReadWrite(args);
         return ok({ capabilityId: r.capId, kind: readOnly ? "ReadOnly" : "ReadWrite" });
+      } catch (error) {
+        return fail(errMessage(error));
+      }
+    },
+  );
+
+  server.registerTool(
+    "onemem_revoke_namespace_capability",
+    {
+      title: "Admin-revoke a namespace capability",
+      description:
+        "Mark a NamespaceCapability ID revoked under its namespace. The cap object remains owned by the holder, but future OneMem write/decrypt gates reject it. Requires the namespace's Admin cap.",
+      inputSchema: {
+        namespaceId: z.string(),
+        adminCapId: z.string(),
+        capabilityId: z.string(),
+        allowAdmin: z.boolean().optional().describe("Allow revoking an Admin capability"),
+      },
+    },
+    async ({ namespaceId, adminCapId, capabilityId, allowAdmin }) => {
+      try {
+        const kind = await onemem.namespaces.getCapabilityKind(capabilityId);
+        if (kind === "Admin" && allowAdmin !== true) {
+          return fail("refusing to admin-revoke Admin capability without allowAdmin=true");
+        }
+        const r = await onemem.namespaces.adminRevokeCapability({
+          namespaceId,
+          adminCapId,
+          capId: capabilityId,
+        });
+        return ok({
+          namespaceId,
+          capabilityId,
+          kind,
+          txDigest: r.txDigest,
+          scope: "admin marker-revoke; object not deleted",
+        });
       } catch (error) {
         return fail(errMessage(error));
       }

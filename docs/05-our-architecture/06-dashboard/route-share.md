@@ -98,10 +98,9 @@ separate hosted claim transaction in contract v0.1.
 - Hosted recipient landing links are implemented as read-only capability object
   views. Hosted claim/transfer execution is not implemented because the current
   share mint already transfers ownership to the recipient address.
-- Owner-driven revoke is not supported by the v0.1 Move contract. The current
-  contract supports holder self-revoke by consuming the capability object the
-  holder owns; hosted recipient pages expose that self-revoke flow for the
-  connected holder wallet.
+- Hosted owner/admin revoke UI is not implemented in this app boundary. The
+  protocol supports Admin-cap marker revoke through CLI/MCP, and hosted
+  recipient pages expose holder self-revoke for the connected holder wallet.
 - Share history is not server-persisted by the hosted app. Hosted `/share`
   reads Sui events through `GET /api/share/history` and the SDK history reader.
 - Public verifier links remain separate from namespace capability sharing.
@@ -117,11 +116,12 @@ sponsorship boundary. It shows executable commands:
 onemem namespace share <namespace-id> <recipient-address> --cap ReadOnly --admin-cap <admin-cap-id>
 onemem namespace capabilities <namespace-id>
 onemem namespace revoke <capability-id>
+onemem namespace admin-revoke <namespace-id> <capability-id> --admin-cap <admin-cap-id>
 ```
 
-The revoke command is holder self-revoke. Revoking an Admin cap requires the CLI
-`--allow-admin` override; hosted recipient pages require a safety
-acknowledgement before preparing Admin-cap self-revoke.
+The `revoke` command is holder self-revoke. The `admin-revoke` command records a
+namespace-level marker; the capability object remains, but OneMem gates reject
+it. Revoking an Admin cap requires the CLI `--allow-admin` override.
 
 ---
 

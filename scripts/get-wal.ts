@@ -30,7 +30,11 @@ const DEFAULT_SUI_MIST = 500_000_000; // 0.5 SUI
 function loadKeypair(): Ed25519Keypair {
   const path = join(homedir(), ".sui", "sui_config", "sui.keystore");
   const entries = JSON.parse(readFileSync(path, "utf8")) as string[];
-  const decoded = Buffer.from(entries[0]!, "base64");
+  const firstEntry = entries[0];
+  if (!firstEntry) {
+    throw new Error(`${path} is empty — initialize sui CLI first`);
+  }
+  const decoded = Buffer.from(firstEntry, "base64");
   if (decoded[0] !== 0) {
     throw new Error(`First keystore key is not Ed25519 (flag=${decoded[0]})`);
   }

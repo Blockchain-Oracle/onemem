@@ -248,7 +248,7 @@ export async function add(this: OneMem, text: string, opts?: AddOptions) {
   // 2. Resolve namespace (opts.namespaceId || config.namespaceId)
   // 3. Encrypt text via Seal /manual (client-side)
   // 4. Upload encrypted blob to Walrus via MemWal relayer
-  // 5. Build PTB: trace::append_call with tool_name="memwal_write", input_hash=sha256(text), walrus_input_blob=blobId
+  // 5. Build PTB: trace::emit_call with tool_name="memwal_write", input_hash=sha256(text), walrus_input_blob=blobId
   // 6. Sign + execute PTB
   // 7. Wait for confirmation
   // 8. Return { memoryId, walrusBlobId, suiTxDigest }
@@ -270,20 +270,20 @@ export async function search(this: OneMem, query: string, opts?: SearchOptions) 
 
 ```ts
 export async function startSession(this: OneMem, opts?: StartSessionOptions) {
-  // PTB: trace::start_session(namespace, cap, agent_id, environment, sdk_version)
+  // PTB: trace::open_session(namespace, cap, agent_id, environment, sdk_version, clock)
 }
 
 export async function appendCall(this: OneMem, sessionId: string, callData: CallData) {
   // 1. Encrypt input via Seal /manual
   // 2. Upload to Walrus
-  // 3. PTB: trace::append_call(session, namespace, cap, parent_call_id, tool_name, tool_namespace, walrus_input_blob, input_hash, label)
+  // 3. PTB: trace::emit_call(session, namespace, cap, parent_call_id, tool_name, tool_namespace, walrus_input_blob, input_hash, label)
   // 4. Return { callId, suiTxDigest }
 }
 
 export async function closeCall(this: OneMem, sessionId: string, callId: string, outputData: OutputData, status: CallStatus, level?: Level) {
   // 1. Encrypt output via Seal /manual
   // 2. Upload to Walrus
-  // 3. PTB: trace::close_call(session, namespace, cap, call_id, walrus_output_blob, output_hash, status, level, events)
+  // 3. PTB: trace::close_call(session, namespace, cap, call_id, walrus_output_blob, output_hash, status, clock)
   // 4. Return { suiTxDigest }
 }
 

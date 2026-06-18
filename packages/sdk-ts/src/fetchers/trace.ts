@@ -82,7 +82,6 @@ export async function fetchActionCallEmittedEvents(
   const all: EmittedEventRow[] = [];
   // biome-ignore lint/suspicious/noExplicitAny: cursor pagination type is opaque across @mysten/sui versions
   let cursor: any = null;
-  // biome-ignore lint/correctness/noConstantCondition: do/while loop with cursor exit
   while (true) {
     const page = await client.queryEvents({
       query: { MoveEventType: eventType },
@@ -127,7 +126,6 @@ export async function fetchOpenedSessions(
   const limit = opts.limit ?? 50;
   // biome-ignore lint/suspicious/noExplicitAny: cursor pagination type is opaque across @mysten/sui versions
   let cursor: any = null;
-  // biome-ignore lint/correctness/noConstantCondition: cursor-driven loop
   while (true) {
     const page = await client.queryEvents({
       query: { MoveEventType: eventType },

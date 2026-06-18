@@ -154,6 +154,21 @@ Options:
 
 Needs: signer that owns the capability object.
 
+### `onemem namespace admin-revoke <namespace-id> <cap-id>`
+
+Admin revoke. Records the capability ID as revoked under the namespace. The
+holder-owned cap object is not deleted, but future OneMem trace/write/decrypt
+authorization gates reject it.
+
+Options:
+
+| Flag | Description |
+|---|---|
+| `--admin-cap <id>` | Admin capability ID. Falls back to `ONEMEM_ADMIN_CAP_ID`. |
+| `--allow-admin` | Permit admin-revoking an Admin cap. Without this guard, Admin cap revoke is refused. |
+
+Needs: signer + Admin cap.
+
 ### `onemem namespace capabilities <namespace-id>`
 
 List active capabilities for a namespace from chain events.

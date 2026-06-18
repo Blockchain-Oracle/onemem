@@ -25,9 +25,9 @@ const onemem = await OneMem.create({
 
 ```ts
 onemem.traces.startSession({ namespaceId, rwCapId, agentId, environment });
-onemem.traces.appendCall({ sessionId, toolName, toolNamespace, inputContent, encrypt: true });
-onemem.traces.closeCall({ sessionId, callId, outputContent, status: "SUCCESS" });
-onemem.traces.endSession({ sessionId, status: "COMPLETED" });
+onemem.traces.appendCall({ sessionId, namespaceId, rwCapId, toolName, toolNamespace, input, label });
+onemem.traces.closeCall({ sessionId, namespaceId, rwCapId, callId, output, status });
+onemem.traces.endSession({ sessionId, namespaceId, rwCapId, status });
 onemem.traces.verifySession(sessionId);   // VerifyResult
 onemem.traces.getSession(sessionId);
 onemem.traces.getCalls(sessionId);

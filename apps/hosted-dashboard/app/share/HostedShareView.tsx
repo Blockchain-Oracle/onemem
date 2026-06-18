@@ -341,8 +341,9 @@ export function HostedShareView({ network }: { readonly network: string }) {
         <p className="muted" style={{ fontSize: ".9rem", maxWidth: 900 }}>
           This page mints a capability directly to a recipient wallet. Recipient capability links
           are read-only object views; there is no separate claim transaction in contract v0.1.
-          Owner-driven revocation remains separate protocol/UI work. The current contract supports
-          holder self-revoke through the CLI when the holder owns the capability object.
+          Hosted owner/admin revoke UI remains follow-up work. The protocol supports Admin-cap
+          marker revoke through CLI/MCP; holder self-revoke stays available when the holder owns the
+          capability object.
         </p>
         <div style={{ marginTop: 14 }}>
           <ConnectButton className="btn btn-ghost btn-sm" connectText="Connect account" />

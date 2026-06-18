@@ -48,4 +48,5 @@ public fun seal_approve<KIND>(
 
     assert!(namespace::is_active(ns), ENamespaceInactive);
     assert!(namespace::cap_for_namespace(cap) == object::id(ns), EUnauthorized);
+    namespace::assert_cap_for_namespace(cap, ns);
 }

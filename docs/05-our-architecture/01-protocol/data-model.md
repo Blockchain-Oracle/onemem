@@ -148,9 +148,9 @@ public struct TraceSession has key {
 **Dynamic-field pattern for ActionCalls:** Instead of `vector<ID>` (capped at PTB output size), we store `ActionCall`s as dynamic fields keyed by their ID. Walrus Sites uses the same pattern for unbounded child objects.
 
 **Lifecycle:**
-- Created via `onemem::trace::start_session(namespace_id, agent_id, env, sdk_ver, ctx)` — requires `&NamespaceCapability<ReadWrite>` or higher
-- Each `ActionCall` is appended via `onemem::trace::append_call(session, call_data, ctx)` (entry function on the session itself)
-- Closed via `onemem::trace::end_session(session, status, ctx)`
+- Created via `onemem::trace::open_session(namespace, rw_cap, agent_id, env, sdk_ver, clock, ctx)` — requires `&NamespaceCapability<ReadWrite>`
+- Each `ActionCall` is appended via `onemem::trace::emit_call(session, namespace, rw_cap, ...)`
+- Closed via `onemem::trace::close_session(session, namespace, rw_cap, status, clock, ctx)`
 
 ---
 
@@ -221,8 +221,8 @@ public struct TraceEvent has copy, drop, store {
 **`event::emit_authenticated` integration:** On every `append_call`, we emit an authenticated event carrying `(session_id, call_id, content_hash, prev_hash, merkle_root)`. Light clients can verify the chain from these events without reading the full Move state.
 
 **Lifecycle:**
-- Created via `onemem::trace::append_call(session, call_data, parent_call_id, ctx)` — held as dynamic field of `TraceSession`
-- Updated via `onemem::trace::close_call(session, call_id, output_data, ctx)` (transitions PENDING → SUCCESS/FAILURE)
+- Created via `onemem::trace::emit_call(session, namespace, rw_cap, parent_call_id, ...)` — held as dynamic field of `TraceSession`
+- Updated via `onemem::trace::close_call(session, namespace, rw_cap, call_id, output_data, ctx)` (transitions PENDING → SUCCESS/FAILURE)
 - Never destroyed (verifiability)
 
 ---

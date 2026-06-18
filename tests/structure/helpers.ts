@@ -74,6 +74,7 @@ export const MOVE_TESTS = [
   "namespace_tests",
   "trace_tests",
   "capability_transfer_tests",
+  "admin_revoke_tests",
   "seal_approve_tests",
   "merkle_chain_tests",
   "version_tests",

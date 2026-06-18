@@ -138,8 +138,8 @@ function CapabilityView({ data }: { readonly data: ShareCapabilityPageData }) {
           Holder self-revoke
         </h2>
         <p className="muted" style={{ fontSize: ".9rem", marginTop: 10, maxWidth: 760 }}>
-          Contract v0.1 can only revoke this capability when the holder consumes the capability
-          object. Run this from the wallet or runtime credential that owns the object:
+          Holders can self-revoke by consuming the capability object. Run this from the wallet or
+          runtime credential that owns the object:
         </p>
         <div className="copyline" style={{ marginTop: 14 }}>
           <span className="cmd mono" style={{ overflowWrap: "anywhere" }}>
@@ -147,9 +147,9 @@ function CapabilityView({ data }: { readonly data: ShareCapabilityPageData }) {
           </span>
         </div>
         <p className="muted" style={{ fontSize: ".86rem", marginTop: 12, maxWidth: 760 }}>
-          Owner-driven revocation of another wallet's capability is not supported by contract v0.1.
-          Admin capabilities include the CLI safety flag because revoking one can remove namespace
-          administration access.
+          Namespace admins can marker-revoke a capability by ID through CLI/MCP; this recipient page
+          does not prepare that hosted admin transaction. Admin capabilities include the CLI safety
+          flag because revoking one can remove namespace administration access.
         </p>
       </section>
 

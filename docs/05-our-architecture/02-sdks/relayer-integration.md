@@ -81,7 +81,7 @@ SDK.add("user prefers dark mode", { namespaceId: '0x...' })
   │       relayer stores ciphertext in Walrus + indexes embedding in pgvector + returns:
   │       { walrusBlobId, memoryId }
   │
-  ├─▶ 5. Build PTB: trace::append_call(
+  ├─▶ 5. Build PTB: trace::emit_call(
   │       session, namespace, cap,
   │       parent_call_id=None,
   │       tool_name="memwal_write",

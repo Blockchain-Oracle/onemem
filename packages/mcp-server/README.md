@@ -13,6 +13,7 @@ MCP-compatible runtime (Claude Code, Cursor, Codex, Windsurf, Cline, …).
 | `onemem_trace_session` | List the ActionCalls in a session |
 | `onemem_replay_session` | Reconstruct a replayable session transcript from on-chain events |
 | `onemem_share_namespace` | Mint + transfer a ReadWrite/ReadOnly capability (on-chain sharing) |
+| `onemem_revoke_namespace_capability` | Admin-revoke a capability by ID; object remains but OneMem gates reject it |
 
 `get/update/delete_memory` are v0.2 (MemWal 0.0.5 has no get/update/delete primitive).
 

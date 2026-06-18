@@ -164,10 +164,18 @@ module onemem::namespace {
     ) { /* ... */ }
 
     /// Revoke a capability by burning the holder-owned object.
-    /// This is holder self-revoke, not Admin-driven revoke of someone else's cap.
+    /// This is holder self-revoke.
     public entry fun revoke_capability<KIND>(
         cap: NamespaceCapability<KIND>,
     ) { /* burns cap + emits NamespaceCapabilityRevokedEvent */ }
+
+    /// Admin marker-revoke. The holder-owned object remains, but namespace,
+    /// trace, and Seal gates reject the marked cap ID.
+    public entry fun admin_revoke_capability(
+        ns: &mut MemoryNamespace,
+        admin: &NamespaceCapability<Admin>,
+        cap_id: ID,
+    ) { /* records marker + emits NamespaceCapabilityRevokedEvent */ }
 
     /// Entry: deactivate namespace (soft delete; new writes rejected).
     public entry fun deactivate(
@@ -346,10 +354,11 @@ Shared helpers for the version-as-dynamic-field pattern. See `upgrade-strategy.m
 | `namespace::revoke_capability` | owned cap object | Holder self-revoke by burning a previously-minted cap |
 | `namespace::deactivate` | `&Admin` | Soft-delete; new writes rejected |
 | `namespace::reactivate` | `&Admin` | Re-enable writes |
-| `trace::start_session` | `&ReadWrite` (or higher) | Begin a trace session |
-| `trace::append_call` | `&ReadWrite` (or higher) | Append an ActionCall (PENDING) — updates session + namespace Merkle |
-| `trace::close_call` | `&ReadWrite` (or higher) | Close call with output (SUCCESS/FAILURE/etc) — finalizes content_hash |
-| `trace::end_session` | `&ReadWrite` (or higher) | Mark session COMPLETED/FAILED/ABORTED |
+| `namespace::admin_revoke_capability` | `&Admin` | Mark a capability ID revoked under the namespace; object remains but gates reject it |
+| `trace::open_session` | `&ReadWrite` | Begin a trace session |
+| `trace::emit_call` | `&ReadWrite` | Append an ActionCall (PENDING) — updates session + namespace Merkle |
+| `trace::close_call` | `&ReadWrite` + namespace marker check | Close call with output (SUCCESS/FAILURE/etc) — finalizes content_hash |
+| `trace::close_session` | `&ReadWrite` + namespace marker check | Mark session COMPLETED/FAILED/ABORTED |
 
 ---
 

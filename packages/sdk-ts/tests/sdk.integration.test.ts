@@ -33,7 +33,11 @@ function hex(bytes: Uint8Array): string {
 function loadDeployerKeypair(): Ed25519Keypair {
   const path = join(homedir(), ".sui", "sui_config", "sui.keystore");
   const entries = JSON.parse(readFileSync(path, "utf8")) as string[];
-  const decoded = Buffer.from(entries[0]!, "base64");
+  const firstEntry = entries[0];
+  if (!firstEntry) {
+    throw new Error("Sui keystore has no deployer key");
+  }
+  const decoded = Buffer.from(firstEntry, "base64");
   if (decoded[0] !== 0) {
     throw new Error(`First keystore key is not Ed25519 (flag=${decoded[0]})`);
   }
@@ -98,6 +102,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
     for (const [i, callId] of callIds.entries()) {
       await onemem.traces.closeCall({
         sessionId: session.sessionId,
+        namespaceId: ns.namespaceId,
         rwCapId: rw.capId,
         callId,
         output: {
@@ -109,6 +114,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
     }
     await onemem.traces.endSession({
       sessionId: session.sessionId,
+      namespaceId: ns.namespaceId,
       rwCapId: rw.capId,
       status: SessionStatus.Completed,
     });
@@ -166,6 +172,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
     });
     await onemem.traces.closeCall({
       sessionId: session.sessionId,
+      namespaceId: ns.namespaceId,
       rwCapId: rw.capId,
       callId,
       output: { content: new TextEncoder().encode("real tool output bytes") },
@@ -173,6 +180,7 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
     });
     await onemem.traces.endSession({
       sessionId: session.sessionId,
+      namespaceId: ns.namespaceId,
       rwCapId: rw.capId,
       status: SessionStatus.Completed,
     });

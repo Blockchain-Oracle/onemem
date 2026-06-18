@@ -229,6 +229,7 @@ describe("OneMem monorepo structure", () => {
         for (const command of [
           "onemem namespace share",
           "onemem namespace revoke",
+          "onemem namespace admin-revoke",
           "onemem namespace capabilities",
         ]) {
           assert.match(content, new RegExp(command), `${doc} must document ${command}`);

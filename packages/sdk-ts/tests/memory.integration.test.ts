@@ -20,18 +20,41 @@ import { describe, expect, it } from "vitest";
 import { NamespaceKind, OneMem, SessionStatus } from "../src/index.js";
 
 const env = process.env;
+const memoryEnv = {
+  delegateKey: env.ONEMEM_DELEGATE_KEY,
+  accountId: env.ONEMEM_ACCOUNT_ID,
+  embeddingApiKey: env.ONEMEM_EMBEDDING_API_KEY,
+  memwalPackageId: env.MEMWAL_PACKAGE_ID,
+  relayerUrl: env.MEMWAL_RELAYER_URL,
+};
 const RUN =
   env.ONEMEM_INTEGRATION === "1" &&
-  !!env.ONEMEM_ACCOUNT_ID &&
-  !!env.ONEMEM_DELEGATE_KEY &&
-  !!env.ONEMEM_EMBEDDING_API_KEY;
+  Object.values(memoryEnv).every((value) => typeof value === "string" && value.length > 0);
 
 const SEAL_PLACEHOLDER = "0x0000000000000000000000000000000000000000000000000000000000000FEE";
 
 function deployer(): Ed25519Keypair {
   const path = join(homedir(), ".sui", "sui_config", "sui.keystore");
   const entries = JSON.parse(readFileSync(path, "utf8")) as string[];
-  return Ed25519Keypair.fromSecretKey(Buffer.from(entries[0]!, "base64").subarray(1));
+  const firstEntry = entries[0];
+  if (!firstEntry) {
+    throw new Error("Sui keystore has no deployer key");
+  }
+  return Ed25519Keypair.fromSecretKey(Buffer.from(firstEntry, "base64").subarray(1));
+}
+
+function requireMemoryEnv(): {
+  delegateKey: string;
+  accountId: string;
+  embeddingApiKey: string;
+  memwalPackageId: string;
+  relayerUrl: string;
+} {
+  const { delegateKey, accountId, embeddingApiKey, memwalPackageId, relayerUrl } = memoryEnv;
+  if (!delegateKey || !accountId || !embeddingApiKey || !memwalPackageId || !relayerUrl) {
+    throw new Error("Missing live MemWal integration environment");
+  }
+  return { delegateKey, accountId, embeddingApiKey, memwalPackageId, relayerUrl };
 }
 
 describe.skipIf(!RUN)("memory layer (live testnet, MemWal /manual)", () => {
@@ -40,13 +63,7 @@ describe.skipIf(!RUN)("memory layer (live testnet, MemWal /manual)", () => {
     const onemem = await OneMem.create({
       network: "testnet",
       signer,
-      memory: {
-        delegateKey: env.ONEMEM_DELEGATE_KEY!,
-        accountId: env.ONEMEM_ACCOUNT_ID!,
-        embeddingApiKey: env.ONEMEM_EMBEDDING_API_KEY!,
-        memwalPackageId: env.MEMWAL_PACKAGE_ID!,
-        relayerUrl: env.MEMWAL_RELAYER_URL!,
-      },
+      memory: requireMemoryEnv(),
     });
     expect(onemem.memory).toBeDefined();
 
@@ -83,11 +100,14 @@ describe.skipIf(!RUN)("memory layer (live testnet, MemWal /manual)", () => {
     // Recall it via vector search (relayer never saw plaintext).
     const found = await onemem.requireMemory().search("what language do I like to build with");
     expect(found.results.some((m) => m.text.includes("favorite language is Move"))).toBe(true);
-    expect(found.results[0]!.relevance).toBeGreaterThan(0);
+    const topResult = found.results[0];
+    expect(topResult).toBeDefined();
+    expect(topResult?.relevance).toBeGreaterThan(0);
 
     // The memory write is now provable on-chain.
     await onemem.traces.endSession({
       sessionId: session.sessionId,
+      namespaceId: ns.namespaceId,
       rwCapId: rw.capId,
       status: SessionStatus.Completed,
     });

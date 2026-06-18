@@ -69,6 +69,7 @@ describe("TracesAPI.resolvePayload", () => {
     await expect(
       api.closeCall({
         sessionId: "0xs",
+        namespaceId: "",
         rwCapId: "0xc",
         callId: "0xcall",
         output: { content: new Uint8Array([1]), encrypt: true },

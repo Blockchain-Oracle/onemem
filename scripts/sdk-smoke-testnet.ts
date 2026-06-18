@@ -45,9 +45,13 @@ function loadDeployerKeypair(): Ed25519Keypair {
   if (entries.length === 0) {
     throw new Error(`${path} is empty — initialize sui CLI first`);
   }
+  const firstEntry = entries[0];
+  if (!firstEntry) {
+    throw new Error(`${path} has an empty first keystore entry`);
+  }
   // First byte of the decoded buffer is the scheme flag (0x00 = Ed25519);
   // the remaining 32 bytes are the secret seed.
-  const decoded = Buffer.from(entries[0]!, "base64");
+  const decoded = Buffer.from(firstEntry, "base64");
   if (decoded[0] !== 0) {
     throw new Error(`First key in keystore is not Ed25519 (scheme flag = ${decoded[0]}); aborting`);
   }
@@ -62,9 +66,7 @@ function hexEnc(bytes: Uint8Array): string {
 }
 
 function sessionStatusLabel(status: SessionStatus): string {
-  return (
-    Object.entries(SessionStatus).find(([, value]) => value === status)?.[0] ?? String(status)
-  );
+  return Object.entries(SessionStatus).find(([, value]) => value === status)?.[0] ?? String(status);
 }
 
 async function main() {
@@ -155,7 +157,9 @@ async function main() {
   const verify = await onemem.traces.verifySession(session.sessionId);
   console.log(`    ok:           ${verify.ok}`);
   console.log(`    callCount:    ${verify.callCount}`);
-  console.log(`    sessionStatus:${verify.sessionStatus} (${sessionStatusLabel(verify.sessionStatus)})`);
+  console.log(
+    `    sessionStatus:${verify.sessionStatus} (${sessionStatusLabel(verify.sessionStatus)})`,
+  );
   console.log(`    expectedRoot: ${hexEnc(verify.expectedMerkleRoot)}`);
   console.log(`    computedRoot: ${hexEnc(verify.computedMerkleRoot)}`);
   console.log(`    brokenAt:     ${verify.brokenAt}`);

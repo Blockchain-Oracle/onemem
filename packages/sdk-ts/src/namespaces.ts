@@ -9,6 +9,7 @@
 //   shareReadOnly(ns, recipient)      → mint RO cap for recipient
 //   shareReadWrite(ns, recipient)     → mint RW cap for recipient
 //   revokeCapability(cap)             → holder self-revoke; consumes cap object
+//   adminRevokeCapability(ns, cap)    → admin marker revoke; cap object remains
 //   deactivate(ns) / reactivate(ns)   → admin-gated soft delete
 
 import { Transaction } from "@mysten/sui/transactions";
@@ -250,6 +251,28 @@ export class NamespacesAPI {
       options: { showEvents: true },
     });
     return { txDigest: result.digest, kind };
+  }
+
+  /**
+   * Admin revoke. Marks `capId` revoked under the namespace; it does not delete
+   * the holder-owned capability object. Future trace/write/decrypt gates reject it.
+   */
+  async adminRevokeCapability(args: {
+    namespaceId: string;
+    adminCapId: string;
+    capId: string;
+  }): Promise<{ txDigest: string }> {
+    const { packageId } = this.client.addresses;
+    const tx = new Transaction();
+    tx.moveCall({
+      target: `${packageId}::namespace::admin_revoke_capability`,
+      arguments: [tx.object(args.namespaceId), tx.object(args.adminCapId), tx.pure.id(args.capId)],
+    });
+    const result = await this.client.execute({
+      transaction: tx,
+      options: { showEvents: true },
+    });
+    return { txDigest: result.digest };
   }
 
   /** List namespaces created by an owner (from NamespaceCreatedEvent). Read-only. */

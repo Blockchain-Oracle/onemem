@@ -23,9 +23,9 @@ Recording is automatic via a plugin/provider, or explicit via the SDK:
 
 ```ts
 const s = await onemem.traces.startSession({ namespaceId, rwCapId, agentId, environment });
-const c = await onemem.traces.appendCall({ sessionId: s.sessionId, toolName, toolNamespace, inputContent, encrypt: true });
-await onemem.traces.closeCall({ sessionId: s.sessionId, callId: c.callId, outputContent, status: "SUCCESS" });
-await onemem.traces.endSession({ sessionId: s.sessionId, status: "COMPLETED" });
+const c = await onemem.traces.appendCall({ sessionId: s.sessionId, namespaceId, rwCapId, toolName, toolNamespace, input });
+await onemem.traces.closeCall({ sessionId: s.sessionId, namespaceId, rwCapId, callId: c.callId, output, status });
+await onemem.traces.endSession({ sessionId: s.sessionId, namespaceId, rwCapId, status });
 ```
 
 Inputs/outputs are stored as Seal-encrypted Walrus blobs; only the hashes go on-chain.

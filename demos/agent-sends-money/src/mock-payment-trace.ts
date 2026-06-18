@@ -106,6 +106,7 @@ async function main() {
       });
       await onemem.traces.closeCall({
         sessionId: session.sessionId,
+        namespaceId: target.namespaceId,
         rwCapId: target.rwCapId,
         callId: emitted.callId,
         output: { walrusBlob: `demo:${call.id}:output`, hash: hashPayload(call.output) },
@@ -118,6 +119,7 @@ async function main() {
     await onemem.traces
       .endSession({
         sessionId: session.sessionId,
+        namespaceId: target.namespaceId,
         rwCapId: target.rwCapId,
         status: SessionStatus.Failed,
       })
@@ -127,6 +129,7 @@ async function main() {
 
   await onemem.traces.endSession({
     sessionId: session.sessionId,
+    namespaceId: target.namespaceId,
     rwCapId: target.rwCapId,
     status: SessionStatus.Completed,
   });

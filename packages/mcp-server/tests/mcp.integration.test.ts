@@ -31,6 +31,7 @@ describe.skipIf(!RUN)("onemem-mcp (stdio, live testnet)", () => {
       expect(names).toContain("onemem_add_memory");
       expect(names).toContain("onemem_search_memory");
       expect(names).toContain("onemem_verify_trace");
+      expect(names).toContain("onemem_revoke_namespace_capability");
 
       const result = await client.callTool({
         name: "onemem_verify_trace",

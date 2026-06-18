@@ -146,8 +146,8 @@ Hosted dashboard:
    no-claim-transaction boundary.
 ```
 
-Owner-driven admin revoke is not implemented in the current contract/app
-boundary.
+Hosted owner/admin revoke UI is not implemented in the current app boundary.
+Protocol and CLI/MCP admin marker-revoke are supported separately.
 
 ---
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   capabilityKindFromObjectType,
   fetchNamespaceCapabilityHistory,
@@ -8,9 +8,11 @@ import {
 } from "../src/namespaces";
 
 const PKG = "0x123";
+const VALID_PKG = `0x${"1".repeat(64)}`;
 const CAP_ID = `0x${"c".repeat(64)}`;
 const CAP_ID_2 = `0x${"f".repeat(64)}`;
 const NS_ID = `0x${"d".repeat(64)}`;
+const ADMIN_CAP_ID = `0x${"a".repeat(64)}`;
 const OWNER = `0x${"e".repeat(64)}`;
 
 describe("capabilityKindFromObjectType", () => {
@@ -137,6 +139,44 @@ describe("NamespacesAPI.getCapability", () => {
       kind: "Admin",
       ownerAddress: OWNER,
     });
+  });
+});
+
+describe("NamespacesAPI.adminRevokeCapability", () => {
+  it("builds the admin revoke Move call with namespace, admin cap, and target cap", async () => {
+    const execute = vi.fn(async (input: { transaction: { getData(): unknown } }) => {
+      const data = input.transaction.getData() as {
+        inputs: Array<{ UnresolvedObject?: { objectId: string }; Pure?: unknown }>;
+        commands: Array<{
+          MoveCall?: {
+            package: string;
+            module: string;
+            function: string;
+            arguments: Array<{ Input: number; type: string }>;
+          };
+        }>;
+      };
+      expect(input).toMatchObject({ options: { showEvents: true } });
+      expect(data.inputs[0]?.UnresolvedObject?.objectId).toBe(NS_ID);
+      expect(data.inputs[1]?.UnresolvedObject?.objectId).toBe(ADMIN_CAP_ID);
+      expect(data.inputs[2]?.Pure).toBeTruthy();
+      expect(data.commands[0]?.MoveCall).toMatchObject({
+        package: VALID_PKG,
+        module: "namespace",
+        function: "admin_revoke_capability",
+        arguments: [
+          { Input: 0, type: "object" },
+          { Input: 1, type: "object" },
+          { Input: 2, type: "pure" },
+        ],
+      });
+      return { digest: "digest-admin-revoke" };
+    });
+    const api = new NamespacesAPI({ addresses: { packageId: VALID_PKG }, execute } as never);
+
+    await expect(
+      api.adminRevokeCapability({ namespaceId: NS_ID, adminCapId: ADMIN_CAP_ID, capId: CAP_ID }),
+    ).resolves.toEqual({ txDigest: "digest-admin-revoke" });
   });
 });
 

@@ -16,6 +16,7 @@ module onemem::namespace;
 
 use std::string::String;
 use sui::clock::Clock;
+use sui::dynamic_field as df;
 use sui::event;
 use onemem::registry::{Self, OneMemRegistry};
 use onemem::version;
@@ -25,6 +26,7 @@ use onemem::version;
 const EWrongNamespace: u64 = 0;
 const ENamespaceInactive: u64 = 1;
 const EBadNamespaceKind: u64 = 2;
+const ECapabilityRevoked: u64 = 3;
 
 // === Constants ===
 
@@ -231,8 +233,7 @@ public fun mint_capability_readonly(
 
 /// Burn (self-revoke) a capability. Consumes the cap. On Sui you can only
 /// delete objects you own, so this is the cap holder voluntarily renouncing
-/// access. Admin-driven revocation of others' caps is a v0.2 design
-/// (requires either a wrapping container or a namespace version bump).
+/// access.
 public fun revoke_capability<KIND>(cap: NamespaceCapability<KIND>) {
     let NamespaceCapability { id, namespace_id } = cap;
     event::emit(NamespaceCapabilityRevokedEvent {
@@ -243,6 +244,25 @@ public fun revoke_capability<KIND>(cap: NamespaceCapability<KIND>) {
 }
 
 // === Admin Functions ===
+
+/// Admin revoke by capability ID. This does not delete the holder-owned cap
+/// object; it records a namespace-level marker that every authorization gate
+/// checks before accepting the cap.
+public fun admin_revoke_capability(
+    ns: &mut MemoryNamespace,
+    admin: &NamespaceCapability<Admin>,
+    cap_id: ID,
+) {
+    version::assert_version_matches(&ns.id, VERSION);
+    assert_cap_for_namespace(admin, ns);
+    if (!df::exists(&ns.id, cap_id)) {
+        df::add(&mut ns.id, cap_id, true);
+        event::emit(NamespaceCapabilityRevokedEvent {
+            namespace_id: object::id(ns),
+            cap_id,
+        });
+    };
+}
 
 /// Soft-delete a namespace. New writes (via trace.move) will abort
 /// `ENamespaceInactive`; existing writes remain queryable + verifiable.
@@ -278,6 +298,19 @@ public fun cap_for_namespace<KIND>(cap: &NamespaceCapability<KIND>): ID {
     cap.namespace_id
 }
 
+/// True when a cap ID has been revoked by the namespace admin.
+public fun is_capability_revoked_by_id(ns: &MemoryNamespace, cap_id: ID): bool {
+    df::exists(&ns.id, cap_id)
+}
+
+/// True when this cap is bound to `ns` and its object ID has been admin-revoked.
+public fun is_capability_revoked<KIND>(
+    cap: &NamespaceCapability<KIND>,
+    ns: &MemoryNamespace,
+): bool {
+    cap.namespace_id == object::id(ns) && is_capability_revoked_by_id(ns, object::id(cap))
+}
+
 /// Abort `EWrongNamespace` if the cap is for a different namespace. Call
 /// at the top of every entry function that takes both a cap and a namespace.
 public fun assert_cap_for_namespace<KIND>(
@@ -285,6 +318,7 @@ public fun assert_cap_for_namespace<KIND>(
     ns: &MemoryNamespace,
 ) {
     assert!(cap.namespace_id == object::id(ns), EWrongNamespace);
+    assert!(!is_capability_revoked(cap, ns), ECapabilityRevoked);
 }
 
 /// Abort `ENamespaceInactive` if the namespace has been soft-deleted.

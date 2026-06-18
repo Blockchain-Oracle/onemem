@@ -241,6 +241,7 @@ public fun emit_call(
 /// sense that a closed call cannot be re-closed (aborts ECallAlreadyClosed).
 public fun close_call(
     session: &mut TraceSession,
+    ns: &MemoryNamespace,
     cap: &NamespaceCapability<ReadWrite>,
     call_id: ID,
     walrus_output_blob: String,
@@ -252,7 +253,8 @@ public fun close_call(
     version::assert_version_matches(&session.id, VERSION);
     assert!(status <= CALL_STATUS_MAX && status != CALL_PENDING, EBadStatus);
     assert!(df::exists(&session.id, call_id), ECallNotFound);
-    assert!(cap_for_session(cap, session), EWrongSessionNamespace);
+    assert!(session.namespace_id == object::id(ns), EWrongSessionNamespace);
+    namespace::assert_cap_for_namespace(cap, ns);
 
     let call: &mut ActionCall = df::borrow_mut(&mut session.id, call_id);
     assert!(option::is_none(&call.output_hash), ECallAlreadyClosed);
@@ -272,6 +274,7 @@ public fun close_call(
 /// Locks merkle_root. Subsequent emit_call aborts ESessionClosed.
 public fun close_session(
     session: &mut TraceSession,
+    ns: &MemoryNamespace,
     cap: &NamespaceCapability<ReadWrite>,
     final_status: u8,
     clock: &Clock,
@@ -285,7 +288,8 @@ public fun close_session(
         EBadStatus,
     );
     assert!(session.status == SESSION_ACTIVE, ESessionClosed);
-    assert!(cap_for_session(cap, session), EWrongSessionNamespace);
+    assert!(session.namespace_id == object::id(ns), EWrongSessionNamespace);
+    namespace::assert_cap_for_namespace(cap, ns);
 
     let ended_at = clock.timestamp_ms();
     session.status = final_status;
@@ -357,10 +361,6 @@ fun chain_hash(running: &vector<u8>, content: &vector<u8>): vector<u8> {
     let mut buf = *running;
     vector::append(&mut buf, *content);
     hash::sha2_256(buf)
-}
-
-fun cap_for_session(cap: &NamespaceCapability<ReadWrite>, session: &TraceSession): bool {
-    namespace::cap_for_namespace(cap) == session.namespace_id
 }
 
 // === Test-Only ===

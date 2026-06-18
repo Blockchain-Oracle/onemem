@@ -75,7 +75,6 @@ interface RecordedSession {
 
 const DEFAULT_OUT = fileURLToPath(new URL("../out/latest-trace.json", import.meta.url));
 const VALID_NETWORKS = new Set(["testnet", "mainnet", "devnet", "local"]);
-
 function parseArgs(argv: readonly string[]): Args {
   let json = false;
   let label = "multi-agent-coordination-demo";
@@ -165,6 +164,7 @@ async function appendDemoCall(onemem: OneMem, session: ActiveSession, call: Demo
   });
   await onemem.traces.closeCall({
     sessionId: session.sessionId,
+    namespaceId: session.namespaceId,
     rwCapId: session.rwCapId,
     callId: emitted.callId,
     output: { walrusBlob: `demo:multi-agent:${call.id}:output`, hash: hashPayload(call.output) },
@@ -180,6 +180,7 @@ async function appendDemoCall(onemem: OneMem, session: ActiveSession, call: Demo
 async function finishSession(onemem: OneMem, session: ActiveSession): Promise<RecordedSession> {
   await onemem.traces.endSession({
     sessionId: session.sessionId,
+    namespaceId: session.namespaceId,
     rwCapId: session.rwCapId,
     status: SessionStatus.Completed,
   });
@@ -213,6 +214,17 @@ async function finishSession(onemem: OneMem, session: ActiveSession): Promise<Re
   };
 }
 
+async function failSession(onemem: OneMem, session: ActiveSession) {
+  await onemem.traces
+    .endSession({
+      sessionId: session.sessionId,
+      namespaceId: session.namespaceId,
+      rwCapId: session.rwCapId,
+      status: SessionStatus.Failed,
+    })
+    .catch(() => {});
+}
+
 async function recordSpecialist(
   onemem: OneMem,
   args: {
@@ -236,13 +248,7 @@ async function recordSpecialist(
   try {
     for (const call of args.calls) await appendDemoCall(onemem, session, call);
   } catch (error) {
-    await onemem.traces
-      .endSession({
-        sessionId: session.sessionId,
-        rwCapId: session.rwCapId,
-        status: SessionStatus.Failed,
-      })
-      .catch(() => {});
+    await failSession(onemem, session);
     throw error;
   }
   const recorded = await finishSession(onemem, session);
@@ -381,13 +387,7 @@ async function main() {
     }
     if (!ok) process.exitCode = 1;
   } catch (error) {
-    await onemem.traces
-      .endSession({
-        sessionId: orchestrator.sessionId,
-        rwCapId: orchestrator.rwCapId,
-        status: SessionStatus.Failed,
-      })
-      .catch(() => {});
+    await failSession(onemem, orchestrator);
     throw error;
   }
 }

@@ -32,7 +32,7 @@
 //   });
 //
 //   await onemem.traces.endSession({
-//     sessionId, rwCapId, status: SessionStatus.Completed,
+//     sessionId, namespaceId, rwCapId, status: SessionStatus.Completed,
 //   });
 //
 //   const verify = await onemem.traces.verifySession(sessionId);

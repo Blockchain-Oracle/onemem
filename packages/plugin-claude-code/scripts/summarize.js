@@ -64,6 +64,7 @@ async function main() {
 
   await onemem.traces.endSession({
     sessionId: state.onememSessionId,
+    namespaceId: state.namespaceId,
     rwCapId: state.rwCapId,
     status: SessionStatus.Completed,
   });

@@ -73,15 +73,13 @@ These map 1:1 to the SDK's memory + trace + namespace API.
 
 | MCP tool | SDK call | Purpose |
 |---|---|---|
-| `onemem_add_memory` | `client.add(text, opts)` | Write a memory |
-| `onemem_search_memory` | `client.search(query, opts)` | Vector + entity search |
-| `onemem_get_memory` | `client.get(id)` | Fetch one memory |
-| `onemem_update_memory` | `client.update(id, text)` | Update memory text (emits new version) |
-| `onemem_delete_memory` | `client.delete(id)` | Soft delete |
-| `onemem_replay_session` | `client.trace.replaySession(id)` | Reconstruct full session from chain + Walrus |
-| `onemem_verify_trace` | `client.trace.verifySession(id)` | Walk Merkle chain; return verification status |
-| `onemem_share_namespace` | `client.namespace.share(id, recipient, kind)` | Mint + transfer capability |
-| `onemem_trace_session` | `client.trace.getCalls(id)` | List calls in a trace session (tree-structured) |
+| `onemem_add_memory` | `client.requireMemory().add(text, opts)` | Write a memory |
+| `onemem_search_memory` | `client.requireMemory().search(query, opts)` | Semantic memory search |
+| `onemem_verify_trace` | `client.traces.verifySession(id)` | Walk Merkle chain; return verification status |
+| `onemem_trace_session` | `client.traces.getCalls(id)` | List calls in a trace session |
+| `onemem_replay_session` | `client.traces.replaySession(id)` | Reconstruct session metadata + calls from chain |
+| `onemem_share_namespace` | `client.namespaces.shareReadOnly/ReadWrite(...)` | Mint + transfer capability |
+| `onemem_revoke_namespace_capability` | `client.namespaces.adminRevokeCapability(...)` | Admin marker-revoke; object remains but gates reject it |
 
 ---
 
@@ -120,13 +118,11 @@ server.setRequestHandler("tools/list", () => ({
   tools: [
     tools.addMemory.schema,
     tools.searchMemory.schema,
-    tools.getMemory.schema,
-    tools.updateMemory.schema,
-    tools.deleteMemory.schema,
-    tools.replaySession.schema,
     tools.verifyTrace.schema,
-    tools.shareNamespace.schema,
     tools.traceSession.schema,
+    tools.replaySession.schema,
+    tools.shareNamespace.schema,
+    tools.revokeNamespaceCapability.schema,
   ],
 }));
 

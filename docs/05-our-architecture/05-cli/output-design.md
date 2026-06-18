@@ -205,7 +205,7 @@ Braille spinner (U+2800 series). Standard pattern; `ora` (Node) / `rich.status` 
 $ onemem add "Hello" --verbose
 [onemem] Encrypting text via Seal /manual flow
 [onemem] Uploading encrypted blob to Walrus via relayer.memwal.ai
-[onemem] Building PTB: trace::append_call
+[onemem] Building PTB: trace::emit_call
 [onemem] Signing PTB with delegate key
 [onemem] Executing on Sui mainnet
 [onemem] Tx confirmed: 0xtxdigest...

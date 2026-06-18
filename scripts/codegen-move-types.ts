@@ -110,8 +110,9 @@ function render(cfg: NetworksConfig): string {
     "  if (!block) {",
     '    const deployed = Object.keys(ADDRESSES).join(", ") || "(none yet)";',
     "    throw new Error(",
-    '      `OneMem is not deployed on "${network}" — deployed networks: ${deployed}. ` +',
-    "      `Run \\`bash scripts/deploy-contract.sh ${network}\\` then \\`pnpm exec tsx scripts/codegen-move-types.ts\\`.`,",
+    '      `OneMem is not deployed on "$' + '{network}" — deployed networks: $' + "{deployed}. ` +",
+    "        `Run \\`bash scripts/deploy-contract.sh $" +
+      "{network}\\` then \\`pnpm exec tsx scripts/codegen-move-types.ts\\`.`,",
     "    );",
     "  }",
     "  return block;",

@@ -267,12 +267,11 @@ export async function recordSession(
       callIds.push(emitted.callId);
     }
   } catch (err) {
-    // A mid-loop failure (e.g. a Walrus flake) would otherwise leave the session
-    // open forever. Mark it Failed so the on-chain record is self-describing,
-    // then rethrow so the caller knows the trace is incomplete.
+    // Mark a partially-written session Failed before surfacing the error.
     await onemem.traces
       .endSession({
         sessionId: session.sessionId,
+        namespaceId: target.namespaceId,
         rwCapId: target.rwCapId,
         status: SessionStatus.Failed,
       })
@@ -281,6 +280,7 @@ export async function recordSession(
   }
   await onemem.traces.endSession({
     sessionId: session.sessionId,
+    namespaceId: target.namespaceId,
     rwCapId: target.rwCapId,
     status: SessionStatus.Completed,
   });

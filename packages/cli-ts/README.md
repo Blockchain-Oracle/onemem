@@ -30,6 +30,7 @@ checkout until registry status reports them current.
 | `onemem init` | Provision (or reuse) a namespace + ReadWrite cap — zero config | a Sui signer |
 | `onemem namespace share <namespace-id> <recipient>` | Mint + transfer a ReadOnly or ReadWrite namespace capability | signer + Admin cap |
 | `onemem namespace revoke <cap-id>` | Self-revoke a capability you hold | signer that owns the cap |
+| `onemem namespace admin-revoke <namespace-id> <cap-id>` | Admin-revoke a capability by ID; object remains but OneMem gates reject it | signer + Admin cap |
 | `onemem namespace capabilities <namespace-id>` | List active capabilities from namespace events | nothing (read-only) |
 | `onemem add <text>` | Store a memory + emit a verifiable ActionCall | signer + MemWal config |
 | `onemem search <query>` | Vector-recall memories | signer + MemWal config |

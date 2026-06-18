@@ -199,7 +199,7 @@ fun emit_call_aborts_when_session_closed() {
     let mut session = ts::take_shared<TraceSession>(&scenario);
 
     let clk = clock::create_for_testing(scenario.ctx());
-    trace::close_session(&mut session, &rw, trace::session_status_completed(), &clk, scenario.ctx());
+    trace::close_session(&mut session, &ns, &rw, trace::session_status_completed(), &clk, scenario.ctx());
 
     // Session closed → emit_call aborts ESessionClosed.
     let _ = trace::emit_call(
@@ -250,6 +250,7 @@ fun close_call_updates_output_hash_and_status() {
     let output_hash = vector[10u8, 11, 12];
     trace::close_call(
         &mut session,
+        &ns,
         &rw,
         call_id,
         string::utf8(b"walrus:out"),
@@ -288,6 +289,7 @@ fun close_call_aborts_when_call_unknown() {
     let bogus_id = object::id_from_address(@0xDEAD);
     trace::close_call(
         &mut session,
+        &ns,
         &rw,
         bogus_id,
         string::utf8(b"walrus:none"),

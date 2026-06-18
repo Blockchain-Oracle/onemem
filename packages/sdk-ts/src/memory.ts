@@ -261,7 +261,6 @@ export class MemoryAPI {
     const limit = opts.limit ?? 100;
     // biome-ignore lint/suspicious/noExplicitAny: opaque cursor type
     let cursor: any = null;
-    // biome-ignore lint/correctness/noConstantCondition: cursor-driven loop
     while (true) {
       const page = await this.client.client.queryEvents({
         query: { MoveEventType: `${packageId}::events::ActionCallEmittedEvent` },

@@ -15,6 +15,11 @@ interface RevokeOpts {
   allowAdmin?: boolean;
 }
 
+interface AdminRevokeOpts {
+  adminCap?: string;
+  allowAdmin?: boolean;
+}
+
 export function parseShareCapKind(raw: string | undefined): ShareCapKind {
   const value = raw ?? "ReadOnly";
   const normalized = value.toLowerCase();
@@ -131,6 +136,43 @@ export function namespaceRevoke(
     printLine(`  capability  ${capId}`);
     printLine(`  kind        ${result.kind}`);
     printLine(`  scope       holder self-revoke`);
+    printLine(`  txDigest    ${result.txDigest}`);
+  });
+}
+
+export function namespaceAdminRevoke(
+  namespaceId: string,
+  capId: string,
+  opts: AdminRevokeOpts,
+  command: { optsWithGlobals(): GlobalOpts },
+) {
+  const g = command.optsWithGlobals();
+  return runCommand(g, async () => {
+    assertObjectId(namespaceId, "namespace id");
+    assertObjectId(capId, "capability id");
+    const adminCapId = resolveAdminCapId(opts);
+    assertObjectId(adminCapId, "admin cap id");
+    const network = resolveNetwork(parseNetwork(g.network));
+    const signer = resolveSigner();
+    const client = await OneMem.create({ network, signer });
+    const kind = await client.namespaces.getCapabilityKind(capId);
+    assertRevokeAllowed(kind, opts.allowAdmin === true);
+    const result = await client.namespaces.adminRevokeCapability({
+      namespaceId,
+      adminCapId,
+      capId,
+    });
+
+    if (g.json) {
+      printJson({ ok: true, network, namespaceId, capId, kind, txDigest: result.txDigest });
+      return;
+    }
+    printLine("✓ capability admin-revoked");
+    printLine(`  network     ${network}`);
+    printLine(`  namespace   ${namespaceId}`);
+    printLine(`  capability  ${capId}`);
+    printLine(`  kind        ${kind}`);
+    printLine(`  scope       admin marker-revoke; object not deleted`);
     printLine(`  txDigest    ${result.txDigest}`);
   });
 }
