@@ -230,6 +230,11 @@ describe("OneMem monorepo structure", () => {
       ".thoughts/stories/2026-06-18-python-provider-memory-helpers.md",
       ".thoughts/plans/2026-06-18-python-provider-memory-helpers.md",
       ".thoughts/verification/2026-06-18-python-provider-memory-helpers.md",
+      ".thoughts/research/2026-06-18-codex-hook-proof-boundary.md",
+      ".thoughts/specs/2026-06-18-codex-hook-proof-boundary.md",
+      ".thoughts/stories/2026-06-18-codex-hook-proof-boundary.md",
+      ".thoughts/plans/2026-06-18-codex-hook-proof-boundary.md",
+      ".thoughts/verification/2026-06-18-codex-hook-proof-boundary.md",
     ]) {
       test(`Context Engineering artifact exists: ${f}`, () => {
         assert.ok(exists(f), `${f} missing`);

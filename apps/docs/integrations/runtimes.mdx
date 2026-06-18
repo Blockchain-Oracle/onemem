@@ -30,7 +30,9 @@ codex plugin add onemem-codex@onemem --json
 Optional Codex hook scripts are included and flush through the published
 `@onemem/sdk-ts@0.6.0` trace CLI, but full automatic Codex tool-call trace
 coverage is only claimed after a trusted `/hooks` session emits a verifiable
-on-chain OneMem `TraceSession`. MCP tools work without hook trust.
+on-chain OneMem `TraceSession`. Local Codex CLI 0.140 `codex exec` testing did
+not run hooks, so it is not treated as that proof path. MCP tools work without
+hook trust.
 
 ## OpenClaw
 

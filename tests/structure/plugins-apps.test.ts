@@ -21,10 +21,27 @@ describe("OneMem monorepo structure", () => {
         name?: string;
         skills?: string;
         mcpServers?: string;
+        hooks?: string;
       }>("packages/plugin-codex/.codex-plugin/plugin.json");
       assert.equal(manifest.name, "onemem-codex");
       assert.equal(manifest.skills, "./skills/");
       assert.equal(manifest.mcpServers, "./.mcp.json");
+      assert.equal(
+        manifest.hooks,
+        undefined,
+        "plugin validator still rejects `hooks`; rely on default hooks/hooks.json",
+      );
+    });
+
+    test("packages/plugin-codex keeps hook proof claims bounded", () => {
+      const hooks = readJson<{
+        hooks?: { SessionStart?: Array<{ matcher?: string }> };
+      }>("packages/plugin-codex/hooks/hooks.json");
+      assert.equal(hooks.hooks?.SessionStart?.[0]?.matcher, "");
+
+      const readme = readFileSync(join(ROOT, "packages/plugin-codex/README.md"), "utf8");
+      assert.doesNotMatch(readme, /SessionStart opens a OneMem `TraceSession`/);
+      assert.match(readme, /codex exec` tests on Codex CLI 0\.140 did not run/);
     });
 
     test("Codex plugin marketplace exposes onemem-codex", () => {

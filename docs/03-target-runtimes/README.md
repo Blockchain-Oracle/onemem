@@ -34,7 +34,8 @@ Other MCP-capable runtimes use the existing MCP server.
 
 ### Claude Code (full native plugin + MCP)
 - Plugin manifest: `.claude-plugin/plugin.json` (name, version, repository, license, keywords)
-- Hooks: `hooks/hooks.json` with PreToolUse / PostToolUse / SessionStart (matcher: `startup|clear|compact`) / UserPromptSubmit / Stop
+- Hooks: `hooks/hooks.json` with PreToolUse / PostToolUse / SessionStart /
+  UserPromptSubmit / Stop
 - Hook commands receive Claude Code's tool-call payload via env vars + stdin; respond via stdout
 - Install: `/plugin marketplace add <org>/<repo>` → `/plugin install <name>`
 - Coexists with claude-mem (different hook commands; no conflict)
@@ -80,6 +81,10 @@ Other MCP-capable runtimes use the existing MCP server.
 - Bundled MCP server is the stable memory/search/verify/share path.
 - Optional hooks live at `hooks/hooks.json`; Codex auto-loads that default path.
 - Current optional hook set: `SessionStart`, `PostToolUse`, and `Stop`.
+- `SessionStart` uses an empty matcher so every hook-enabled Codex session
+  source is eligible. `codex exec` on Codex CLI 0.140 did not execute user-level
+  or plugin hooks in local proof attempts, so do not use `codex exec` as the
+  live hook-proof path.
 - Env vars: `PLUGIN_ROOT`, `PLUGIN_DATA`, legacy `CLAUDE_PLUGIN_ROOT` and
   `CLAUDE_PLUGIN_DATA` compatibility aliases.
 - Trust model: non-managed hooks require explicit user review and trust before

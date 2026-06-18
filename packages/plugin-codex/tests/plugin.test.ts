@@ -15,6 +15,7 @@ import {
 } from "../scripts/onemem-lib.mjs";
 
 const SCRIPTS = fileURLToPath(new URL("../scripts/", import.meta.url));
+const HOOKS = fileURLToPath(new URL("../hooks/hooks.json", import.meta.url));
 let dir = "";
 let previousPluginData: string | undefined;
 let previousRuntimeControlsPath: string | undefined;
@@ -71,6 +72,14 @@ afterEach(() => {
 });
 
 describe("Codex plugin hooks", () => {
+  it("SessionStart matches every Codex session source when hooks run", () => {
+    const hooks = JSON.parse(readFileSync(HOOKS, "utf8")) as {
+      hooks?: { SessionStart?: Array<{ matcher?: string }> };
+    };
+
+    expect(hooks.hooks?.SessionStart?.[0]?.matcher).toBe("");
+  });
+
   it("SessionStart returns valid Codex JSON context without trace config", () => {
     const result = runScript("inject.js", {
       hook_event_name: "SessionStart",

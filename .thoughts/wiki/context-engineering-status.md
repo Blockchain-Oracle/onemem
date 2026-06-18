@@ -426,6 +426,15 @@ dependency metadata, and CI now runs all Python package tests instead of only
 ElevenLabs memory adapters, and automatic memory extraction remain future
 provider work.
 
+Codex Hook Proof Boundary is the forty-third runtime-readiness slice. The Codex
+plugin keeps MCP as the stable installable layer and uses an empty
+`SessionStart` matcher for optional hooks. Package and runtime docs now state
+that `SessionStart` arms local trace state while `Stop` flushes buffered calls
+through the trace CLI. Local Codex CLI 0.140 `codex exec` proof attempts did not
+execute user-level or plugin hooks, so full automatic Codex hook tracing remains
+unclaimed until a trusted interactive `/hooks` session emits a verifiable
+on-chain OneMem `TraceSession`.
+
 ## Documentation Standing
 
 The repo contains three kinds of docs:

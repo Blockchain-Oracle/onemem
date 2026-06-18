@@ -128,7 +128,7 @@ The plugin includes optional hooks:
 
 | Event | Script | Behavior |
 |---|---|---|
-| `SessionStart` | `scripts/inject.js` | Adds OneMem guidance to the session and opens a trace session when trace env vars exist. |
+| `SessionStart` | `scripts/inject.js` | Adds OneMem guidance to the session and arms local trace state when trace env vars exist. |
 | `PostToolUse` | `scripts/observe.js` | Buffers Codex tool-call payloads locally without network work. |
 | `Stop` | `scripts/summarize.js` | Flushes buffered calls through the SDK and closes the trace session. |
 
@@ -169,10 +169,18 @@ pnpm test:structure
 
 The unit tests prove:
 
+- `SessionStart` uses an empty matcher so every hook-enabled Codex session
+  source is eligible;
 - `SessionStart` returns valid Codex JSON context without network config;
 - `PostToolUse` buffers a Codex-shaped `tool_output` payload into
   `PLUGIN_DATA`;
 - `Stop` exits successfully when trace config is absent.
+
+Observed boundary, 2026-06-18: `codex exec` on Codex CLI 0.140 did not execute
+user-level or plugin-local hooks in isolated `CODEX_HOME` proof attempts, even
+with `hooks = true`, trusted projects, and `--dangerously-bypass-hook-trust`.
+That makes `codex exec` unsuitable as the live automatic hook proof path for
+this version.
 
 Remaining proof needed before claiming Claude Code parity:
 
@@ -192,6 +200,8 @@ Keep these constraints in mind when extending the plugin:
    intentionally starts with `PostToolUse`.
 4. `Stop` hooks must return normal continuation JSON. Do not use inverted
    `decision: "block"` semantics here unless intentionally keeping Codex alive.
+5. Do not claim `codex exec` hook coverage until the installed Codex version is
+   proven to execute hooks in that mode.
 
 ---
 

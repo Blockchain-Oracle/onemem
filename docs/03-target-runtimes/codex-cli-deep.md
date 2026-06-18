@@ -84,7 +84,7 @@ Ten events, every hook script receives a JSON envelope on stdin with shared base
 
 | Event | When it fires | Key event-specific fields |
 |---|---|---|
-| `SessionStart` | New session or `--resume` | `matcher` selects `"startup"` or `"resume"` |
+| `SessionStart` | New, resumed, compacted, or cleared session when the hook runtime fires | Empty matcher covers every Codex session source |
 | `SubagentStart` | A subagent begins a turn | `subagent_id`, parent `session_id` |
 | `UserPromptSubmit` | User submits a prompt | `prompt` (string) |
 | `PreToolUse` | Before `shell`/`apply_patch`/MCP tool call | `tool_name`, `tool_use_id`, `tool_input` |
@@ -138,7 +138,7 @@ Plugin-local default at `hooks/hooks.json`:
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|resume",
+        "matcher": "",
         "hooks": [
           { "type": "command",
             "command": "python3 ${PLUGIN_ROOT}/hooks/session_start.py",
@@ -304,9 +304,14 @@ From [agenticcontrolplane.com/blog/codex-cli-hooks-reference](https://agenticcon
 - **Plugin-local hooks vs global hooks** — [Issue #16430](https://github.com/openai/codex/issues/16430) reports the runtime only consistently executes global `~/.codex/hooks.json` even when plugin manifests declare hooks; verify on the current Codex version before shipping a plugin-only hook strategy.
 - **Legacy `plugin_hooks` feature flag notes** — older wedge notes mentioned
   some Codex builds gating plugin-declared hooks behind
-  `[features] plugin_hooks = true`. Current OpenAI docs describe enabled plugin
-  hooks as loading through the normal hook trust flow, so only mention the flag
-  when troubleshooting older local builds.
+  `[features] plugin_hooks = true`. `codex features list` on Codex CLI 0.140
+  reports `plugin_hooks` as removed and `hooks` as stable/enabled, so only
+  mention the legacy flag when troubleshooting older local builds.
+- **`codex exec` is not current hook proof** — local Codex CLI 0.140 tests with
+  isolated `CODEX_HOME`, trusted projects, `--dangerously-bypass-hook-trust`,
+  and both plugin-local and user-level hook manifests executed shell commands
+  but did not run hook commands. Treat interactive `/hooks` trust or a future
+  Codex build with demonstrated hook execution as the live proof path.
 - **CodeRabbit/codex-plugin-cc use `CLAUDE_PLUGIN_ROOT`** — not `PLUGIN_ROOT`. Use the Claude alias for cross-runtime portability; both resolve identically.
 
 ---

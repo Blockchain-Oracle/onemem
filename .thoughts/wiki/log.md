@@ -244,3 +244,10 @@
   native/automatic framework adapters remain follow-ups, provider wheels include
   the new modules plus SDK dependency metadata, and CI now tests all Python
   workspace packages.
+- Hardened Codex Hook Proof Boundary. The Codex plugin `SessionStart` hook now
+  uses an empty matcher so every hook-enabled source is eligible, plugin/runtime
+  docs say `SessionStart` arms local trace state and `Stop` performs the trace
+  CLI flush, and docs now record that Codex CLI 0.140 `codex exec` did not run
+  user-level or plugin hooks in local proof attempts. MCP remains the stable
+  Codex layer; full automatic Codex hook trace coverage still requires a
+  trusted interactive `/hooks` session emitting a verifiable OneMem trace.

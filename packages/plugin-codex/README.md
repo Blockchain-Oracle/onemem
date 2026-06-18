@@ -9,7 +9,7 @@ portable memory and verifiable trace workflows.
 - Exposes OneMem memory/search/verify tools after the plugin is installed and
   the MCP server is enabled.
 - Includes optional lifecycle hooks for trace capture:
-  - `SessionStart` opens a OneMem `TraceSession` when trace env vars exist.
+  - `SessionStart` arms local trace capture state when trace env vars exist.
   - `PostToolUse` buffers Codex tool calls locally without network work.
   - `Stop` flushes buffered calls to Sui/Walrus and closes the trace session
     when trace config and client setup succeed.
@@ -54,6 +54,12 @@ For lifecycle trace capture, configure:
 
 Codex requires non-managed hooks to be reviewed and trusted before they run. Use
 `/hooks` in Codex after installing or changing the plugin.
+
+Current proof boundary: local `codex exec` tests on Codex CLI 0.140 did not run
+user-level or plugin-local hooks, even with hook features enabled and trust
+bypass flags. Use an interactive trusted `/hooks` session, or a newer Codex
+version with demonstrated hook execution, before claiming automatic Codex hook
+trace coverage.
 
 ## Install From The Public Repository Marketplace
 
