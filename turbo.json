@@ -4,6 +4,20 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": [
+        "ENOKI_PRIVATE_KEY",
+        "ENOKI_SECRET_KEY",
+        "MEMWAL_PACKAGE_ID",
+        "MEMWAL_REGISTRY_ID",
+        "MEMWAL_RELAYER_URL",
+        "NEXT_PUBLIC_ENOKI_API_KEY",
+        "NEXT_PUBLIC_ENOKI_GOOGLE_CLIENT_ID",
+        "NEXT_PUBLIC_GOOGLE_CLIENT_ID",
+        "NEXT_PUBLIC_ONEMEM_APP_URL",
+        "NEXT_PUBLIC_SUI_NETWORK",
+        "ONEMEM_NETWORK",
+        "SUI_NETWORK"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
