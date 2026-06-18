@@ -5,10 +5,9 @@ Records each Hermes agent session as a **verifiable on-chain TraceSession** on
 Sui — Merkle-chained `ActionCall`s with content stored on Walrus and encrypted
 with Seal.
 
-**Publication note, 2026-06-18:** this README describes repo-local
-`hermes-onemem@0.2.0`. `pnpm registry:status` currently reports PyPI latest as
-`0.1.0`; do not claim the `0.2.0` package is publicly installed until registry
-status reports it current.
+**Publication note, 2026-06-18:** `hermes-onemem@0.2.0` is current on PyPI
+after `pnpm registry:status --strict`. Re-run that command before making a
+fresh public install claim.
 
 ## How it works
 

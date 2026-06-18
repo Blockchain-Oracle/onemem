@@ -4,11 +4,10 @@ Record **OpenAI Agents SDK** runs as **verifiable on-chain OneMem TraceSessions*
 (Sui + Walrus + Seal) — every tool call + the final output captured as
 Merkle-chained `ActionCall`s anyone can verify.
 
-**Publication note, 2026-06-18:** this README describes repo-local
-`@onemem/openai-agents@0.1.3`. `pnpm registry:status` currently reports npm
-latest as `0.1.2`, which does not include `createOneMemMemory(...)`; use source
-or wait for registry status to report `0.1.3` current before relying on that
-helper from npm.
+**Publication note, 2026-06-18:** `@onemem/openai-agents@0.1.3` is current on
+npm after `pnpm registry:status --strict` and includes
+`createOneMemMemory(...)`. Re-run that command before making a fresh public
+install claim.
 
 ## Usage
 

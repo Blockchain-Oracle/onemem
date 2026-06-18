@@ -30,10 +30,10 @@ claude plugin marketplace add Blockchain-Oracle/onemem
 claude plugin install onemem@onemem
 ```
 
-**Publication/proof note, 2026-06-18:** this GitHub marketplace path is the
-current install surface. `pnpm registry:status` reports
-`@onemem/claude-code-plugin@0.1.0` as missing from npm. The gated
-`tests/plugin.integration.test.ts` script can prove a simulated
+**Publication/proof note, 2026-06-18:** this GitHub marketplace path is current,
+and `@onemem/claude-code-plugin@0.1.0` is current on npm after
+`pnpm registry:status --strict`. The gated `tests/plugin.integration.test.ts`
+script can prove a simulated
 SessionStart→PostToolUse→SessionEnd lifecycle on testnet when
 `ONEMEM_INTEGRATION=1`, but a trusted live Claude Code client hook session is a
 separate proof boundary.

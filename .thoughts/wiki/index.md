@@ -451,6 +451,16 @@ Persistent Context Engineering wiki for the OneMem repo.
   `../plans/2026-06-18-walrus-static-verifier-shell.md`
 - Walrus Static Verifier Shell verification:
   `../verification/2026-06-18-walrus-static-verifier-shell.md`
+- Ship-Readiness Go plan:
+  `../plans/2026-06-18-ship-readiness-go.md`
+- Ship-Readiness Go verification:
+  `../verification/2026-06-18-ship-readiness-go-brand-copy.md`
+- OneMem Campaign Brand Assets design input:
+  `../design/2026-06-18-one-mem-campaign-designer-brief.md`
+- OneMem Campaign Brand Assets plan:
+  `../plans/2026-06-18-one-mem-campaign-assets.md`
+- Registry Publication Live verification:
+  `../verification/2026-06-18-registry-publication-live.md`
 
 ## Maintenance Notes
 

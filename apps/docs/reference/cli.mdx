@@ -12,10 +12,10 @@ pipx install onemem-cli          # onemem-py (read-only mirror)
 ```
 
 <Note>
-Registry note, 2026-06-18: `pnpm registry:status` currently reports
-`@onemem/cli`, `@onemem/dashboard`, and `onemem-cli` as missing from public
-registries. These commands are the target install paths; use a built checkout
-until registry status reports them current.
+Registry note, 2026-06-18: `@onemem/cli`, `@onemem/dashboard`, and
+`onemem-cli` are current on public registries after
+`pnpm registry:status --strict`. Re-run that command before making a fresh
+install claim.
 </Note>
 
 Global flags: `--json` (machine output), `--network <testnet|mainnet|devnet|local>`.

@@ -34,10 +34,10 @@ This folder is the **design phase** of OneMem. Each sub-group is organized per b
 |---|---|---|
 | `00-overview/` | Historical design context | Active status now lives in `.thoughts/wiki/` plus current source and CI. |
 | `01-protocol/` | Built + testnet deployed | Move source/tests are live; testnet package v2 is recorded. Mainnet remains pending. |
-| `02-sdks/` | TS built/published; Python source built | `@onemem/sdk-ts@0.6.0` is current on npm. `onemem-sdk-python@0.2.0` is repo-local and missing from PyPI. |
+| `02-sdks/` | TS/Python built and published | `@onemem/sdk-ts@0.6.0` is current on npm; `onemem-sdk-python@0.2.0` is current on PyPI. |
 | `03-runtimes/` | Built with proof boundaries | MCP/OpenClaw current on npm; Claude/Codex marketplace install works; npm/plugin hook live proof gaps remain explicit. |
-| `04-frameworks/` | Source built; registry drift remains | Provider source includes trace + explicit memory helpers; published npm/PyPI artifacts still lag local versions. |
-| `05-cli/` | Source built; registry gaps remain | TS/Python CLI source and docs are current; `@onemem/cli` and `onemem-cli` are not yet public registry packages. |
+| `04-frameworks/` | Built and published | Provider packages include trace + explicit memory helpers; current npm/PyPI versions match local source. |
+| `05-cli/` | Built and published | TS/Python CLI source and docs are current; `@onemem/cli`, `@onemem/dashboard`, and `onemem-cli` are public registry packages. |
 | `06-dashboard/` | Local/hosted source built | Local and hosted app builds/smokes exist. Hosted DNS deploy and Walrus Sites mirror remain external deploy evidence. |
 | `07-marketing-and-docs/` | Partial current docs | `apps/docs` and landing source exist; public domain deployment remains separate. |
 | `08-demos-and-tests/` | Executable demos + CI matrix | Four safe testnet demo harnesses and deterministic demo matrix are built. |

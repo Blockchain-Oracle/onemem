@@ -422,8 +422,8 @@ Release Auth Gate and Registry Publication Preflight are the fortieth
 release-readiness slice. Release now keeps Changesets release PR automation
 available when registry credentials are absent and only attempts npm/PyPI upload
 when the configured gates are present. `pnpm registry:status` now reports the
-current npm/PyPI truth table; strict mode fails until missing/drifted packages
-are actually published.
+current npm/PyPI truth table; strict mode is the required proof gate before any
+fresh registry-current claim.
 
 Hosted Holder Self-Revoke is the forty-first hosted/prototype slice. Hosted
 recipient capability pages now expose contract v0.1 holder self-revoke through
@@ -459,10 +459,11 @@ without printing secret values or uploading artifacts. Release workflow logs run
 this preflight before publish decisions. Published provider artifacts for
 Vercel AI, OpenAI Agents, CrewAI, LiveKit, and ElevenLabs were stale at their
 current registry versions, so local provider patch versions now advance to
-publishable versions with docs/tests guarding that boundary. In the current
-shell, npm and PyPI auth are absent; registry publication remains unproven until
-credentials are configured and `pnpm registry:status --strict` passes after
-publication.
+publishable versions with docs/tests guarding that boundary. On 2026-06-18,
+manual npm/PyPI publication completed and `pnpm registry:status --strict`
+proved every local npm and PyPI package current. `pnpm release:preflight
+--strict` also passes without active token env because no package publication is
+currently needed.
 
 CLI Dashboard Launcher is the forty-fifth CLI/docs slice. The TS CLI now
 registers `onemem dashboard`, delegates to the separate `onemem-dashboard`
@@ -472,17 +473,15 @@ dashboard, and public docs now list `onemem dashboard` as implemented instead of
 deferred; browser auto-open remains intentionally out of scope.
 
 Registry-Aware Current Docs is the forty-sixth docs/release-boundary slice.
-Current package READMEs and public docs now distinguish repo-local source truth
-from public npm/PyPI availability. Missing packages (`@onemem/cli`,
-`@onemem/dashboard`, `@onemem/claude-code-plugin`, `@onemem/codex-plugin`,
-`onemem-cli`, `onemem-sdk-python`) and drifted provider/Hermes versions are
-called out near install/API examples, with `pnpm registry:status` as the live
-truth command. This does not publish packages or change runtime behavior.
+Current package READMEs and public docs now route publication claims through
+`pnpm registry:status --strict`. After the 2026-06-18 live publication pass,
+those docs state the npm/PyPI packages are current while preserving separate
+proof boundaries for trusted hooks, hosted wallets, DNS, and deployment.
 
 Brand Assets Package Readiness is the forty-seventh brand/package slice.
 `@onemem/brand` now contains source-controlled logo SVGs and social/OG SVG
 templates under the directories it already exported. The active social campaign
-identity is recorded as `onememe.xyz` and `@OneMemAI`; `onemem.ai` remains a
+identity is recorded as `onemem.xyz` and `x.com/OneMemAI`; `onemem.ai` remains a
 historical placeholder in older architecture docs until a deliberate DNS/docs
 migration pass. A new structure shard guards the brand package asset inventory,
 dimensions, and public identity strings. PNG exports, live social accounts,
@@ -493,8 +492,8 @@ Brand Raster And Domain Readiness is the forty-eighth brand/package slice.
 banner, Discord/community banner, GitHub/OG image, product card, and demo video
 cover, beside the SVG source assets. The brand structure shard now validates PNG
 signatures and dimensions from file headers. DNS verification found that
-`onememe.xyz` and `www.onememe.xyz` currently have no A/AAAA records, so the
-campaign identity is not yet a live deployed website.
+`onemem.xyz` and `docs.onemem.xyz` are the current campaign targets; deployment
+is not yet claimed until DNS and hosted app responses are verified.
 
 Ship-Readiness Go And Product Copy is the forty-ninth ship-readiness slice.
 `.thoughts/plans/2026-06-18-ship-readiness-go.md` is the replacement autonomous
@@ -505,9 +504,21 @@ copy now leads with decentralized persistent memory for AI agents instead of
 "Etherscan for AI agents" or "Stop trusting agents"; GitHub/OG and product-card
 SVG plus PNG exports were refreshed. `@onemem/brand` now exports a checked-in
 `vendor-logos/` inventory for launch graphics, with manifest/source coverage in
-the brand structure shard. Current local auth proof: no exported npm/PyPI/Vercel
-tokens, no GitHub repo secrets/variables visible, and the local npm token line
-returns 401 on `npm whoami`; publication and Vercel deployment remain unclaimed.
+the brand structure shard. The later 2026-06-18 registry pass published all
+missing/drifted npm and PyPI packages and verified them with strict registry
+status. Vercel deployment remains unclaimed because no local Vercel auth/project
+link has been proven.
+
+Registry Publication Live is the fiftieth release-readiness slice. The PyPI
+publish path now handles empty optional `uv publish` args under `set -u`, guarded
+by structure tests and a dry-run publish pass. Live PyPI publication uploaded
+`onemem-sdk-python@0.2.0`, `onemem-cli@0.1.0`, `hermes-onemem@0.2.0`, and the
+three provider `0.1.1` packages. Live npm publication uploaded
+`@onemem/brand@0.1.1`, `@onemem/cli@0.1.0`, `@onemem/dashboard@0.1.1`,
+`@onemem/claude-code-plugin@0.1.0`, `@onemem/codex-plugin@0.1.0`,
+`@onemem/openai-agents@0.1.3`, and `@onemem/vercel-ai-provider@0.1.2`.
+Changesets created matching git tags at commit `0759f2c`. `pnpm
+registry:status --strict` and `pnpm release:preflight --strict` pass.
 
 ## Documentation Standing
 
@@ -540,7 +551,7 @@ Use subagents for independent lanes with disjoint write scopes:
    and record the returned Walrus URL; full dashboard static mirroring remains
    separate future work.
 3. Render the brand video/animated bumper once final submission video
-   requirements are known, and configure/confirm `onememe.xyz` DNS/hosting.
+   requirements are known, and configure/confirm `onemem.xyz` DNS/hosting.
 4. Link or authenticate Vercel projects for landing/docs/hosted-dashboard,
    deploy previews first, verify URLs/logs, then production and DNS records.
 5. Continue hosted/manual wallet verification for CLI delegate registration,
@@ -549,16 +560,10 @@ Use subagents for independent lanes with disjoint write scopes:
 6. Protocol-backed claim/transfer and owner-driven revoke remain separate
    follow-up designs.
 7. Re-run affected quality gates and write verification before claiming done.
-8. Restore npm auth or CI `NPM_TOKEN` / npm trusted publisher settings and
-   publish the missing npm packages plus fresh provider patch versions
-   (`@onemem/vercel-ai-provider@0.1.2`,
-   `@onemem/openai-agents@0.1.3`,
-   `@onemem/codex-plugin@0.1.0`,
-   `@onemem/claude-code-plugin@0.1.0`, and the other missing local packages).
-   Restore PyPI auth and publish `onemem-sdk-python@0.2.0`,
-   `hermes-onemem@0.2.0`, and provider patch versions `0.1.1`. The repo
-   release path is now provenance/public-access hardened, but registry
-   publication remains unproven until registry lookups return real versions.
+8. Configure CI repository secrets or npm/PyPI trusted publishing for future
+   automated releases. Manual npm/PyPI publication is current as of 2026-06-18,
+   but future version bumps should prove parity again with `pnpm
+   registry:status --strict`.
 
 ## Verification Rule
 

@@ -10,8 +10,8 @@ See `docs/02-inspirations/BRAND_AND_SURFACES.md` for the canonical brand spec.
 ## Public Identity
 
 - Product: OneMem
-- Public domain for the current social campaign: `onememe.xyz`
-- X handle: `@OneMemAI`
+- Public domain for the current social campaign: `onemem.xyz`
+- X profile: `x.com/OneMemAI`
 - Motto: "One memory layer for every agent."
 - Sharper social line: "Decentralized persistent memory for AI agents."
 
@@ -72,9 +72,9 @@ Vendor and ecosystem logo assets live in `vendor-logos/`:
 
 ## Domain Status
 
-`onememe.xyz` is the current campaign identity, but DNS is not live in this
-checkout's latest verification pass. Do not claim it as a deployed website until
-DNS resolves and the landing page is actually served.
+`onemem.xyz` is the current campaign identity, and `docs.onemem.xyz` is the
+docs domain to use in launch art. Do not claim either target as deployed until
+DNS resolves and the intended app is actually served.
 
 ## Usage Rules
 

@@ -8,11 +8,11 @@ description: "Vercel AI SDK, OpenAI Agents, CrewAI, LiveKit, ElevenLabs"
 Wrap your framework's model/agent/session and OneMem records each run as a verifiable on-chain trace. Provider wrappers are defensive by default: they buffer, flush off the host's critical path, and keep package-specific publish and live-test proof separate from the integration API.
 
 <Note>
-Registry note, 2026-06-18: current source includes explicit memory helper APIs
-for all five providers. Public registry artifacts are still behind those source
-versions (`@onemem/vercel-ai-provider@0.1.2`, `@onemem/openai-agents@0.1.3`,
-and Python providers `0.1.1` are pending publish). Run `pnpm registry:status`
-before claiming npm/PyPI install proof for helper APIs.
+Registry note, 2026-06-18: explicit memory helper APIs are current on public
+registry artifacts for all five providers:
+`@onemem/vercel-ai-provider@0.1.2`, `@onemem/openai-agents@0.1.3`, and Python
+providers `0.1.1`. This was verified with `pnpm registry:status --strict`;
+re-run it before making a fresh npm/PyPI install claim.
 </Note>
 
 ## JavaScript / TypeScript

@@ -85,7 +85,7 @@ from `pnpm registry:status`.
 | `@onemem/sdk-ts` namespace ops | Built; `NamespacesAPI` covers create, share ReadOnly/ReadWrite, holder self-revoke, admin revoke, and read helpers. |
 | `@onemem/sdk-ts` trace emit | Built; `TracesAPI` covers session start/end, action append/close, verification, and Walrus/Seal payload helpers. |
 | `@onemem/sdk-ts` published to npm | Current on npm at `0.6.0`. Re-check with `pnpm registry:status`. |
-| `onemem-sdk-python` skeleton | Built repo-locally at `0.2.0`; package exports RPC, trace verification, hashing, memory helpers, and generated addresses. |
+| `onemem-sdk-python` skeleton | Built at `0.2.0`; package exports RPC, trace verification, hashing, memory helpers, and generated addresses. |
 | `onemem-sdk-python` parity with TS | Partial; read/verify and memory bridge helpers are present, but full TS write-transaction parity remains future work. |
-| `onemem-sdk-python` published to PyPI | ⏳ pending; `pnpm registry:status` currently reports `onemem-sdk-python` as missing. |
-| Compatibility contract live | Source-level compatibility and generated address manifests are live; registry parity and Python write parity remain explicit release boundaries. |
+| `onemem-sdk-python` published to PyPI | Current on PyPI at `0.2.0`. Re-check with `pnpm registry:status --strict`. |
+| Compatibility contract live | Source-level compatibility and generated address manifests are live; Python write parity remains an explicit future boundary. |

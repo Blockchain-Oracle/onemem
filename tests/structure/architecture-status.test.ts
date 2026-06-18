@@ -40,7 +40,7 @@ describe("architecture implementation status docs", () => {
     assert.match(protocol, /\| Mainnet deployment \| ⏳ pending;/);
   });
 
-  test("SDK README separates built source from registry gaps", () => {
+  test("SDK README separates built source from remaining parity gaps", () => {
     const sdks = readText("docs/05-our-architecture/02-sdks/README.md");
     for (const label of [
       "`@onemem/sdk-ts` skeleton",
@@ -53,25 +53,28 @@ describe("architecture implementation status docs", () => {
     }
 
     assert.match(sdks, /Current on npm at `0\.6\.0`/);
-    assert.match(sdks, /Built repo-locally at `0\.2\.0`/);
+    assert.match(sdks, /Built at `0\.2\.0`/);
     assert.match(sdks, /Partial; read\/verify and memory bridge helpers are present/);
-    assert.match(sdks, /\| `onemem-sdk-python` published to PyPI \| ⏳ pending;/);
+    assert.match(sdks, /Current on PyPI at `0\.2\.0`/);
   });
 
   test("architecture overview routes readers to current scoped status", () => {
     const overview = readText("docs/05-our-architecture/README.md");
     assert.match(overview, /Current Status Orientation/);
     assert.match(overview, /\| `01-protocol\/` \| Built \+ testnet deployed \|/);
-    assert.match(overview, /\| `02-sdks\/` \| TS built\/published; Python source built \|/);
+    assert.match(overview, /\| `02-sdks\/` \| TS\/Python built and published \|/);
     assert.match(overview, /mainnet remains pending/i);
-    assert.match(overview, /missing from PyPI/i);
+    assert.match(overview, /onemem-sdk-python@0\.2\.0` is current on PyPI/i);
   });
 
   test("reference maps do not describe current architecture as not started", () => {
     const canonical = readText("docs/06-references/CANONICAL_URLS.md");
     const projectMap = readText(".thoughts/wiki/project-map.md");
 
-    assert.doesNotMatch(canonical, /05-our-architecture\/\*`?\s+—\s+design phase \(not yet started\)/i);
+    assert.doesNotMatch(
+      canonical,
+      /05-our-architecture\/\*`?\s+—\s+design phase \(not yet started\)/i,
+    );
     assert.match(canonical, /current scoped architecture status/);
 
     assert.doesNotMatch(projectMap, /older architecture docs still contain design-phase/i);

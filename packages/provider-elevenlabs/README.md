@@ -4,11 +4,10 @@ Record **ElevenLabs Conversational AI** voice sessions as **verifiable on-chain
 OneMem TraceSessions** (Sui + Walrus + Seal) — every transcript turn + client
 tool call captured as Merkle-chained `ActionCall`s anyone can verify.
 
-**Publication note, 2026-06-18:** this README describes repo-local
-`onemem-elevenlabs@0.1.1`. `pnpm registry:status` currently reports PyPI latest
-as `0.1.0`, which does not include `create_onemem_memory(...)`; use source or
-wait for registry status to report `0.1.1` current before relying on that helper
-from PyPI.
+**Publication note, 2026-06-18:** `onemem-elevenlabs@0.1.1` is current on PyPI
+after `pnpm registry:status --strict` and includes
+`create_onemem_memory(...)`. Re-run that command before making a fresh public
+install claim.
 
 ## Usage
 

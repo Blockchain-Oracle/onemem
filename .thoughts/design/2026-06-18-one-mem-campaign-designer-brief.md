@@ -19,7 +19,7 @@ Required asset families:
 - Designed architecture SVG, not Mermaid.
 - Motion storyboard for a later HyperFrames or Remotion intro.
 
-The first pass should produce source SVGs and platform-ready PNG exports. Any live URL claim must stay honest: `onememe.xyz` is the current campaign domain, but DNS/deployment should be verified before copy says the site is live.
+The first pass should produce source SVGs and platform-ready PNG exports. Any live URL claim must stay honest: `onemem.xyz` is the current campaign domain, but DNS/deployment should be verified before copy says the site is live.
 
 ## Product Context
 
@@ -109,7 +109,7 @@ Include:
 
 - OneMem mark and wordmark.
 - `@OneMemAI`
-- `onememe.xyz`
+- `onemem.xyz`
 - Cross-runtime memory rail into a persistent namespace.
 
 ### Link Card
@@ -119,8 +119,8 @@ Use `1200 x 630`. The card should be practical: a "start here" asset with the do
 Do not imply every package is already public if verification says otherwise. Prefer grouping:
 
 - GitHub: `github.com/Blockchain-Oracle/onemem`
-- Domain: `onememe.xyz`
-- Docs: `docs.onemem.ai` or docs source, pending deployment verification
+- Domain: `onemem.xyz`
+- Docs: `docs.onemem.xyz` or docs source, pending deployment verification
 - npm: `@onemem/sdk-ts`, `@onemem/mcp`
 - PyPI: provider packages where published
 - X: `@OneMemAI`
@@ -247,5 +247,5 @@ The visual language can be cinematic, technical, and editorial. The required con
 ## Open Questions
 
 - Final public docs URL should be re-verified before the link card is posted.
-- `onememe.xyz` DNS should be re-verified before using "live" language.
+- `onemem.xyz` DNS should be re-verified before using "live" language.
 - Confirm whether the campaign should later include a separate Discord banner or use the existing `og-images/discord-banner.svg`.

@@ -12,10 +12,9 @@ npm install -g @onemem/cli
 ```
 
 <Note>
-Registry note, 2026-06-18: this command is the target public install path.
-`pnpm registry:status` currently reports `@onemem/cli` and
-`@onemem/dashboard` as missing from npm, so use a built checkout until registry
-publication catches up.
+Registry note, 2026-06-18: `@onemem/cli` and `@onemem/dashboard` are current on
+npm after `pnpm registry:status --strict`. Re-run that command before making a
+fresh install claim.
 </Note>
 
 ## 2. Provision (zero-config)
@@ -39,9 +38,9 @@ It prints the namespace + cap and the env vars any runtime can use:
 Pick your stack — each is one line. Traces start recording automatically.
 
 <Note>
-Provider examples below describe current source. Some helper APIs are in local
-patch versions that public npm/PyPI artifacts have not caught up to yet; check
-`pnpm registry:status` before treating them as published install proof.
+Provider examples below are available from the current npm/PyPI artifacts after
+`pnpm registry:status --strict`. Re-run that command before making a fresh
+published-helper claim.
 </Note>
 
 <CodeGroup>

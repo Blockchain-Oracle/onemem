@@ -23,8 +23,8 @@
 
 ## Open Questions
 
-- Whether `docs.onemem.ai` is the final public docs domain or only the target domain.
-- Whether `onememe.xyz` is already live by the time assets are published.
+- Whether `docs.onemem.xyz` is live by the time assets are published.
+- Whether `onemem.xyz` is already live by the time assets are published.
 - Whether a Discord-specific campaign banner is needed beyond the existing brand `discord-banner` asset.
 
 ## Phase 1: Campaign Source Layer

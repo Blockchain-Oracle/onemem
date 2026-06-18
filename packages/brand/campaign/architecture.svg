@@ -60,7 +60,7 @@
     <rect x="508" y="250" width="330" height="158" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
     <path d="M526 268h294" stroke="#8f7cff" stroke-width="4" stroke-linecap="round"/>
     <text class="display" x="530" y="308" fill="#171717" font-size="28">SDK / MCP / plugins</text>
-    <text class="body" x="530" y="342" fill="#5f6572" font-size="18">@onemem/sdk-ts, @onemem/mcp, hooks</text>
+    <text class="body" x="530" y="342" fill="#5f6572" font-size="18">@onemem/sdk-ts, MCP, plugins</text>
   </g>
   <g filter="url(#small-shadow)">
     <rect x="508" y="476" width="330" height="158" rx="8" fill="#fffdf8" stroke="#e7e1d5" stroke-width="2"/>
@@ -71,10 +71,10 @@
   <g filter="url(#soft-shadow)">
     <rect x="936" y="294" width="382" height="274" rx="8" fill="#171717" stroke="#d4ff5e" stroke-width="3"/>
     <rect x="954" y="312" width="346" height="238" rx="6" fill="none" stroke="#2b3244" stroke-width="1"/>
-    <path d="M992 360 1127 322 1262 360v170L1127 540 992 530z" fill="none" stroke="#8f7cff" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M992 360 1127 398 1262 360M1127 398v142" fill="none" stroke="#d4ff5e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-    <text class="display" x="1127" y="498" text-anchor="middle" fill="#fffdf8" font-size="34">MemoryNamespace</text>
-    <text class="mono" x="1127" y="528" text-anchor="middle" fill="#d4ff5e" font-size="15">user | agent | org | session | shared</text>
+    <path d="M992 360 1127 322 1262 360v106L1127 466 992 456z" fill="none" stroke="#8f7cff" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M992 360 1127 398 1262 360M1127 398v68" fill="none" stroke="#d4ff5e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="display" x="1127" y="512" text-anchor="middle" fill="#fffdf8" font-size="31">MemoryNamespace</text>
+    <text class="mono" x="1127" y="538" text-anchor="middle" fill="#d4ff5e" font-size="13">user | agent | org | session | shared</text>
   </g>
   <text class="display" x="1430" y="278" fill="#171717" font-size="30">Capability authority</text>
   <g>
@@ -135,7 +135,7 @@
   <rect x="96" y="922" width="1668" height="46" rx="8" fill="#0a0f18"/>
   <text class="mono" x="122" y="951" fill="#d4ff5e" font-size="17">memory-first:</text>
   <text class="mono" x="270" y="951" fill="#fffdf8" font-size="17">add -> encrypt -> store -> anchor -> share -> recall</text>
-  <text class="mono" x="1436" y="951" fill="#fffdf8" font-size="17">onememe.xyz</text>
+  <text class="mono" x="1436" y="951" fill="#fffdf8" font-size="17">onemem.xyz</text>
   <g>
     <rect x="1572" y="934" width="21" height="21" rx="4" fill="#fffdf8"/>
     <image href="data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+WDwvdGl0bGU+PHBhdGggZD0iTTE0LjIzNCAxMC4xNjIgMjIuOTc3IDBoLTIuMDcybC03LjU5MSA4LjgyNEw3LjI1MSAwSC4yNThsOS4xNjggMTMuMzQzTC4yNTggMjRIMi4zM2w4LjAxNi05LjMxOEwxNi43NDkgMjRoNi45OTN6bS0yLjgzNyAzLjI5OS0uOTI5LTEuMzI5TDMuMDc2IDEuNTZoMy4xODJsNS45NjUgOC41MzIuOTI5IDEuMzI5IDcuNzU0IDExLjA5aC0zLjE4MnoiLz48L3N2Zz4=" x="1577" y="939" width="11" height="11" preserveAspectRatio="xMidYMid meet"/>

@@ -71,15 +71,14 @@ describe("OneMem monorepo structure", () => {
       assert.match(script, /ZipFile/);
     });
 
-    test("framework docs distinguish local package truth from stale registry artifacts", () => {
+    test("framework docs state published artifacts include memory helper APIs", () => {
       const docs = readText("docs/05-our-architecture/04-frameworks/README.md");
 
-      for (const version of ["0.1.2", "0.1.3"]) {
-        assert.match(docs, new RegExp(`local \`${version}\` pending publish`));
+      for (const version of ["0.1.2", "0.1.3", "0.1.1"]) {
+        assert.match(docs, new RegExp(`current at \`${version}\` with explicit memory helper`));
       }
-      assert.match(docs, /npm `0\.1\.1` artifact lacks explicit memory helper/);
-      assert.match(docs, /npm `0\.1\.2` artifact lacks explicit memory helper/);
-      assert.match(docs, /PyPI `0\.1\.0` artifact lacks explicit memory helper/);
+      assert.match(docs, /pnpm registry:status --strict/);
+      assert.doesNotMatch(docs, /pending publish|artifact lacks explicit memory helper/);
     });
   });
 });

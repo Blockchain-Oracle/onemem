@@ -3,8 +3,8 @@
 ## Canonical Identity
 
 - Product: OneMem
-- Domain: `onememe.xyz`
-- X handle: `@OneMemAI`
+- Domain: `onemem.xyz`
+- X profile: `x.com/OneMemAI`
 - Product thesis: decentralized persistent memory for AI agents.
 - Short line: One memory layer for every agent.
 - Comparison anchor: Mem0 proved the persistent AI memory developer surface. OneMem decentralizes the memory layer around Sui, Walrus, Seal, and MemWal.
@@ -194,8 +194,8 @@ Avoid:
 Use these labels consistently in graphics, captions, and motion frames:
 
 - OneMem
-- onememe.xyz
-- @OneMemAI
+- onemem.xyz
+- x.com/OneMemAI
 - Mem0-style memory
 - Sui
 - Walrus
@@ -255,8 +255,8 @@ Agents can add memories, search memories, and reuse context across sessions and 
 
 Public identity:
 - Product: OneMem
-- Website: onememe.xyz
-- X: @OneMemAI
+- Website: onemem.xyz
+- X: x.com/OneMemAI
 - Main line: One memory layer for every agent.
 
 Supported surfaces to reflect in brand/asset concepts:
@@ -303,7 +303,7 @@ Storyboard:
 6. A second runtime recalls a memory written by the first.
 7. A subtle Sui receipt line appears underneath as provenance.
 8. Lime pulse confirms persistence/provenance.
-9. Final frame: OneMem logo, `@OneMemAI`, `onememe.xyz`, "One memory layer for every agent."
+9. Final frame: OneMem logo, `x.com/OneMemAI`, `onemem.xyz`, "One memory layer for every agent."
 
 Sound direction:
 - Clean infrastructure pulse.

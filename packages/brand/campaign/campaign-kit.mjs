@@ -142,20 +142,33 @@ export function logoChip({
   imageW = 36,
   imageH = 36,
 }) {
+  const labelY = y + Math.round(h / 2) - 4;
+  const subY = y + Math.round(h / 2) + 18;
+  const accentTop = y + Math.max(16, Math.round(h * 0.26));
+  const accentBottom = y + h - Math.max(16, Math.round(h * 0.26));
   const image = file
     ? `<image href="${logoData(file)}" x="${x + 18}" y="${y + (h - imageH) / 2}" width="${imageW}" height="${imageH}" preserveAspectRatio="xMidYMid meet"/>`
     : `<circle cx="${x + 36}" cy="${y + 35}" r="18" fill="${accent}"/><text class="mono" x="${x + 36}" y="${y + 41}" text-anchor="middle" fill="${palette.ink}" font-size="15">${escapeText(label.slice(0, 2).toUpperCase())}</text>`;
   return `<g filter="url(#small-shadow)">
     <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${palette.paper}" stroke="#e7e1d5" stroke-width="1"/>
     ${image}
-    <text class="small" x="${x + 68}" y="${y + 31}" fill="${palette.ink}" font-size="16">${escapeText(label)}</text>
-    <text class="mono" x="${x + 68}" y="${y + 52}" fill="${palette.mutedDark}" font-size="11">${escapeText(sub)}</text>
-    <path d="M${x + w - 28} ${y + 18}v34" stroke="${accent}" stroke-width="3" stroke-linecap="round"/>
+    <text class="small" x="${x + 68}" y="${labelY}" fill="${palette.ink}" font-size="16">${escapeText(label)}</text>
+    <text class="mono" x="${x + 68}" y="${subY}" fill="${palette.mutedDark}" font-size="11">${escapeText(sub)}</text>
+    <path d="M${x + w - 28} ${accentTop}v${accentBottom - accentTop}" stroke="${accent}" stroke-width="3" stroke-linecap="round"/>
   </g>`;
 }
 
 export function logoIcon(file, x, y, w, h) {
   return `<image href="${logoData(file)}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"/>`;
+}
+
+export function docIcon(x, y, size = 18, color = palette.sui) {
+  const fold = Math.round(size * 0.32);
+  return `<g>
+    <path d="M${x + 3} ${y + 1}h${size - fold - 4}l${fold + 1} ${fold + 1}v${size - 4}H${x + 3}z" fill="#f8fbff" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M${x + size - fold} ${y + 2}v${fold + 1}h${fold}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M${x + 7} ${y + size * 0.56}h${size - 11}M${x + 7} ${y + size * 0.74}h${size - 13}" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>
+  </g>`;
 }
 
 export function xUrl(x, y, size = 16) {
@@ -168,15 +181,21 @@ export function xUrl(x, y, size = 16) {
 }
 
 export function namespaceVault(x, y, w, h, label = "MemoryNamespace") {
-  const titleSize = w < 340 ? 26 : 34;
-  const metaSize = w < 340 ? 12 : 15;
+  const compact = w < 340 || h < 240;
+  const titleSize = compact ? 22 : 31;
+  const metaSize = compact ? 10 : 13;
+  const lidY = y + (compact ? 58 : 66);
+  const midY = y + (compact ? 92 : 104);
+  const bottomY = y + h - (compact ? 88 : 102);
+  const titleY = y + h - (compact ? 54 : 56);
+  const metaY = y + h - (compact ? 28 : 30);
   return `<g filter="url(#soft-shadow)">
     <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${palette.ink}" stroke="${palette.lime}" stroke-width="3"/>
     <rect x="${x + 18}" y="${y + 18}" width="${w - 36}" height="${h - 36}" rx="6" fill="none" stroke="${palette.stroke}" stroke-width="1"/>
-    <path d="M${x + 56} ${y + 66} ${x + w / 2} ${y + 28} ${x + w - 56} ${y + 66}v${h - 104}L${x + w / 2} ${y + h - 28} ${x + 56} ${y + h - 38}z" fill="none" stroke="${palette.violet}" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M${x + 56} ${y + 66} ${x + w / 2} ${y + 104} ${x + w - 56} ${y + 66}M${x + w / 2} ${y + 104}v${h - 132}" fill="none" stroke="${palette.lime}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-    <text class="display" x="${x + w / 2}" y="${y + h - 70}" text-anchor="middle" fill="${palette.paper}" font-size="${titleSize}">${escapeText(label)}</text>
-    <text class="mono" x="${x + w / 2}" y="${y + h - 40}" text-anchor="middle" fill="${palette.lime}" font-size="${metaSize}">user | agent | org | session | shared</text>
+    <path d="M${x + 56} ${lidY} ${x + w / 2} ${y + 28} ${x + w - 56} ${lidY}v${bottomY - lidY}L${x + w / 2} ${bottomY} ${x + 56} ${bottomY - 10}z" fill="none" stroke="${palette.violet}" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M${x + 56} ${lidY} ${x + w / 2} ${midY} ${x + w - 56} ${lidY}M${x + w / 2} ${midY}v${Math.max(8, bottomY - midY)}" fill="none" stroke="${palette.lime}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="display" x="${x + w / 2}" y="${titleY}" text-anchor="middle" fill="${palette.paper}" font-size="${titleSize}">${escapeText(label)}</text>
+    <text class="mono" x="${x + w / 2}" y="${metaY}" text-anchor="middle" fill="${palette.lime}" font-size="${metaSize}">user | agent | org | session | shared</text>
   </g>`;
 }
 

@@ -10,7 +10,7 @@ function readText(path: string): string {
 }
 
 describe("registry-aware docs", () => {
-  test("public install docs expose the current registry boundary", () => {
+  test("public install docs expose the current registry proof boundary", () => {
     const docs = [
       "README.md",
       "apps/docs/quickstart.mdx",
@@ -22,22 +22,18 @@ describe("registry-aware docs", () => {
     for (const doc of docs) {
       assert.match(
         readText(doc),
-        /pnpm registry:status/,
-        `${doc} must point readers at live registry status before publication claims`,
+        /pnpm registry:status --strict/,
+        `${doc} must point readers at strict registry status before publication claims`,
       );
     }
 
     const cliReference = readText("apps/docs/reference/cli.mdx");
-    for (const missingPackage of ["@onemem/cli", "@onemem/dashboard", "onemem-cli"]) {
-      assert.match(
-        cliReference,
-        new RegExp(missingPackage),
-        `CLI docs must name ${missingPackage}`,
-      );
+    for (const packageName of ["@onemem/cli", "@onemem/dashboard", "onemem-cli"]) {
+      assert.match(cliReference, new RegExp(packageName), `CLI docs must name ${packageName}`);
     }
   });
 
-  test("missing or drifted package READMEs contain publication notes", () => {
+  test("published package READMEs contain registry proof notes", () => {
     const packageReadmes = [
       "packages/cli-ts/README.md",
       "packages/dashboard/README.md",
@@ -55,30 +51,35 @@ describe("registry-aware docs", () => {
     for (const doc of packageReadmes) {
       const content = readText(doc);
       assert.match(content, /Publication note, 2026-06-18|Publication\/proof note, 2026-06-18/);
-      assert.match(content, /pnpm registry:status/, `${doc} must cite registry status`);
+      assert.match(content, /current on\s+(npm|PyPI)/, `${doc} must state current registry status`);
+      assert.match(
+        content,
+        /pnpm registry:status --strict/,
+        `${doc} must cite strict registry status`,
+      );
     }
   });
 
-  test("provider docs distinguish source helpers from stale registry artifacts", () => {
+  test("provider docs state helper APIs are in current registry artifacts", () => {
     const providers = readText("apps/docs/integrations/providers.mdx");
     assert.match(providers, /explicit memory helper APIs/);
-    assert.match(providers, /pending publish/);
-    assert.match(providers, /before claiming npm\/PyPI install proof/);
+    assert.match(providers, /current on public\s+registry artifacts/);
+    assert.match(providers, /pnpm registry:status --strict/);
 
     const architecture = readText("docs/05-our-architecture/04-frameworks/README.md");
-    assert.match(architecture, /source is ahead of published artifacts/);
-    assert.match(architecture, /do\s+not contain the explicit memory helper APIs/);
+    assert.match(architecture, /current on\s+public registries/);
+    assert.match(architecture, /with explicit memory helper/);
   });
 
   test("runtime docs keep marketplace install, npm publication, and hook proof separate", () => {
     const runtimes = readText("docs/05-our-architecture/03-runtimes/README.md");
     assert.match(runtimes, /Repository marketplace\s+install is current/);
-    assert.match(runtimes, /missing on\s+npm/);
-    assert.match(runtimes, /script-level hook\s+proof/);
+    assert.match(runtimes, /runtime npm\/PyPI packages are current/);
+    assert.match(runtimes, /trusted-client on-chain proof/);
 
     const claude = readText("packages/plugin-claude-code/README.md");
-    assert.match(claude, /current install surface/);
-    assert.match(claude, /missing from npm/);
+    assert.match(claude, /marketplace path is current/);
+    assert.match(claude, /current on npm/);
     assert.match(
       claude,
       /trusted live Claude Code client hook session is a\s+separate proof boundary/,

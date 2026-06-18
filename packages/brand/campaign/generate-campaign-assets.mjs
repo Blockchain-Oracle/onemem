@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   assets,
+  docIcon,
   escapeText,
   linkLine,
   logoChip,
@@ -17,6 +18,8 @@ import {
 } from "./campaign-kit.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const domain = "onemem.xyz";
+const docsUrl = "docs.onemem.xyz";
 
 function readmeHero() {
   const { width, height } = assets.readmeHero;
@@ -43,7 +46,7 @@ function readmeHero() {
   ${logoChip({ x: 1162, y: 172, w: 174, h: 78, label: "Walrus", sub: "store blob", file: "svg/walrus-icon.svg", accent: palette.sui, imageW: 42, imageH: 42 })}
   <circle cx="1298" cy="292" r="18" fill="${palette.lime}"/>
   <path d="m1288 291 8 8 17-22" fill="none" stroke="${palette.ink}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <text class="mono" x="1100" y="318" fill="${palette.paper}" font-size="16">onememe.xyz</text>
+  <text class="mono" x="1100" y="318" fill="${palette.paper}" font-size="16">${domain}</text>
   ${xUrl(1220, 318, 15)}
 `,
   });
@@ -76,7 +79,7 @@ function xHeader() {
   ${runtimePill(218, 332, "MCP", "blue", 94)}
   ${runtimePill(330, 332, "Plugins", "violet", 126)}
   ${runtimePill(474, 332, "Frameworks", "violet", 156)}
-  <text class="mono" x="1112" y="400" fill="${palette.paper}" font-size="25">onememe.xyz</text>
+  <text class="mono" x="1112" y="400" fill="${palette.paper}" font-size="25">${domain}</text>
   ${xUrl(1112, 436, 23)}
 `,
   });
@@ -85,26 +88,30 @@ function xHeader() {
 function linkCard() {
   const { width, height } = assets.linkCard;
   const links = [
-    ["Domain", "onememe.xyz", palette.lime],
-    ["GitHub", "github.com/Blockchain-Oracle/onemem", palette.violet],
-    ["Docs", "docs.onemem.ai", palette.sui],
-    ["npm", "npmjs.com/package/@onemem/sdk-ts", palette.violet],
-    ["MCP", "npmjs.com/package/@onemem/mcp", palette.violet],
-    ["PyPI", "pypi.org/project/hermes-onemem", palette.green],
-    ["X", "x.com/OneMemAI", palette.ink, "svg/x.svg"],
+    { label: "Domain", value: domain, accent: palette.lime, kind: "domain" },
+    { label: "GitHub", value: "github.com/Blockchain-Oracle/onemem", accent: palette.violet, file: "svg/github.svg" },
+    { label: "Docs", value: docsUrl, accent: palette.sui, kind: "docs" },
+    { label: "npm", value: "npmjs.com/package/@onemem/sdk-ts", accent: palette.violet, file: "svg/npm.svg" },
+    { label: "MCP", value: "npmjs.com/package/@onemem/mcp", accent: palette.violet, file: "svg/model-context-protocol.svg" },
+    { label: "PyPI", value: "pypi.org/project/hermes-onemem", accent: palette.green, file: "svg/pypi.svg" },
+    { label: "Python", value: "github.com/.../packages/sdk-python", accent: palette.sui, file: "svg/python.svg" },
+    { label: "X", value: "x.com/OneMemAI", accent: palette.ink, file: "svg/x.svg" },
   ];
   const linkRows = links
     .map((item, index) => {
-      const y = 212 + index * 48;
+      const y = 198 + index * 43;
+      const icon = item.file
+        ? logoIcon(item.file, 630, y - 18, 17, 17)
+        : item.kind === "docs"
+          ? docIcon(628, y - 20, 20, item.accent)
+          : item.kind === "domain"
+            ? mark(628, y - 22, 22)
+            : `<circle cx="638" cy="${y - 8}" r="6" fill="${item.accent}"/>`;
       return `<g>
         <rect x="612" y="${y - 27}" width="482" height="38" rx="8" fill="${palette.paper}" stroke="#e7e1d5"/>
-        ${
-          item[3]
-            ? logoIcon(item[3], 630, y - 17, 16, 16)
-            : `<circle cx="638" cy="${y - 8}" r="6" fill="${item[2]}"/>`
-        }
-        <text class="mono" x="660" y="${y - 3}" fill="${palette.mutedDark}" font-size="13">${escapeText(item[0])}</text>
-        <text class="small" x="756" y="${y - 3}" fill="${palette.ink}" font-size="16">${escapeText(item[1])}</text>
+        ${icon}
+        <text class="mono" x="660" y="${y - 3}" fill="${palette.mutedDark}" font-size="13">${escapeText(item.label)}</text>
+        <text class="small" x="756" y="${y - 3}" fill="${palette.ink}" font-size="15">${escapeText(item.value)}</text>
       </g>`;
     })
     .join("\n");
@@ -119,16 +126,16 @@ function linkCard() {
   <rect x="52" y="52" width="1096" height="526" rx="8" fill="${palette.paper}" stroke="#e4ded1" stroke-width="2"/>
   <rect x="52" y="52" width="502" height="526" rx="8" fill="${palette.dark2}"/>
   <rect x="52" y="52" width="502" height="526" rx="8" fill="url(#tight-grid)" opacity=".74"/>
-  ${mark(98, 104, 86)}
-  <text class="display" x="204" y="158" fill="${palette.paper}" font-size="62">OneMem</text>
-  <text class="display" x="98" y="244" fill="${palette.paper}" font-size="46">Start here.</text>
-  <text class="body" x="100" y="292" fill="${palette.muted}" font-size="25">Decentralized persistent memory</text>
-  <text class="body" x="100" y="324" fill="${palette.muted}" font-size="25">for AI agents.</text>
+  ${mark(100, 104, 68)}
+  <text class="display" x="188" y="154" fill="${palette.paper}" font-size="54">OneMem</text>
+  <text class="display" x="100" y="236" fill="${palette.paper}" font-size="44">Start here.</text>
+  <text class="body" x="100" y="286" fill="${palette.muted}" font-size="24">Decentralized memory</text>
+  <text class="body" x="100" y="318" fill="${palette.muted}" font-size="24">for AI agents.</text>
   ${memoryCard(100, 344, 330, "memory.add()", "Seal encrypted Walrus blob", "lime")}
   ${memoryCard(144, 442, 330, "memory.search()", "same context, every runtime", "violet")}
   <text class="mono" x="100" y="540" fill="${palette.lime}" font-size="18">One memory layer for every agent.</text>
   <text class="display" x="612" y="118" fill="${palette.ink}" font-size="46">Relevant links</text>
-  <text class="body" x="614" y="156" fill="${palette.mutedDark}" font-size="20">Campaign, source, packages, docs, and social handle.</text>
+  <text class="body" x="614" y="156" fill="${palette.mutedDark}" font-size="20">Source, docs, packages, Python, MCP, and social.</text>
   ${linkRows}
 `,
   });
@@ -159,17 +166,17 @@ function toolsGrid() {
     ["ElevenLabs", "voice provider", "svg/elevenlabs.svg"],
   ];
   const core = [
-    ["Sui", "namespace + caps", "svg/sui.svg"],
-    ["Walrus", "blob storage", "svg/walrus-icon.svg"],
-    ["Seal", "encryption gate", "svg/seal.svg"],
-    ["MemWal", "memory relayer", "svg/walrus-docs.svg"],
+    { label: "Sui", sub: "namespace + caps", file: "svg/sui.svg", accent: palette.sui, imageW: 34, imageH: 34 },
+    { label: "Walrus", sub: "blob storage", file: "svg/walrus-icon.svg", accent: palette.lime, imageW: 34, imageH: 34 },
+    { label: "Seal", sub: "encryption gate", file: "svg/seal.svg", accent: palette.lime, imageW: 50, imageH: 24 },
+    { label: "MemWal", sub: "memory relayer", file: "svg/walrus-docs.svg", accent: palette.lime, imageW: 48, imageH: 22 },
   ];
 
   const chips = [
     ...native.map((item, i) => logoChip({ x: 86, y: 170 + i * 88, label: item[0], sub: item[1], file: item[2], accent: palette.violet })),
     ...mcp.map((item, i) => logoChip({ x: 86 + (i % 2) * 252, y: 560 + Math.floor(i / 2) * 82, w: 236, label: item[0], sub: item[1], file: item[2], accent: palette.sui })),
     ...providers.map((item, i) => logoChip({ x: 1212, y: 170 + i * 88, label: item[0], sub: item[1], file: item[2], accent: palette.violet })),
-    ...core.map((item, i) => logoChip({ x: 1212, y: 620 + i * 68, label: item[0], sub: item[1], file: item[2], accent: i === 0 ? palette.sui : palette.lime })),
+    ...core.map((item, i) => logoChip({ x: 1212, y: 612 + i * 70, h: 64, label: item.label, sub: item.sub, file: item.file, accent: item.accent, imageW: item.imageW, imageH: item.imageH })),
   ].join("\n");
 
   return svg({
@@ -185,7 +192,7 @@ function toolsGrid() {
   <text class="mono" x="86" y="160" fill="${palette.lime}" font-size="14">native runtime plugins</text>
   <text class="mono" x="86" y="548" fill="${palette.sui}" font-size="14">MCP-compatible clients</text>
   <text class="mono" x="1212" y="160" fill="${palette.violet}" font-size="14">framework providers</text>
-  <text class="mono" x="1212" y="606" fill="${palette.lime}" font-size="14">core protocol stack</text>
+  <text class="mono" x="1212" y="600" fill="${palette.lime}" font-size="14">core protocol stack</text>
   ${chips}
   ${namespaceVault(586, 262, 428, 294, "OneMem")}
   <text class="display" x="800" y="606" text-anchor="middle" fill="${palette.paper}" font-size="31">One memory layer</text>
@@ -195,7 +202,7 @@ function toolsGrid() {
   ${linkLine(486, 662, 586, 510, palette.sui, "arrow-blue", 4, .86)}
   ${linkLine(1014, 366, 1212, 346, palette.violet, "arrow-violet", 4, .9)}
   ${linkLine(1014, 510, 1212, 724, palette.lime, "arrow-lime", 4, .84)}
-  <text class="mono" x="668" y="742" fill="${palette.paper}" font-size="16">onememe.xyz</text>
+  <text class="mono" x="668" y="742" fill="${palette.paper}" font-size="16">${domain}</text>
   ${xUrl(820, 742, 15)}
 `,
   });
@@ -227,7 +234,7 @@ function architecture() {
   <text class="body" x="100" y="170" fill="${palette.mutedDark}" font-size="25">Decentralized persistent memory for AI agents, with proof as the confidence layer.</text>
   ${box(96, 250, 330, 158, "Agents & runtimes", "Claude Code, Codex, OpenClaw, Hermes", palette.violet)}
   ${box(96, 476, 330, 158, "Developer surface", "add, search, trace, share, revoke", palette.violet)}
-  ${box(508, 250, 330, 158, "SDK / MCP / plugins", "@onemem/sdk-ts, @onemem/mcp, hooks", palette.violet)}
+  ${box(508, 250, 330, 158, "SDK / MCP / plugins", "@onemem/sdk-ts, MCP, plugins", palette.violet)}
   ${box(508, 476, 330, 158, "Provider adapters", "Vercel, OpenAI Agents, CrewAI, voice", palette.violet)}
   ${namespaceVault(936, 294, 382, 274, "MemoryNamespace")}
   <text class="display" x="1430" y="278" fill="${palette.ink}" font-size="30">Capability authority</text>
@@ -252,7 +259,7 @@ function architecture() {
   <rect x="96" y="922" width="1668" height="46" rx="8" fill="${palette.dark2}"/>
   <text class="mono" x="122" y="951" fill="${palette.lime}" font-size="17">memory-first:</text>
   <text class="mono" x="270" y="951" fill="${palette.paper}" font-size="17">add -> encrypt -> store -> anchor -> share -> recall</text>
-  <text class="mono" x="1436" y="951" fill="${palette.paper}" font-size="17">onememe.xyz</text>
+  <text class="mono" x="1436" y="951" fill="${palette.paper}" font-size="17">${domain}</text>
   ${xUrl(1572, 951, 15)}
 `,
   });
@@ -299,7 +306,7 @@ function motionStoryboard() {
   ${beats.map(frame).join("\n")}
   <text class="mono" x="96" y="962" fill="${palette.lime}" font-size="18">sound:</text>
   <text class="mono" x="166" y="962" fill="${palette.paper}" font-size="18">low pulse -> memory click -> encrypted sweep -> clean recall tone</text>
-  <text class="mono" x="1526" y="962" fill="${palette.paper}" font-size="18">onememe.xyz</text>
+  <text class="mono" x="1526" y="962" fill="${palette.paper}" font-size="18">${domain}</text>
   ${xUrl(1662, 962, 16)}
 `,
   });

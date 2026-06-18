@@ -16,8 +16,9 @@ claude plugin install onemem@onemem
 
 Hooks `SessionStart`, `PostToolUse`, and `SessionEnd` record a Merkle-chained
 TraceSession per session when the plugin is installed, configured, and hooks run.
-The GitHub repository marketplace path is current; npm publication for
-`@onemem/claude-code-plugin` is still missing per `pnpm registry:status`.
+The GitHub repository marketplace path is current, and
+`@onemem/claude-code-plugin@0.1.0` is current on npm. Trusted live Claude Code
+hook proof remains a separate on-chain verification boundary.
 
 ## Codex
 
@@ -55,10 +56,10 @@ pip install hermes-onemem
 Subclasses Hermes's `MemoryProvider` ABC; buffers turns + tool calls + delegations and flushes one verifiable trace per run via the `onemem-trace` bridge.
 
 <Note>
-Registry note, 2026-06-18: `@onemem/mcp`, `@onemem/oc-onemem`, and
-`@onemem/sdk-ts` are current on npm. CLI/dashboard/Codex/Claude plugin npm
-packages are missing, and `hermes-onemem@0.2.0` is ahead of PyPI latest
-`0.1.0`. Use `pnpm registry:status` for current publication truth.
+Registry note, 2026-06-18: runtime npm/PyPI packages in this repo are current
+after `pnpm registry:status --strict`. MCP works without hook trust; automatic
+Claude/Codex hook tracing still requires trusted live client sessions and
+on-chain TraceSession verification before claiming full coverage.
 </Note>
 
 <Note>

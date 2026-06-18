@@ -13,7 +13,7 @@ belong in the confidence layer, not the headline.
 | File | Size | Use |
 | --- | ---: | --- |
 | `readme-hero.svg` / `.png` | 1400 x 360 | Shallow GitHub README banner |
-| `x-header.svg` / `.png` | 1500 x 500 | X profile header for `@OneMemAI` |
+| `x-header.svg` / `.png` | 1500 x 500 | X profile header for `x.com/OneMemAI` |
 | `link-card.svg` / `.png` | 1200 x 630 | Link-preview/start-here social card |
 | `tools-grid.svg` / `.png` | 1600 x 900 | Supported tools, runtimes, providers, and core stack |
 | `architecture.svg` / `.png` | 1920 x 1080 | Designed architecture/flow diagram |
@@ -25,14 +25,15 @@ SVG source dimensions.
 ## Public Identity
 
 - Product: OneMem
-- Campaign domain: `onememe.xyz`
+- Campaign domain: `onemem.xyz`
 - X handle: `@OneMemAI`
 - X URL for artwork: `x.com/OneMemAI`
 - GitHub: `github.com/Blockchain-Oracle/onemem`
-- Target docs: `docs.onemem.ai`
+- Target docs: `docs.onemem.xyz`
 - Confirmed npm entry points during this pass: `@onemem/sdk-ts`, `@onemem/mcp`
 - Confirmed PyPI provider packages during this pass: `hermes-onemem`,
   `onemem-crewai`, `onemem-livekit`, `onemem-elevenlabs`
+- Python SDK source: `github.com/Blockchain-Oracle/onemem/tree/main/packages/sdk-python`
 
 Check DNS/docs/package status again before using copy that says a link is live.
 

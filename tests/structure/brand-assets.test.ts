@@ -139,8 +139,8 @@ describe("brand package assets", () => {
       const [width, height] = dims.split(" ");
       assert.match(svg, new RegExp(`width="${width}"`), `${rel} width must be ${width}`);
       assert.match(svg, new RegExp(`height="${height}"`), `${rel} height must be ${height}`);
-      assert.match(svg, /onememe\.xyz/, `${rel} must use the active public domain`);
-      assert.match(svg, /OneMemAI/, `${rel} must use the active X handle`);
+      assert.match(svg, /onemem\.xyz/, `${rel} must use the active public domain`);
+      assert.match(svg, /x\.com\/OneMemAI/, `${rel} must use the active X profile URL`);
     }
   });
 
@@ -157,6 +157,7 @@ describe("brand package assets", () => {
       assert.match(svg, new RegExp(`width="${width}"`), `${rel} width must be ${width}`);
       assert.match(svg, new RegExp(`height="${height}"`), `${rel} height must be ${height}`);
       assert.match(svg, /OneMem/, `${rel} must identify OneMem`);
+      assert.match(svg, /onemem\.xyz/, `${rel} must include the active public domain`);
       assert.match(svg, /x\.com\/OneMemAI/, `${rel} must include the X profile URL`);
       assert.doesNotMatch(svg, /OpenClaude|Stop trusting|Etherscan for AI agents/i);
     }
@@ -165,9 +166,18 @@ describe("brand package assets", () => {
       assertPng(rel, width, height);
     }
 
+    const linkCard = read("packages/brand/campaign/link-card.svg");
+    assert.match(linkCard, /github\.com\/Blockchain-Oracle\/onemem/);
+    assert.match(linkCard, /docs\.onemem\.xyz/);
+    assert.match(linkCard, /npmjs\.com\/package\/@onemem\/sdk-ts/);
+    assert.match(linkCard, /npmjs\.com\/package\/@onemem\/mcp/);
+    assert.match(linkCard, /pypi\.org\/project\/hermes-onemem/);
+    assert.match(linkCard, /packages\/sdk-python/);
+
     const campaignReadme = read("packages/brand/campaign/README.md");
     assert.match(campaignReadme, /One memory layer for every agent/);
-    assert.match(campaignReadme, /onememe\.xyz/);
+    assert.match(campaignReadme, /onemem\.xyz/);
+    assert.match(campaignReadme, /docs\.onemem\.xyz/);
     assert.match(campaignReadme, /@OneMemAI/);
     assert.match(campaignReadme, /x\.com\/OneMemAI/);
     assert.match(campaignReadme, /OpenClaw/);
@@ -183,8 +193,9 @@ describe("brand package assets", () => {
     ]) {
       assert.match(readme, new RegExp(basename(rel).replace(".", "\\.")), `${rel} missing`);
     }
-    assert.match(readme, /onememe\.xyz/);
-    assert.match(readme, /@OneMemAI/);
+    assert.match(readme, /onemem\.xyz/);
+    assert.match(readme, /docs\.onemem\.xyz/);
+    assert.match(readme, /x\.com\/OneMemAI/);
     assert.match(readme, /SVG source assets/);
     assert.match(readme, /platform-ready PNG exports/i);
   });

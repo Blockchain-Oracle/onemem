@@ -12,10 +12,9 @@ exists for historical context, but day-to-day work now follows the Context
 Engineering router in `AGENTS.md` and the artifacts under
 `.thoughts/`.
 
-Registry publication is still catching up to source for several packages. Before
-claiming an install path is live on npm or PyPI, run `pnpm registry:status`; the
-Release workflow can be green even when package upload is skipped for missing
-credentials.
+Registry publication is current for the repo's npm and PyPI packages as of the
+2026-06-18 `pnpm registry:status --strict` verification. Re-run that command
+before making a fresh public install claim.
 
 ## Where to start
 
@@ -42,7 +41,7 @@ pnpm exec lefthook install   # git hooks
 ## Workspace at a glance
 
 - `packages/` — 16 libraries (TS + Python mixed; SDKs, CLI, MCP server, dashboard, brand assets, plugins, providers)
-- `apps/` — landing (`onemem.ai` historical placeholder; current social campaign uses `onememe.xyz`), docs (Mintlify), hosted-dashboard (`app.onemem.ai`)
+- `apps/` — landing (`onemem.ai` historical placeholder; current social campaign uses `onemem.xyz`), docs (Mintlify), hosted-dashboard (`app.onemem.ai`)
 - `contracts/onemem/` — Sui Move package
 - `services/` — Rust services (Nautilus relayer, stretch)
 - `demos/` — 4 demo apps

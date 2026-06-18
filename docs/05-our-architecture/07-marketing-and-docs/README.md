@@ -5,7 +5,7 @@
 > Context Engineering artifacts under `.thoughts/`.
 
 The user-facing front door (`onemem.ai` historically; current social campaign
-identity is `onememe.xyz`) + the developer reference (`docs.onemem.ai`).
+identity is `onemem.xyz`) + the developer reference (`docs.onemem.xyz`).
 
 ---
 
@@ -53,4 +53,4 @@ identity is `onememe.xyz`) + the developer reference (`docs.onemem.ai`).
 | `@onemem/brand` logo SVGs | ✅ source assets in `packages/brand/logo/` |
 | `@onemem/brand` social/OG SVGs | ✅ source assets in `packages/brand/og-images/` |
 | `@onemem/brand` social/OG PNGs | ✅ platform-ready exports in `packages/brand/og-images/` |
-| `onememe.xyz` DNS/hosting | ⏳ pending; latest check found no DNS records |
+| `onemem.xyz` DNS/hosting | ⏳ pending; verify DNS records before claiming live deployment |

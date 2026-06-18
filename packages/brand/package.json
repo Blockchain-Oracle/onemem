@@ -1,6 +1,6 @@
 {
   "name": "@onemem/brand",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OneMem shared brand assets — logo, fonts, OG image templates, design tokens",
   "license": "Apache-2.0",
   "type": "module",
