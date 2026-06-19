@@ -29,6 +29,9 @@ describe.skipIf(!RUN)("onemem-mcp (stdio, live testnet)", () => {
       const names = tools.map((t) => t.name);
       expect(names).toContain("onemem_add_memory");
       expect(names).toContain("onemem_search_memory");
+      expect(names).toContain("onemem_get_memory");
+      expect(names).toContain("onemem_list_memories");
+      expect(names).toContain("onemem_delete_memory");
     } finally {
       await client.close();
     }

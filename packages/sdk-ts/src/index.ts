@@ -24,13 +24,25 @@ export { OneMem, type OneMemConfig, type SuiNetwork } from "./client.js";
 export {
   type AddMemoryArgs,
   type AddMemoryResult,
+  type GetAllMemoryArgs,
   type Memory,
   MemoryAPI,
   type MemoryConfig,
   MemoryNotConfiguredError,
   MemoryReadError,
+  type MemoryScopeArgs,
   MemoryWriteError,
   type SearchMemoryArgs,
   type SearchMemoryResult,
+  type StoredMemory,
 } from "./memory.js";
+export {
+  DEFAULT_MEMORY_INDEX_FILE,
+  type MemoryIndex,
+  MemoryIndexError,
+  type MemoryIndexFilter,
+  type MemoryIndexRecord,
+  metadataMatches,
+  SqliteMemoryIndex,
+} from "./memory-index.js";
 export { VERSION } from "./version.js";

@@ -8,8 +8,11 @@ signer come from env, read by the CLI:
     ONEMEM_DELEGATE_KEY / ONEMEM_ACCOUNT_ID / ONEMEM_EMBEDDING_API_KEY
     [+ MEMWAL_PACKAGE_ID / MEMWAL_RELAYER_URL / ONEMEM_RPC_URL]
 
-MemWal 0.0.7 has no get-by-id / update / delete / list primitive, so — exactly
-as in the TS SDK — only ``add`` + ``search`` are exposed here.
+MemWal 0.0.7 is append-only (no get/get_all/delete primitive). The TS SDK backs
+``get`` / ``get_all`` / ``delete`` with a local SQLite index that mirrors every
+write; this Python client exposes the same surface through the bridge. ``delete``
+is a SOFT delete (the encrypted Walrus blob persists until its epoch expires),
+mirroring the honest TS semantics.
 """
 
 from __future__ import annotations
@@ -48,6 +51,40 @@ class AddResult:
     input_hash_hex: str | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class StoredMemory:
+    """A memory as held in the local index — the CRUD/listing shape."""
+
+    id: str
+    text: str
+    walrus_blob_id: str
+    namespace: str
+    user_id: str | None = None
+    agent_id: str | None = None
+    run_id: str | None = None
+    metadata: dict[str, Any] | None = None
+    created_at: int = 0
+
+
+def _to_stored(row: dict[str, Any]) -> StoredMemory:
+    meta = row.get("metadata")
+    metadata = cast("dict[str, Any]", meta) if isinstance(meta, dict) else None
+    user_id = row.get("userId")
+    agent_id = row.get("agentId")
+    run_id = row.get("runId")
+    return StoredMemory(
+        id=str(row.get("id", "")),
+        text=str(row.get("text", "")),
+        walrus_blob_id=str(row.get("walrusBlobId", "")),
+        namespace=str(row.get("namespace", "default")),
+        user_id=str(user_id) if isinstance(user_id, str) else None,
+        agent_id=str(agent_id) if isinstance(agent_id, str) else None,
+        run_id=str(run_id) if isinstance(run_id, str) else None,
+        metadata=metadata,
+        created_at=int(row.get("createdAt", 0)),
+    )
+
+
 class MemoryClient:
     """add/search memories via the ``onemem-memory`` Node bridge."""
 
@@ -64,15 +101,50 @@ class MemoryClient:
         self.command = command or os.environ.get("ONEMEM_MEMORY_CMD", DEFAULT_MEMORY_CMD)
         self.timeout_s = timeout_s
 
-    def add(self, text: str, *, namespace: str | None = None) -> AddResult:
+    def _effective_namespace(self, namespace: str | None, user_id: str | None) -> str | None:
+        """Mirror the TS effectiveNamespace priority for add/search.
+
+        explicit namespace > userId derivation (done by the CLI) > config
+        namespace (``self.namespace``) > "default" (also the CLI). We only apply
+        ``self.namespace`` when there is neither an explicit namespace nor a
+        user_id, so the CLI's ``user:<id>`` derivation is NOT clobbered — config
+        namespace is below userId in TS, not above it.
+        """
+        if namespace is not None:
+            return namespace
+        if user_id is not None:
+            return None  # let the CLI derive `user:<id>`
+        return self.namespace
+
+    def add(
+        self,
+        text: str,
+        *,
+        namespace: str | None = None,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> AddResult:
         """Store a memory via MemWal (client-side Seal-encrypted, saved to Walrus).
 
-        Returns the MemWal memory id + Walrus blob id (and the client-side input
-        hash, when the bridge supplies it).
+        Optionally scope it to a user/agent/run + attach JSON metadata. Returns
+        the MemWal memory id + Walrus blob id (and the client-side input hash,
+        when the bridge supplies it).
         """
         if not text:
             raise MemoryError("add requires non-empty text")
-        out = self._run({"op": "add", "text": text, "namespace": namespace or self.namespace})
+        out = self._run(
+            {
+                "op": "add",
+                "text": text,
+                "namespace": self._effective_namespace(namespace, user_id),
+                "userId": user_id,
+                "agentId": agent_id,
+                "runId": run_id,
+                "metadata": metadata,
+            }
+        )
         input_hash = out.get("inputHashHex")
         return AddResult(
             memory_id=str(out.get("memoryId", "")),
@@ -80,8 +152,22 @@ class MemoryClient:
             input_hash_hex=str(input_hash) if isinstance(input_hash, str) else None,
         )
 
-    def search(self, query: str, *, top_k: int = 5, namespace: str | None = None) -> list[Memory]:
-        """Vector-search memories; returns decrypted hits ranked by relevance."""
+    def search(
+        self,
+        query: str,
+        *,
+        top_k: int = 5,
+        namespace: str | None = None,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> list[Memory]:
+        """Vector-search memories; returns decrypted hits ranked by relevance.
+
+        Scope kwargs (user/agent/run/metadata) mirror the TS surface: they pick
+        the namespace and post-filter the recall against the local index.
+        """
         if not query:
             raise MemoryError("search requires non-empty query")
         out = self._run(
@@ -89,7 +175,11 @@ class MemoryClient:
                 "op": "search",
                 "query": query,
                 "topK": top_k,
-                "namespace": namespace or self.namespace,
+                "namespace": self._effective_namespace(namespace, user_id),
+                "userId": user_id,
+                "agentId": agent_id,
+                "runId": run_id,
+                "metadata": metadata,
             }
         )
         results = out.get("results", [])
@@ -102,6 +192,55 @@ class MemoryClient:
             )
             for r in rows
         ]
+
+    def get(self, memory_id: str) -> StoredMemory | None:
+        """Fetch one stored memory by id from the local index (None if missing/deleted)."""
+        if not memory_id:
+            raise MemoryError("get requires a non-empty id")
+        out = self._run({"op": "get", "id": memory_id})
+        memory = out.get("memory")
+        return _to_stored(cast("dict[str, Any]", memory)) if isinstance(memory, dict) else None
+
+    def get_all(
+        self,
+        *,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
+        namespace: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        limit: int | None = None,
+    ) -> list[StoredMemory]:
+        """List stored memories from the local index, newest-first, scope-filtered."""
+        # Pass namespace through AS-IS (None -> no namespace filter), matching the
+        # TS getAll: config/default namespace is NOT applied as a list filter, so
+        # get_all() with no namespace lists across all namespaces for the account.
+        out = self._run(
+            {
+                "op": "list",
+                "userId": user_id,
+                "agentId": agent_id,
+                "runId": run_id,
+                "namespace": namespace,
+                "metadata": metadata,
+                "limit": limit,
+            }
+        )
+        memories = out.get("memories", [])
+        rows = cast("list[dict[str, Any]]", memories) if isinstance(memories, list) else []
+        return [_to_stored(r) for r in rows]
+
+    def delete(self, memory_id: str) -> bool:
+        """Soft-delete a memory by id.
+
+        Removes it from get/get_all/search. The encrypted Walrus blob persists
+        until its storage epoch expires — a true hard delete is not possible on
+        append-only MemWal. Returns True if a row was flipped to deleted.
+        """
+        if not memory_id:
+            raise MemoryError("delete requires a non-empty id")
+        out = self._run({"op": "delete", "id": memory_id})
+        return bool(out.get("deleted", False))
 
     def _run(self, payload: dict[str, Any]) -> dict[str, Any]:
         body: dict[str, Any] = {k: v for k, v in payload.items() if v is not None}

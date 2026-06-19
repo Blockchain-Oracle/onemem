@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from .memory import AddResult, Memory, MemoryClient, MemoryError
+from .memory import AddResult, Memory, MemoryClient, MemoryError, StoredMemory
 
 #: Sui networks OneMem understands (display/config only).
 SuiNetwork = Literal["testnet", "mainnet", "devnet", "local"]
@@ -26,5 +26,6 @@ __all__ = [
     "Memory",
     "MemoryClient",
     "MemoryError",
+    "StoredMemory",
     "SuiNetwork",
 ]

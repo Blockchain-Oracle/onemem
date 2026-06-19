@@ -20,3 +20,20 @@ export function parseTopK(raw: string | undefined): number | undefined {
   if (Number.isNaN(n) || n < 1) throw new Error("--top-k must be a positive integer");
   return n;
 }
+
+/** Parse a `--metadata` JSON object flag into a plain record (or undefined). */
+export function parseMetadata(raw: string | undefined): Record<string, unknown> | undefined {
+  if (raw === undefined) return undefined;
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(
+      `--metadata must be valid JSON: ${error instanceof Error ? error.message : ""}`,
+    );
+  }
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error('--metadata must be a JSON object, e.g. \'{"topic":"prefs"}\'');
+  }
+  return value as Record<string, unknown>;
+}

@@ -21,12 +21,14 @@ Update the checkboxes as work lands. Pause for Abu at major phase transitions.
 - [ ] FOLLOW-UP: internal `docs/` (05-our-architecture, 02-inspirations, etc.) is now orphaned trace-era content — audit + remove/rework (nuanced; folds into Phase 4 docs). Plus residual trace/verify copy in `apps/docs/*.mdx` + `packages/brand/briefs/*.md`.
 - [ ] Commit + open PR + run PR review toolkit (5 agents)
 
-## Phase 2 — Product B: Mem0 on MemWal
-- [ ] SDK `add`/`search`/`analyze` + index (`get`/`get_all`/`delete`/metadata/multi-scope)
-- [ ] login: bring-your-own account + delegate path; rework cli `init`/`health`
-- [ ] CLI `add`/`search`; MCP memory tools (already pared to add/search)
-- [ ] providers → memory (Vercel AI, OpenAI Agents, Python)
-- [ ] real testnet integration tests (SDK/CLI/MCP/Vercel + OpenAI key) → PR
+## Phase 2 — Product B: Mem0 on MemWal — CORE DONE ✅ (green + real-testnet verified)
+- [x] MemWal 0.0.7 dedupe + Node 24 pin (node:sqlite); real testnet add/search proven
+- [x] SDK `add`/`search` + SQLite index: `get`/`get_all`/`delete`/metadata/multi-scope (user/agent/run); cross-user isolation enforced
+- [x] CLI `add`/`search` + `list`/`get`/`delete` + scope flags (real-tested via local bin)
+- [x] MCP memory tools: add/search/get/list/delete; Python SDK mirror
+- [x] PR-review fixes (cross-user leak, order-insensitive metadata match, bounded fetch, dead code) + real testnet CRUD/isolation integration green
+- [ ] REMAINING (smaller): scope passthrough into providers (Vercel AI/OpenAI Agents/Python already recall+capture from Phase 1); explicit bring-your-own login affordance (env path already works); live MCP/Vercel round-trip with OpenAI key
+- [ ] follow-ups: publish `@onemem/worker` for end-user plugin install (Phase 6); `oc-memwal`→memwal 0.0.5 leftover (Phase 3); cli `init`/`health` minimal (rework if needed); replace global `/opt/homebrew/bin/onemem` shadow before demo
 
 ## Phase 3 — Product A: claude-mem on MemWal
 - [ ] capture hooks → worker; observer LLM compression (8 types / 7 concepts / files view); summaries

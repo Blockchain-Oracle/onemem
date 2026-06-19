@@ -3,7 +3,13 @@ import { dashboardCommand } from "./commands/dashboard.js";
 import { healthCommand } from "./commands/health.js";
 import { initCommand } from "./commands/init.js";
 import { loginCommand } from "./commands/login.js";
-import { addCommand, searchCommand } from "./commands/memory.js";
+import {
+  addCommand,
+  deleteCommand,
+  getCommand,
+  listCommand,
+  searchCommand,
+} from "./commands/memory.js";
 import { VERSION } from "./version.js";
 
 export function buildProgram(): Command {
@@ -41,6 +47,10 @@ export function buildProgram(): Command {
     .command("add <text>")
     .description("Store a memory (needs signer + MemWal config)")
     .option("--namespace <ns>", "MemWal namespace")
+    .option("--user-id <id>", "Scope to a user (derives namespace user:<id>)")
+    .option("--agent-id <id>", "Scope to an agent")
+    .option("--run-id <id>", "Scope to a run/session")
+    .option("--metadata <json>", "JSON object of metadata to store")
     .action(addCommand);
 
   program
@@ -48,7 +58,32 @@ export function buildProgram(): Command {
     .description("Vector-recall memories (needs signer + MemWal config)")
     .option("--top-k <n>", "Max results")
     .option("--namespace <ns>", "MemWal namespace")
+    .option("--user-id <id>", "Scope to a user (derives namespace user:<id>)")
+    .option("--agent-id <id>", "Scope to an agent")
+    .option("--run-id <id>", "Scope to a run/session")
+    .option("--metadata <json>", "JSON object metadata filter")
     .action(searchCommand);
+
+  program
+    .command("list")
+    .description("List stored memories from the local index (scope-filtered)")
+    .option("--namespace <ns>", "Filter by MemWal namespace")
+    .option("--user-id <id>", "Filter by user id")
+    .option("--agent-id <id>", "Filter by agent id")
+    .option("--run-id <id>", "Filter by run/session id")
+    .option("--metadata <json>", "JSON object metadata filter")
+    .option("--limit <n>", "Max rows")
+    .action(listCommand);
+
+  program
+    .command("get <id>")
+    .description("Fetch one stored memory by id from the local index")
+    .action(getCommand);
+
+  program
+    .command("delete <id>")
+    .description("Soft-delete a memory (blob persists on Walrus until its epoch expires)")
+    .action(deleteCommand);
 
   return program;
 }
