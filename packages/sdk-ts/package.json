@@ -41,7 +41,7 @@
     "@noble/hashes": "^2.2.0"
   },
   "peerDependencies": {
-    "@mysten-incubation/memwal": "^0.0.5"
+    "@mysten-incubation/memwal": "^0.0.7"
   },
   "peerDependenciesMeta": {
     "@mysten-incubation/memwal": {

@@ -246,16 +246,13 @@ importers:
 
   packages/plugin-claude-code:
     dependencies:
-      '@mysten/sui':
-        specifier: ^2.17.0
-        version: 2.17.0(typescript@6.0.3)
-      '@onemem/sdk-ts':
-        specifier: ^0.6.3
-        version: 0.6.3(@mysten-incubation/memwal@0.0.7(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@6.0.3)))(@mysten/sui@2.17.0(typescript@6.0.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@6.0.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76))(typescript@6.0.3)
       '@onemem/worker':
-        specifier: workspace:*
+        specifier: ^0.1.0
         version: link:../worker
     devDependencies:
+      '@onemem/sdk-ts':
+        specifier: ^0.6.3
+        version: link:../sdk-ts
       vitest:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@25.9.3)
@@ -263,12 +260,12 @@ importers:
   packages/plugin-codex:
     dependencies:
       '@onemem/worker':
-        specifier: workspace:*
+        specifier: ^0.1.0
         version: link:../worker
     devDependencies:
       '@onemem/sdk-ts':
         specifier: ^0.6.3
-        version: 0.6.3(@mysten-incubation/memwal@0.0.7(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@6.0.3)))(@mysten/sui@2.17.0(typescript@6.0.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@6.0.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76))(typescript@6.0.3)
+        version: link:../sdk-ts
       vitest:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@25.9.3)
@@ -347,8 +344,8 @@ importers:
   packages/sdk-ts:
     dependencies:
       '@mysten-incubation/memwal':
-        specifier: ^0.0.5
-        version: 0.0.5(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@5.9.3)))(@mysten/sui@2.17.0(typescript@5.9.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@5.9.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76)
+        specifier: ^0.0.7
+        version: 0.0.7(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@5.9.3)))(@mysten/sui@2.17.0(typescript@5.9.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@5.9.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76)
       '@mysten/sui':
         specifier: ^2.17.0
         version: 2.17.0(typescript@5.9.3)
@@ -1369,22 +1366,6 @@ packages:
     resolution: {integrity: sha512-juG5VWh4qAivzTAeMzvY9xs9HY5rAcr2E4I7tiSSCokRFi7XIZCAu92ZkSTsIj1OPceCifL3cpfteP3pDT9/QQ==}
     engines: {node: '>=14.0.0'}
 
-  '@mysten-incubation/memwal@0.0.5':
-    resolution: {integrity: sha512-Naa+8mFzftvdODVhp6BAEWJ4DGodgcrhOOyBVnXYR6cV6s9JFuKqrTwtZj9yvIxCMbgx71Rd9ya7G2eCYWoDRQ==}
-    peerDependencies:
-      '@mysten/seal': '>=1.1.0'
-      '@mysten/sui': '>=2.5.0'
-      '@mysten/walrus': '>=1.0.3'
-      ai: '>=4.0.0'
-      zod: ^3.23.0
-    peerDependenciesMeta:
-      '@mysten/walrus':
-        optional: true
-      ai:
-        optional: true
-      zod:
-        optional: true
-
   '@mysten-incubation/memwal@0.0.7':
     resolution: {integrity: sha512-jZycnsstVX/aP33OyJM3bTciwFiiOEcZV4XfhHGbqh8e9pMV/pbOAfD5m9gxrD3V8en29QGAISBsiMIdP3CIyg==}
     peerDependencies:
@@ -1614,13 +1595,6 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
-
-  '@onemem/sdk-ts@0.6.3':
-    resolution: {integrity: sha512-LqxOwdXAYg/QC5Suxosg+lpd1SgSRPx7V+ktPbLmI+8K4Bw5Lp9Iq4q0k1NS77yj+hevnXcoeBSt2awKm9ZJxA==}
-    engines: {node: '>=18'}
-    hasBin: true
-    peerDependencies:
-      '@mysten-incubation/memwal': ^0.0.5
 
   '@openai/agents-core@0.11.6':
     resolution: {integrity: sha512-jWeo4mF+zjp9R80OPg+9prAnwF53dIpok2ymp9OkC3DpK2qcqBO8CfoEgocNp+E5HXXFW4uvCaY0olNCCcmTFw==}
@@ -4957,12 +4931,6 @@ snapshots:
       graphql: 16.14.0
       typescript: 5.9.3
 
-  '@0no-co/graphqlsp@1.15.4(graphql@16.14.0)(typescript@6.0.3)':
-    dependencies:
-      '@gql.tada/internal': 1.0.9(graphql@16.14.0)(typescript@6.0.3)
-      graphql: 16.14.0
-      typescript: 6.0.3
-
   '@agentclientprotocol/sdk@0.22.1(zod@4.4.3)':
     dependencies:
       zod: 4.4.3
@@ -5491,24 +5459,11 @@ snapshots:
       graphql: 16.14.0
       typescript: 5.9.3
 
-  '@gql.tada/cli-utils@1.7.3(@0no-co/graphqlsp@1.15.4(graphql@16.14.0)(typescript@6.0.3))(graphql@16.14.0)(typescript@6.0.3)':
-    dependencies:
-      '@0no-co/graphqlsp': 1.15.4(graphql@16.14.0)(typescript@6.0.3)
-      '@gql.tada/internal': 1.0.9(graphql@16.14.0)(typescript@6.0.3)
-      graphql: 16.14.0
-      typescript: 6.0.3
-
   '@gql.tada/internal@1.0.9(graphql@16.14.0)(typescript@5.9.3)':
     dependencies:
       '@0no-co/graphql.web': 1.2.0(graphql@16.14.0)
       graphql: 16.14.0
       typescript: 5.9.3
-
-  '@gql.tada/internal@1.0.9(graphql@16.14.0)(typescript@6.0.3)':
-    dependencies:
-      '@0no-co/graphql.web': 1.2.0(graphql@16.14.0)
-      graphql: 16.14.0
-      typescript: 6.0.3
 
   '@grammyjs/runner@2.0.3(grammy@1.43.0)':
     dependencies:
@@ -5776,17 +5731,6 @@ snapshots:
 
   '@mozilla/readability@0.6.0': {}
 
-  '@mysten-incubation/memwal@0.0.5(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@5.9.3)))(@mysten/sui@2.17.0(typescript@5.9.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@5.9.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76)':
-    dependencies:
-      '@mysten/seal': 1.1.3(@mysten/sui@2.17.0(typescript@5.9.3))
-      '@mysten/sui': 2.17.0(typescript@5.9.3)
-      '@noble/ed25519': 2.3.0
-      '@noble/hashes': 2.2.0
-    optionalDependencies:
-      '@mysten/walrus': 1.1.7(@mysten/sui@2.17.0(typescript@5.9.3))
-      ai: 6.0.205(zod@3.25.76)
-      zod: 3.25.76
-
   '@mysten-incubation/memwal@0.0.7(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@5.9.3)))(@mysten/sui@2.17.0(typescript@5.9.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@5.9.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76)':
     dependencies:
       '@mysten/seal': 1.1.3(@mysten/sui@2.17.0(typescript@5.9.3))
@@ -5795,17 +5739,6 @@ snapshots:
       '@noble/hashes': 2.2.0
     optionalDependencies:
       '@mysten/walrus': 1.1.7(@mysten/sui@2.17.0(typescript@5.9.3))
-      ai: 6.0.205(zod@3.25.76)
-      zod: 3.25.76
-
-  '@mysten-incubation/memwal@0.0.7(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@6.0.3)))(@mysten/sui@2.17.0(typescript@6.0.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@6.0.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76)':
-    dependencies:
-      '@mysten/seal': 1.1.3(@mysten/sui@2.17.0(typescript@6.0.3))
-      '@mysten/sui': 2.17.0(typescript@6.0.3)
-      '@noble/ed25519': 2.3.0
-      '@noble/hashes': 2.2.0
-    optionalDependencies:
-      '@mysten/walrus': 1.1.7(@mysten/sui@2.17.0(typescript@6.0.3))
       ai: 6.0.205(zod@3.25.76)
       zod: 3.25.76
 
@@ -5931,13 +5864,6 @@ snapshots:
       '@noble/curves': 2.2.0
       '@noble/hashes': 2.2.0
 
-  '@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@6.0.3))':
-    dependencies:
-      '@mysten/bcs': 2.0.5
-      '@mysten/sui': 2.17.0(typescript@6.0.3)
-      '@noble/curves': 2.2.0
-      '@noble/hashes': 2.2.0
-
   '@mysten/signers@0.2.17(typescript@5.9.3)':
     dependencies:
       '@google-cloud/kms': 4.5.0
@@ -6036,28 +5962,6 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@mysten/sui@2.17.0(typescript@6.0.3)':
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.14.0)
-      '@mysten/bcs': 2.0.5
-      '@mysten/utils': 0.3.3
-      '@noble/curves': 2.2.0
-      '@noble/hashes': 2.2.0
-      '@protobuf-ts/grpcweb-transport': 2.11.1
-      '@protobuf-ts/runtime': 2.11.1
-      '@protobuf-ts/runtime-rpc': 2.11.1
-      '@scure/base': 2.2.0
-      '@scure/bip32': 2.2.0
-      '@scure/bip39': 2.2.0
-      gql.tada: 1.9.2(graphql@16.14.0)(typescript@6.0.3)
-      graphql: 16.14.0
-      poseidon-lite: 0.2.1
-      valibot: 1.4.1(typescript@6.0.3)
-    transitivePeerDependencies:
-      - '@gql.tada/svelte-support'
-      - '@gql.tada/vue-support'
-      - typescript
-
   '@mysten/utils@0.1.0':
     dependencies:
       '@scure/base': 1.2.6
@@ -6099,14 +6003,6 @@ snapshots:
     dependencies:
       '@mysten/bcs': 2.0.5
       '@mysten/sui': 2.17.0(typescript@5.9.3)
-      '@mysten/utils': 0.3.3
-      '@mysten/walrus-wasm': 0.2.2
-      dataloader: 2.2.3
-
-  '@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@6.0.3))':
-    dependencies:
-      '@mysten/bcs': 2.0.5
-      '@mysten/sui': 2.17.0(typescript@6.0.3)
       '@mysten/utils': 0.3.3
       '@mysten/walrus-wasm': 0.2.2
       dataloader: 2.2.3
@@ -6186,18 +6082,6 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
-
-  '@onemem/sdk-ts@0.6.3(@mysten-incubation/memwal@0.0.7(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@6.0.3)))(@mysten/sui@2.17.0(typescript@6.0.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@6.0.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76))(typescript@6.0.3)':
-    dependencies:
-      '@mysten-incubation/memwal': 0.0.7(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@6.0.3)))(@mysten/sui@2.17.0(typescript@6.0.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@6.0.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76)
-      '@mysten/seal': 1.1.3(@mysten/sui@2.17.0(typescript@6.0.3))
-      '@mysten/sui': 2.17.0(typescript@6.0.3)
-      '@mysten/walrus': 1.1.7(@mysten/sui@2.17.0(typescript@6.0.3))
-      '@noble/hashes': 2.2.0
-    transitivePeerDependencies:
-      - '@gql.tada/svelte-support'
-      - '@gql.tada/vue-support'
-      - typescript
 
   '@openai/agents-core@0.11.6(ws@8.21.0)(zod@4.4.3)':
     dependencies:
@@ -8198,18 +8082,6 @@ snapshots:
       - '@gql.tada/vue-support'
       - graphql
 
-  gql.tada@1.9.2(graphql@16.14.0)(typescript@6.0.3):
-    dependencies:
-      '@0no-co/graphql.web': 1.2.0(graphql@16.14.0)
-      '@0no-co/graphqlsp': 1.15.4(graphql@16.14.0)(typescript@6.0.3)
-      '@gql.tada/cli-utils': 1.7.3(@0no-co/graphqlsp@1.15.4(graphql@16.14.0)(typescript@6.0.3))(graphql@16.14.0)(typescript@6.0.3)
-      '@gql.tada/internal': 1.0.9(graphql@16.14.0)(typescript@6.0.3)
-      typescript: 6.0.3
-    transitivePeerDependencies:
-      - '@gql.tada/svelte-support'
-      - '@gql.tada/vue-support'
-      - graphql
-
   graceful-fs@4.2.11: {}
 
   grammy@1.43.0:
@@ -9551,10 +9423,6 @@ snapshots:
   valibot@1.4.1(typescript@5.9.3):
     optionalDependencies:
       typescript: 5.9.3
-
-  valibot@1.4.1(typescript@6.0.3):
-    optionalDependencies:
-      typescript: 6.0.3
 
   vary@1.1.2: {}
 
