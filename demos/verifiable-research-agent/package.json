@@ -1,6 +1,6 @@
 {
   "name": "@onemem/demo-verifiable-research-agent",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "description": "Executable OneMem demo: mocked multi-day research agent recorded as real verifiable testnet traces",
   "license": "Apache-2.0",

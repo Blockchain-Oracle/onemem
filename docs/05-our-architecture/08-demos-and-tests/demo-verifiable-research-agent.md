@@ -59,7 +59,7 @@ Narrator: "Three days of agent work. Every fact provable.
            Every conclusion reconstructible from chain."
 
 [Demo card]
-"OneMem · onemem.ai"
+"OneMem · onemem.xyz"
 [End]
 ```
 

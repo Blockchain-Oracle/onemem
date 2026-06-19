@@ -66,6 +66,7 @@ class OneMemAddresses:
     rpc_url: str
     suiscan_base: str
     package_id: str
+    original_package_id: str
     registry_id: str
     registry_admin_cap_id: str
     upgrade_cap_id: str
@@ -84,6 +85,7 @@ class OneMemAddresses:
             f"        rpc_url={b['rpc_url']!r},\n"
             f"        suiscan_base={b['suiscan_base']!r},\n"
             f"        package_id={b['package_id']!r},\n"
+            f"        original_package_id={(b.get('original_package_id') or b['package_id'])!r},\n"
             f"        registry_id={b['registry_id']!r},\n"
             f"        registry_admin_cap_id={b['registry_admin_cap_id']!r},\n"
             f"        upgrade_cap_id={b['upgrade_cap_id']!r},\n"

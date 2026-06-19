@@ -27,11 +27,16 @@ export default function LoginPage() {
         <div className="card" style={{ padding: 26 }}>
           <h2 style={{ fontSize: "1.3rem", marginBottom: 6 }}>Sign in</h2>
           <p className="muted" style={{ fontSize: ".9rem", marginBottom: 20 }}>
-            Connect a Sui wallet or a configured Enoki Google wallet. New here? We'll set you up
-            after a real account is connected.
+            Connect your Sui wallet to continue. New here? We'll set you up after a real account is
+            connected.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <ConnectButton className="auth-btn" connectText="Connect wallet or Google" />
+            <ConnectButton
+              className="auth-btn"
+              connectText={
+                authConfig.googleLoginEnabled ? "Connect wallet or Google" : "Connect Sui wallet"
+              }
+            />
             {account ? (
               <a
                 className="btn btn-primary"
@@ -61,23 +66,22 @@ export default function LoginPage() {
               )}
             </span>
           </div>
-          {!authConfig.enokiConfigured ? (
-            <div className="verify-mini" style={{ textAlign: "left" }}>
-              <span className="vm-ic">
-                <Icon name="info" size={16} />
-              </span>
-              <span>
-                Enoki Google sign-in is not configured in this build. Missing{" "}
-                <span className="mono">{authConfig.enokiMissing.join(", ")}</span>. Standard Sui
-                wallet connect can still work.
-              </span>
-            </div>
-          ) : (
+          {authConfig.googleLoginEnabled ? (
             <div className="verify-mini ok" style={{ textAlign: "left" }}>
               <span className="vm-ic">
                 <Icon name="check" size={16} />
               </span>
               <span>Enoki Google wallets are registered for {authConfig.defaultNetwork}.</span>
+            </div>
+          ) : (
+            <div className="verify-mini" style={{ textAlign: "left" }}>
+              <span className="vm-ic">
+                <Icon name="info" size={16} />
+              </span>
+              <span>
+                Wallet connect is the supported sign-in. Google zkLogin is disabled on this
+                deployment.
+              </span>
             </div>
           )}
           <p className="faint" style={{ fontSize: ".78rem", textAlign: "center", marginTop: 18 }}>

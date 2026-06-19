@@ -3,6 +3,7 @@
 // and the configurable verifyKeyServers logic run in CI (the live round-trip
 // lives in the env-gated integration suite).
 
+import { Transaction } from "@mysten/sui/transactions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const sessionKeyCreate = vi.fn();
@@ -41,6 +42,13 @@ function makeStore(
   decrypt = vi.fn(async () => new Uint8Array([42])),
   config: { threshold?: number } = {},
   encrypt = vi.fn(async () => ({ encryptedObject: new Uint8Array([7, 8, 9]) })),
+  packageIds:
+    | string
+    | {
+        sealPackageId: string;
+        policyPackageId?: string;
+        typePackageId?: string;
+      } = "0xpkg",
 ) {
   const seal = { decrypt, encrypt };
   const signer = {
@@ -48,7 +56,7 @@ function makeStore(
     signPersonalMessage: vi.fn(async () => ({ signature: "sig" })),
   };
   // biome-ignore lint/suspicious/noExplicitAny: minimal mocks of the Seal/Sui seams
-  const store = new SealStore(seal as any, {} as any, signer as any, "0xpkg", config);
+  const store = new SealStore(seal as any, {} as any, signer as any, packageIds, config);
   return { store, seal, signer };
 }
 
@@ -98,6 +106,29 @@ describe("SealStore SessionKey caching", () => {
     });
   });
 
+  it("uses first-version package IDs for Seal identity and current package IDs for approval calls", async () => {
+    sessionKeyCreate.mockResolvedValue(makeSessionKey(false));
+    const moveCall = vi.spyOn(Transaction.prototype, "moveCall");
+    const { store } = makeStore(undefined, {}, undefined, {
+      sealPackageId: "0xoriginal",
+      policyPackageId: "0xcurrent",
+      typePackageId: "0xoriginal",
+    });
+
+    await store.decrypt(new Uint8Array([0]), ARGS);
+
+    expect(sessionKeyCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ packageId: "0xoriginal" }),
+    );
+    expect(moveCall).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: "0xcurrent::seal_policy::seal_approve",
+        typeArguments: ["0xoriginal::namespace::ReadWrite"],
+      }),
+    );
+    moveCall.mockRestore();
+  });
+
   it("drops the cached key on failure so the next decrypt re-mints", async () => {
     sessionKeyCreate.mockResolvedValue(makeSessionKey(false));
     let calls = 0;
@@ -125,6 +156,19 @@ describe("SealStore.encrypt", () => {
 
     expect(seal.encrypt).toHaveBeenCalledWith(
       expect.objectContaining({ threshold: 3, packageId: "0xpkg", id: "abc" }),
+    );
+  });
+
+  it("encrypts upgraded-package blobs against the first-version package ID", async () => {
+    const { store, seal } = makeStore(undefined, {}, undefined, {
+      sealPackageId: "0xoriginal",
+      policyPackageId: "0xcurrent",
+      typePackageId: "0xoriginal",
+    });
+    await store.encrypt(new Uint8Array([1, 2]), "0xabc");
+
+    expect(seal.encrypt).toHaveBeenCalledWith(
+      expect.objectContaining({ packageId: "0xoriginal", id: "abc" }),
     );
   });
 

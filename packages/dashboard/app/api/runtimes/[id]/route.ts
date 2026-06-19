@@ -2,7 +2,7 @@
 
 import { RuntimeControlsValidationError } from "@onemem/sdk-ts/runtime";
 import { type NextRequest, NextResponse } from "next/server";
-import { updateRuntimeControl } from "@/lib/runtimes";
+import { isRuntimeControllable, updateRuntimeControl } from "@/lib/runtimes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +27,19 @@ export async function PATCH(_req: NextRequest, ctx: { params: Promise<{ id: stri
     if (paused === undefined && traceCapture === undefined) {
       return NextResponse.json(
         { ok: false, error: "paused or permissions.traceCapture is required" },
+        { status: 400 },
+      );
+    }
+
+    // Honesty guard: only location-A laptop runtimes read the local controls file.
+    // Refuse to write a pause/trace policy for an MCP client or deployed adapter —
+    // that file would never be read by their code (the old "enforcement theater").
+    if (!isRuntimeControllable(id)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `runtime "${id}" is not locally controllable — it does not run on this machine. Manage deployed adapters from the hosted dashboard.`,
+        },
         { status: 400 },
       );
     }

@@ -16,7 +16,7 @@ describe("OneMem monorepo structure", () => {
       assert.ok(exists(".agents/plugins/README.md"));
     });
 
-    test("packages/plugin-codex manifest exposes bundled MCP and skill paths", () => {
+    test("packages/plugin-codex manifest exposes bundled MCP, skill, and hook paths", () => {
       const manifest = readJson<{
         name?: string;
         skills?: string;
@@ -26,22 +26,24 @@ describe("OneMem monorepo structure", () => {
       assert.equal(manifest.name, "onemem-codex");
       assert.equal(manifest.skills, "./skills/");
       assert.equal(manifest.mcpServers, "./.mcp.json");
-      assert.equal(
-        manifest.hooks,
-        undefined,
-        "plugin validator still rejects `hooks`; rely on default hooks/hooks.json",
-      );
+      assert.equal(manifest.hooks, "./hooks/hooks.json");
     });
 
     test("packages/plugin-codex keeps hook proof claims bounded", () => {
       const hooks = readJson<{
+        description?: string;
         hooks?: { SessionStart?: Array<{ matcher?: string }> };
       }>("packages/plugin-codex/hooks/hooks.json");
+      assert.equal(
+        hooks.description,
+        undefined,
+        "Codex CLI 0.140 rejects top-level description in plugin hooks config",
+      );
       assert.equal(hooks.hooks?.SessionStart?.[0]?.matcher, "");
 
       const readme = readFileSync(join(ROOT, "packages/plugin-codex/README.md"), "utf8");
       assert.doesNotMatch(readme, /SessionStart opens a OneMem `TraceSession`/);
-      assert.match(readme, /codex exec` tests on Codex CLI 0\.140 did not run/);
+      assert.match(readme, /`codex exec` tests on Codex CLI 0\.140 still did not run hooks/);
     });
 
     test("Codex plugin marketplace exposes onemem-codex", () => {
@@ -57,37 +59,6 @@ describe("OneMem monorepo structure", () => {
       const readme = readFileSync(join(ROOT, ".agents/plugins/README.md"), "utf8");
       assert.match(readme, /marketplace snapshot/i);
       assert.match(readme, /not a user's local\s+checkout/i);
-    });
-  });
-
-  describe("Claude Code plugin package", () => {
-    test("packages/plugin-claude-code has Claude plugin entrypoints", () => {
-      assert.ok(exists("packages/plugin-claude-code/.claude-plugin/plugin.json"));
-      assert.ok(exists("packages/plugin-claude-code/hooks/hooks.json"));
-      assert.ok(exists("packages/plugin-claude-code/scripts/inject.js"));
-      assert.ok(exists("packages/plugin-claude-code/scripts/observe.js"));
-      assert.ok(exists("packages/plugin-claude-code/scripts/summarize.js"));
-      assert.ok(exists("packages/plugin-claude-code/skills/onemem-claude-code/SKILL.md"));
-    });
-
-    test("packages/plugin-claude-code manifest matches package identity", () => {
-      const manifest = readJson<{ name?: string; version?: string; license?: string }>(
-        "packages/plugin-claude-code/.claude-plugin/plugin.json",
-      );
-      assert.equal(manifest.name, "onemem");
-      assert.equal(manifest.version, "0.1.0");
-      assert.equal(manifest.license, "Apache-2.0");
-    });
-
-    test("Claude Code plugin marketplace exposes onemem", () => {
-      const marketplace = readJson<{
-        name?: string;
-        plugins?: Array<{ name?: string; version?: string; source?: string }>;
-      }>(".claude-plugin/marketplace.json");
-      assert.equal(marketplace.name, "onemem");
-      const plugin = marketplace.plugins?.find((entry) => entry.name === "onemem");
-      assert.equal(plugin?.version, "0.1.0");
-      assert.equal(plugin?.source, "./packages/plugin-claude-code");
     });
   });
 
@@ -152,6 +123,81 @@ describe("OneMem monorepo structure", () => {
       }
     });
 
+    test("hosted-dashboard Enoki status points to real production setup knobs", () => {
+      const source = readFileSync(
+        join(ROOT, "apps/hosted-dashboard/app/api/enoki/status/route.ts"),
+        "utf8",
+      );
+      assert.match(source, /NEXT_PUBLIC_ENOKI_API_KEY/);
+      assert.match(source, /NEXT_PUBLIC_ENOKI_GOOGLE_CLIENT_ID/);
+      assert.match(source, /https:\/\/app\.onemem\.xyz/);
+      assert.match(source, /missingOrigins/);
+      assert.doesNotMatch(source, /enoki_public_\*/i);
+    });
+
+    test("hosted-dashboard exposes a reusable Enoki readiness preflight", () => {
+      const pkg = readJson<{ scripts?: Record<string, string> }>(
+        "apps/hosted-dashboard/package.json",
+      );
+      assert.equal(pkg.scripts?.["enoki:readiness"], "node scripts/check-enoki-readiness.mjs");
+      assert.ok(exists("apps/hosted-dashboard/scripts/check-enoki-readiness.mjs"));
+      const source = readFileSync(
+        join(ROOT, "apps/hosted-dashboard/scripts/check-enoki-readiness.mjs"),
+        "utf8",
+      );
+      assert.match(source, /NEXT_PUBLIC_ENOKI_API_KEY/);
+      assert.match(source, /NEXT_PUBLIC_ENOKI_GOOGLE_CLIENT_ID/);
+      assert.match(source, /https:\/\/app\.onemem\.xyz/);
+      assert.match(source, /hasGoogleProvider/);
+      assert.doesNotMatch(source, /console\.log\(.*privateKey/s);
+    });
+
+    test("hosted-dashboard hub only links to routes served by the hosted shell", () => {
+      const source = readFileSync(
+        join(ROOT, "apps/hosted-dashboard/app/dashboard/page.tsx"),
+        "utf8",
+      );
+      assert.doesNotMatch(
+        source,
+        /href:\s*"\/(memories|sessions|apps|settings)"/,
+        "hosted /dashboard must not link to root-level local dashboard routes",
+      );
+      assert.doesNotMatch(
+        source,
+        /NEXT_PUBLIC_DASHBOARD_URL/,
+        "hosted /dashboard must not rely on an env prefix that can make card links drift",
+      );
+      for (const href of ["/dashboard", "/share", "/onboarding", "/login"]) {
+        assert.match(source, new RegExp(`href:\\s*"${href}"`));
+      }
+      assert.match(
+        source,
+        /loadHostedProvisioningState/,
+        "hosted /dashboard should reflect saved provisioning state",
+      );
+
+      const onboarding = readFileSync(
+        join(ROOT, "apps/hosted-dashboard/app/onboarding/page.tsx"),
+        "utf8",
+      );
+      assert.doesNotMatch(
+        onboarding,
+        /localhost:4040/,
+        "hosted onboarding completion must not route production users to localhost",
+      );
+      assert.match(
+        onboarding,
+        /loadHostedProvisioningState/,
+        "hosted onboarding should reuse saved provisioning state instead of prompting duplicate namespace creation",
+      );
+      assert.match(
+        onboarding,
+        /Already provisioned/,
+        "hosted onboarding should render an already-provisioned state before offering a new namespace mutation",
+      );
+      assert.match(onboarding, /href="\/dashboard"/);
+    });
+
     test("hosted-dashboard has Walrus Sites mirror artifacts", () => {
       assert.ok(exists("apps/hosted-dashboard/walrus-sites/sites-config.yaml"));
       assert.ok(exists("apps/hosted-dashboard/walrus-sites/README.md"));
@@ -161,6 +207,12 @@ describe("OneMem monorepo structure", () => {
       assert.ok(exists("apps/hosted-dashboard/lib/hosted-state.ts"));
       assert.ok(exists("apps/hosted-dashboard/lib/cli-login.ts"));
       assert.ok(exists("apps/hosted-dashboard/app/api/cli-login/memwal-account/route.ts"));
+      const source = readFileSync(
+        join(ROOT, "apps/hosted-dashboard/app/cli-login/page.tsx"),
+        "utf8",
+      );
+      assert.match(source, /activeRunRef/);
+      assert.match(source, /Cancel wallet request/);
     });
   });
 

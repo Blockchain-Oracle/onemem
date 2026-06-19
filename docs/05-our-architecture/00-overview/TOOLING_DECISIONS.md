@@ -122,7 +122,7 @@ export default defineConfig({
 
 **Why the correction:** The dashboard at `packages/dashboard/` must serve TWO modes from the SAME code:
 1. **Local mode** — `onemem dashboard` CLI command boots a local server on `localhost:4040` reading `~/.onemem/credentials.json` (no login, claude-mem-style daily driver). See `06-dashboard/local-deploy.md`.
-2. **Hosted mode** — `apps/hosted-dashboard/` wraps it with Enoki/zkLogin for `app.onemem.ai` (onboarding + cross-device + the public `/verify/[session_id]` page). See `06-dashboard/hosted-deploy.md` + `06-dashboard/purpose-local-vs-hosted.md`.
+2. **Hosted mode** — `apps/hosted-dashboard/` wraps it with Enoki/zkLogin for `app.onemem.xyz` (onboarding + cross-device + the public `/verify/[session_id]` page). See `06-dashboard/hosted-deploy.md` + `06-dashboard/purpose-local-vs-hosted.md`.
 
 Vite would have forced two codebases (Vite-app for local, Next-app for hosted) — exactly the OpenMemory-failure pattern Mem0 hit (per Agent #3 research). Next.js 15's standalone output produces a self-contained server bundle the CLI can spawn (no separate "local app" needed), exports cleanly to Vercel for hosted, AND supports `next export` static-export for the Walrus Sites mirror.
 

@@ -1,0 +1,59 @@
+#!/usr/bin/env node
+import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
+import { OneMem } from "@onemem/sdk-ts";
+import { resolveSigner } from "@onemem/sdk-ts/runtime";
+import { createSdkAnchor, startWorker } from "../dist/index.js";
+
+const logger = {
+  info: (message) => process.stderr.write(`${message}\n`),
+  warn: (message) => process.stderr.write(`${message}\n`),
+};
+
+function env(name, fallback) {
+  return process.env[name] || fallback;
+}
+
+async function maybeAnchor() {
+  const namespaceId = process.env.ONEMEM_NAMESPACE_ID;
+  const rwCapId = process.env.ONEMEM_RW_CAP_ID;
+  if (!namespaceId || !rwCapId) return undefined;
+
+  try {
+    const privateKey =
+      process.env.ONEMEM_PRIVATE_KEY || process.env.ONEMEM_SUI_PRIVATE_KEY || process.env.SUI_PRIVATE_KEY;
+    const signer = resolveSigner(privateKey, logger);
+    const onemem = await OneMem.create({
+      network: env("SUI_NETWORK", "testnet"),
+      signer,
+    });
+    return createSdkAnchor({
+      traces: onemem.traces,
+      namespaceId,
+      rwCapId,
+      agentId: env("ONEMEM_WORKER_AGENT_ID", "onemem-worker"),
+      sdkVersion: env("ONEMEM_WORKER_SDK_VERSION", "0.1.0"),
+    });
+  } catch (err) {
+    logger.warn(`[worker] SDK anchor disabled: ${err instanceof Error ? err.message : String(err)}`);
+    return undefined;
+  }
+}
+
+const dbPath = env("ONEMEM_WORKER_DB", join(homedir(), ".onemem", "worker.db"));
+mkdirSync(dirname(dbPath), { recursive: true, mode: 0o700 });
+
+const worker = await startWorker({
+  host: env("ONEMEM_WORKER_HOST", "127.0.0.1"),
+  port: Number(env("ONEMEM_WORKER_PORT", "4041")),
+  dbPath,
+  anchor: await maybeAnchor(),
+  logger,
+});
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    void worker.stop().finally(() => process.exit(0));
+  });
+}

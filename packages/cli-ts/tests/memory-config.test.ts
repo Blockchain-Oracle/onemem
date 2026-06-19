@@ -25,6 +25,10 @@ function writeCreds(value: Record<string, unknown>, mode = 0o600): string {
   return path;
 }
 
+function fullEnv(extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
+  return { ...FULL, ONEMEM_CREDENTIALS_PATH: credsPath(), ...extra };
+}
+
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), "onemem-cli-creds-"));
 });
@@ -35,7 +39,7 @@ afterEach(() => {
 
 describe("memoryConfigFromEnv", () => {
   it("builds a config when all required vars are present", () => {
-    const cfg = memoryConfigFromEnv({ ...FULL, ONEMEM_MEMWAL_NAMESPACE: "ns1" });
+    const cfg = memoryConfigFromEnv(fullEnv({ ONEMEM_MEMWAL_NAMESPACE: "ns1" }));
     expect(cfg.delegateKey).toBe("0xkey");
     expect(cfg.accountId).toBe("0xacct");
     expect(cfg.relayerUrl).toBe("https://relayer");
@@ -43,11 +47,11 @@ describe("memoryConfigFromEnv", () => {
   });
 
   it("namespace is optional", () => {
-    expect(memoryConfigFromEnv({ ...FULL }).namespace).toBeUndefined();
+    expect(memoryConfigFromEnv(fullEnv()).namespace).toBeUndefined();
   });
 
   it("treats an empty-string package id as missing (a blank package is useless)", () => {
-    expect(() => memoryConfigFromEnv({ ...FULL, MEMWAL_PACKAGE_ID: "" })).toThrow(
+    expect(() => memoryConfigFromEnv(fullEnv({ MEMWAL_PACKAGE_ID: "" }))).toThrow(
       /MEMWAL_PACKAGE_ID/,
     );
   });
@@ -108,6 +112,25 @@ describe("memoryConfigFromEnv", () => {
     });
   });
 
+  it("does not report MEMWAL_PACKAGE_ID missing when login credentials contain it", () => {
+    const path = writeCreds({
+      delegateKey: "file-key",
+      accountId: "0xacct-file",
+      memwalPackageId: "0xmemwal",
+    });
+
+    let err: unknown;
+    try {
+      memoryConfigFromEnv({ ONEMEM_CREDENTIALS_PATH: path });
+    } catch (e) {
+      err = e;
+    }
+
+    const msg = (err as Error).message;
+    expect(msg).toContain("ONEMEM_EMBEDDING_API_KEY");
+    expect(msg).not.toContain("MEMWAL_PACKAGE_ID");
+  });
+
   it("lets env override credentials file values", () => {
     const path = writeCreds({
       delegateKey: "file-key",
@@ -155,10 +178,7 @@ describe("memoryConfigFromEnv", () => {
       expiresAt: "2020-01-01T00:00:00.000Z",
     });
 
-    const cfg = memoryConfigFromEnv({
-      ONEMEM_CREDENTIALS_PATH: path,
-      ...FULL,
-    });
+    const cfg = memoryConfigFromEnv(fullEnv({ ONEMEM_CREDENTIALS_PATH: path }));
     expect(cfg.delegateKey).toBe("0xkey");
     expect(cfg.accountId).toBe("0xacct");
     expect(cfg.embeddingApiKey).toBe("sk-x");

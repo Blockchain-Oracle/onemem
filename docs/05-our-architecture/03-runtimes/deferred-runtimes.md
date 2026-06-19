@@ -1,6 +1,6 @@
 # Deferred Runtimes — v0.2+
 
-Runtimes we'll ship native plugins for AFTER v0.1. At v0.1 these are served via `@onemem/mcp` (MCP transport).
+Runtimes we'll ship native plugins or native hook ports for AFTER v0.1. At v0.1 these are served via `@onemem/mcp` (MCP transport) unless a OneMem-specific native package already exists.
 
 ---
 
@@ -37,17 +37,27 @@ onemem-antigravity-plugin/
 
 ---
 
-## Cursor native plugin (NOT planned)
+## Cursor hook port (planned, not shipped)
 
-**Why never:** Cursor explicitly has no plugin SDK beyond inherited VS Code extensions. MCP is the ONLY integration path. Cursor's `02-inspirations/...` deep-dive confirms this. We don't ship a Cursor "plugin" because there's nothing to plug into.
+**Why planned:** the older OneMem docs treated Cursor as MCP-only, but a fresh
+ClaudeMem source check shows a real `cursor-hooks/` directory and
+`src/services/integrations/CursorHooksInstaller.ts`. OneMem should port that
+shape to the local worker API before claiming Cursor automatic capture.
 
-Cursor users get OneMem via `@onemem/mcp` (covered in `mcp-server.md`).
+Current v0.1 path: Cursor users get OneMem via `@onemem/mcp` (covered in
+`mcp-server.md`). This is explicit tool use only. The hook port is not shipped
+until OneMem has installer code, tests, and a live proof.
 
 ---
 
-## Windsurf native plugin (NOT planned)
+## Windsurf hook port (planned, not shipped)
 
-Same as Cursor — MCP-only.
+**Why planned:** ClaudeMem ships `src/services/integrations/WindsurfHooksInstaller.ts`
+with Windsurf hook events. OneMem should port that installer to the local worker
+API before claiming Windsurf automatic capture.
+
+Current v0.1 path: Windsurf users get OneMem via `@onemem/mcp`. This is explicit
+tool use only until the hook port is built and proved.
 
 ---
 
@@ -79,7 +89,7 @@ Users still on Gemini CLI today can use `@onemem/mcp` via MCP config.
 - `README.md` (this folder) — main runtime matrix
 - `codex-cli-integration.md` — current Codex plugin package with MCP baseline
   and optional trusted hooks
-- `mcp-server.md` — `@onemem/mcp` covering all MCP-only runtimes
+- `mcp-server.md` — `@onemem/mcp` covering explicit-tool fallback runtimes
 - `../../03-target-runtimes/antigravity-deep.md` — Antigravity research
 - `../../03-target-runtimes/codex-cli-deep.md` — Codex research
 - `../../03-target-runtimes/cursor-mcp-deep.md` — Cursor research

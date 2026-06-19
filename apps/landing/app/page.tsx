@@ -1,6 +1,6 @@
 import { Icon } from "@/components/Icon";
 import { VerifyDemo } from "@/components/VerifyDemo";
-import { INTEGRATIONS, PILLARS, PROBLEMS, STEPS } from "./landing-content";
+import { INTEGRATION_TIERS, PILLARS, PROBLEMS, STEPS } from "./landing-content";
 
 const appUrl = process.env.NEXT_PUBLIC_ONEMEM_APP_URL ?? "https://app.onemem.xyz";
 
@@ -28,18 +28,18 @@ export default function LandingPage() {
         <div className="container hero-inner">
           <div>
             <span className="hero-kicker">
-              <Icon name="memory" size={14} />
-              Decentralized persistent memory for AI agents.
+              <Icon name="shield" size={14} />
+              Verifiable action traces + memory you own.
             </span>
             <h1>
-              One <span className="em">memory layer</span> for every{" "}
-              <span className="em">agent runtime</span>.
+              See exactly what your <span className="em">agent did</span> — and{" "}
+              <span className="em">prove it</span>.
             </h1>
             <p className="sub">
-              Every memory your agent writes is an encrypted blob on Walrus. Every action it takes
-              is a Merkle-chained attestation on Sui. Open one dashboard — across Claude Code,
-              Hermes, Cursor and more — and <strong>search, replay, and prove</strong> exactly what
-              it did.
+              Every tool, MCP, and skill call your agent makes is recorded as a Merkle-chained node
+              on Sui; its memory is encrypted on Walrus and owned by you. Open one dashboard, replay
+              what happened, and{" "}
+              <strong>hand anyone a public link to verify it — no login, no vendor trust</strong>.
             </p>
             <div className="hero-cta">
               <a className="btn btn-primary" href={appUrl}>
@@ -61,8 +61,8 @@ export default function LandingPage() {
                 <span className="l">merkle-chained</span>
               </div>
               <div className="hm">
-                <span className="n">8+</span>
-                <span className="l">runtimes</span>
+                <span className="n">Public</span>
+                <span className="l">verify, no login</span>
               </div>
             </div>
           </div>
@@ -209,20 +209,33 @@ export default function LandingPage() {
             </span>
             <h2>Works where your agents already run.</h2>
           </div>
-          <div className="int-grid">
-            {INTEGRATIONS.map(([icon, name]) => (
-              <div
-                className="card"
-                key={name}
-                style={{ display: "flex", alignItems: "center", gap: 10, padding: 16 }}
-              >
-                <span className="rt-logo">
-                  <Icon name={icon} size={16} />
-                </span>
-                <span className="nm">{name}</span>
+          {INTEGRATION_TIERS.map((group) => (
+            <div key={group.tier} style={{ marginBottom: 20 }}>
+              <div className="lab" style={{ marginBottom: 8 }}>
+                {group.tier} — <span className="muted">{group.note}</span>
               </div>
-            ))}
-          </div>
+              <div className="int-grid">
+                {group.items.map(([logo, name]) => (
+                  <div
+                    className="card"
+                    key={name}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: 16 }}
+                  >
+                    <span className="rt-logo">
+                      <img
+                        src={`/logos/${logo}`}
+                        alt=""
+                        width={18}
+                        height={18}
+                        style={{ display: "block", objectFit: "contain" }}
+                      />
+                    </span>
+                    <span className="nm">{name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -231,7 +244,7 @@ export default function LandingPage() {
           <span className="eyebrow" style={{ justifyContent: "center" }}>
             <span className="tick">✦</span>Get started
           </span>
-          <h2 style={{ marginTop: 16 }}>Give every agent a memory layer.</h2>
+          <h2 style={{ marginTop: 16 }}>Make every agent accountable.</h2>
           <p className="sub">
             Install in under a minute. Store a memory, run a trace, and prove it.
           </p>

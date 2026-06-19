@@ -1,0 +1,100 @@
+{
+  "generatedAt": "2026-06-19",
+  "source": {
+    "zip": "raw/one-mem-campaign-source.zip",
+    "zipSha256": "9f024aac1d7da1ad36ff2fc291b6081ad400e8418c65727f7e5ba17fbe06274d",
+    "boundary": "Exports are generated from the designer HTML source. Third-party reference videos remain inside the raw zip only and are not sampled.",
+    "exportPatches": [
+      "Apply border-box sizing to the campaign root so exact-size board exports do not clip padded content.",
+      "Use x.com/OneMemAI instead of a bare X handle in generated social/link assets.",
+      "Use the memory-first eyebrow 'Decentralized memory · agent-native' instead of 'Mem0-style'."
+    ]
+  },
+  "staticBoards": [
+    {
+      "id": "readme-hero",
+      "board": "hero",
+      "component": "HeroBanner",
+      "width": 1280,
+      "height": 420,
+      "file": "exports/static/readme-hero.png",
+      "sizeBytes": 141814,
+      "sha256": "58ba8aad994a9d1417db446bae73c37b714940d11226a2bc86b3a72a5232cc8e",
+      "dimensions": {
+        "width": 1280,
+        "height": 420
+      }
+    },
+    {
+      "id": "x-header",
+      "board": "xheader",
+      "component": "XHeader",
+      "width": 1500,
+      "height": 500,
+      "file": "exports/static/x-header.png",
+      "sizeBytes": 170908,
+      "sha256": "2577d3956b90dc3af20a5300f78b7aa91e839f68a939a3764422b7c8979b0efc",
+      "dimensions": {
+        "width": 1500,
+        "height": 500
+      }
+    },
+    {
+      "id": "link-card",
+      "board": "linkcard",
+      "component": "LinkCard",
+      "width": 1200,
+      "height": 630,
+      "file": "exports/static/link-card.png",
+      "sizeBytes": 51109,
+      "sha256": "059708756cf5e05b6c6a93565f4ad9c30cc17b21dd26b7b0cc630988e756f1d2",
+      "dimensions": {
+        "width": 1200,
+        "height": 630
+      }
+    },
+    {
+      "id": "tools-poster",
+      "board": "poster",
+      "component": "ToolsPoster",
+      "width": 1600,
+      "height": 900,
+      "file": "exports/static/tools-poster.png",
+      "sizeBytes": 222356,
+      "sha256": "caaacde20b17b494dba764a0f895cf7f33f10824179ebb28ba081cf3bee259c3",
+      "dimensions": {
+        "width": 1600,
+        "height": 900
+      }
+    },
+    {
+      "id": "architecture",
+      "board": "arch",
+      "component": "Architecture",
+      "width": 1920,
+      "height": 1080,
+      "file": "exports/static/architecture.png",
+      "sizeBytes": 215822,
+      "sha256": "b8cff69f19ba238e128c27dce0ab78ef66091f873482c44a56d3210c883332a0",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      }
+    }
+  ],
+  "launchVideos": [
+    {
+      "id": "launch-video-landscape",
+      "file": "exports/video/onemem-launch-30s.mp4",
+      "fps": 30,
+      "audioFile": "audio/onemem-launch-bed.wav",
+      "audioSha256": "b96b59dcb0153a383ff6ddc3ae729c687e4fb9efb816dcc4f719f1718ef58574",
+      "sizeBytes": 1360615,
+      "sha256": "2c1e0859dba5a8f970c34dde35a200efb188477bbfc80646683c604693903ee0",
+      "width": 1920,
+      "height": 1080,
+      "durationSeconds": 30,
+      "frameRate": "30/1"
+    }
+  ]
+}

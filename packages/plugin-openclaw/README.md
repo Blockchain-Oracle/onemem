@@ -12,11 +12,13 @@ OpenClaw discovers the plugin via `package.json` → `openclaw.extensions`. On
 1. calls `ocMemwal.register(api)` — all Walrus memory (recall + capture);
 2. registers OneMem trace hooks via `api.on(...)` on the real OpenClaw
    lifecycle events:
-   - `session_start` → open a OneMem TraceSession (in-memory, keyed by
-     `ctx.sessionKey`);
    - `after_tool_call` → buffer the tool call (instant);
+   - `llm_output` → buffer the model response when no OpenClaw tool event fires;
    - `agent_end` → flush buffered calls as Seal-encrypted, Walrus-stored,
-     Merkle-chained `ActionCall`s + close the session.
+     Merkle-chained `ActionCall`s inside one TraceSession, then close it.
+
+`session_start` is not relied on because it is not consistently exposed across
+OpenClaw host versions; on-chain work is deferred until `agent_end`.
 
 All trace work is defensive — a OneMem failure never breaks the agent.
 

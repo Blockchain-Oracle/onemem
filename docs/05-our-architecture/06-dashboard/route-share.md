@@ -19,7 +19,7 @@ transferred to the recipient address.
 ## Hosted Owner Share Flow
 
 ```
-Owner opens app.onemem.ai/share
+Owner opens app.onemem.xyz/share
   ↓
 Connects wallet / Enoki account through dApp Kit
   ↓
@@ -73,7 +73,7 @@ named OneMem share actions.
 ## Recipient Capability Link Flow
 
 ```
-Recipient opens app.onemem.ai/share/<capability_id>
+Recipient opens app.onemem.xyz/share/<capability_id>
   ↓
 Server reads the Sui object with showType + showContent + showOwner
   ↓

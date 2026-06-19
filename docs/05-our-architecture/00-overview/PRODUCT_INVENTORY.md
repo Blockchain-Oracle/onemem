@@ -20,9 +20,9 @@ This is the canonical inventory. **Frozen 2026-05-26.** Every architecture doc r
 | 5 | CLI (`onemem`) | Both Node (`@onemem/cli`) + Python (`onemem-cli`); login/init/dashboard/namespace/search/trace/replay/verify/stats | Self-host helpers, multi-account, scripting subcommands | `05-cli/` |
 | 6 | MCP server (`@onemem/mcp`) | stdio MCP serving 8 tools (add/search/get/update/delete/replay/verify/share) | Tool expansion as new features ship | `03-runtimes/mcp-server.md` |
 | 7 | Local Dashboard | Next.js 14 + Tailwind + shadcn + Radix Themes + dapp-kit on `localhost:4040`; 7 routes + SSE live updates | More analytics, agent leaderboards, memory marketplace UI | `06-dashboard/` |
-| 8 | Hosted Dashboard | `app.onemem.ai` (same codebase + Enoki/zkLogin + sponsored-tx) + Walrus Sites mirror | Team workspaces, billing, RBAC UI | `06-dashboard/hosted-deploy.md` |
-| 9 | Marketing Landing | `onemem.ai` — hero + 5-min demo + integration installs + comparison + v0.2 vision teaser | Blog, case studies, customer logos | `07-marketing-and-docs/landing-architecture.md` |
-| 10 | Docs Site | `docs.onemem.ai` Mintlify — 5 must-have pages at v0.1 (Get Started, Concepts, Verify-a-trace, API Reference, Integrations index) | Full reference docs, cookbook, video tutorials | `07-marketing-and-docs/docs-architecture.md` |
+| 8 | Hosted Dashboard | `app.onemem.xyz` (same codebase + Enoki/zkLogin + sponsored-tx) + Walrus Sites mirror | Team workspaces, billing, RBAC UI | `06-dashboard/hosted-deploy.md` |
+| 9 | Marketing Landing | `onemem.xyz` — hero + 5-min demo + integration installs + comparison + v0.2 vision teaser | Blog, case studies, customer logos | `07-marketing-and-docs/landing-architecture.md` |
+| 10 | Docs Site | `docs.onemem.xyz` Mintlify — 5 must-have pages at v0.1 (Get Started, Concepts, Verify-a-trace, API Reference, Integrations index) | Full reference docs, cookbook, video tutorials | `07-marketing-and-docs/docs-architecture.md` |
 | 11 | Demo apps / e2e tests | 4 demos: switch-laptops, agent-sends-money, verifiable-research-agent, multi-agent-coordination | More demos per framework | `08-demos-and-tests/` |
 | 12 | Nautilus TEE relayer | (Stretch, Day 23+) be FIRST product to use Mysten's Nautilus-TEE relayer template | Production TEE deployment | `09-stretch/nautilus-tee-relayer.md` |
 
@@ -154,7 +154,7 @@ This is the canonical inventory. **Frozen 2026-05-26.** Every architecture doc r
 - Marketplace UI
 
 ### Pillar 8 — Hosted Dashboard
-**What:** same Next.js codebase as local, deployed at `app.onemem.ai` with Enoki/zkLogin + sponsored-tx + a Walrus Sites mirror for decentralized fallback.
+**What:** same Next.js codebase as local, deployed at `app.onemem.xyz` with Enoki/zkLogin + sponsored-tx + a Walrus Sites mirror for decentralized fallback.
 
 **v0.1 includes:**
 - Same routes as local
@@ -168,7 +168,7 @@ This is the canonical inventory. **Frozen 2026-05-26.** Every architecture doc r
 - RBAC UI
 - SAML / SSO
 
-### Pillar 9 — Marketing Landing (`onemem.ai`)
+### Pillar 9 — Marketing Landing (`onemem.xyz`)
 **What:** the marketing site. Next.js or Framer.
 
 **v0.1 includes:**
@@ -179,7 +179,7 @@ This is the canonical inventory. **Frozen 2026-05-26.** Every architecture doc r
 - v0.2+ vision teaser (reputation, marketplaces, ERC-8004)
 - Brand applied per `BRAND_AND_SURFACES.md`
 
-### Pillar 10 — Docs Site (`docs.onemem.ai`)
+### Pillar 10 — Docs Site (`docs.onemem.xyz`)
 **What:** Mintlify (same stack as Mem0 + claude-mem).
 
 **v0.1 must-have pages:**

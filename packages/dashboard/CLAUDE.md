@@ -3,7 +3,7 @@
 Active repo routing lives in `AGENTS.md`; active Context Engineering artifacts
 live under `.thoughts/`.
 
-Next.js 15 standalone dashboard. Same code serves BOTH local (`localhost:4040`) and hosted (`app.onemem.ai`). Routes split per `purpose-local-vs-hosted.md`: this package owns the SHARED routes; `apps/hosted-dashboard/` owns the hosted-only ones (`/login`, `/cli-login`, `/onboarding`, `/share`, `/share/[capability_id]`, `/verify/[session_id]`).
+Next.js 15 standalone dashboard. Same code serves BOTH local (`localhost:4040`) and hosted (`app.onemem.xyz`). Routes split per `purpose-local-vs-hosted.md`: this package owns the SHARED routes; `apps/hosted-dashboard/` owns the hosted-only ones (`/login`, `/cli-login`, `/onboarding`, `/share`, `/share/[capability_id]`, `/verify/[session_id]`).
 
 ## Read before editing
 - `docs/05-our-architecture/06-dashboard/purpose-local-vs-hosted.md` (READ FIRST — authoritative purpose split)

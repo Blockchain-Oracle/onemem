@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="520" height="128" viewBox="0 0 520 128" role="img" aria-labelledby="title desc">
   <title id="title">OneMem horizontal lockup</title>
   <desc id="desc">OneMem mark and wordmark for neutral backgrounds.</desc>
-  <rect x="0" y="0" width="128" height="128" rx="28" fill="#171717"/>
-  <path d="M36 45 64 30l28 15v37.6L64 98 36 82.6z" fill="none" stroke="#d4ff5e" stroke-width="8" stroke-linejoin="round"/>
-  <path d="M36 45 64 60l28-15M64 60v38" fill="none" stroke="#8f7cff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="156" y="78" fill="#171717" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="68" font-weight="800" letter-spacing="-1.8">OneMem</text>
-  <text x="160" y="105" fill="#4d4a45" font-family="Hanken Grotesk, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="2.8">VERIFY AGENT MEMORY</text>
+  <rect x="0" y="0" width="128" height="128" rx="28" fill="#ffffff" stroke="#e6dfd2" stroke-width="2"/>
+  <path d="M36 45 64 30l28 15v37.6L64 98 36 82.6z" fill="none" stroke="#0a924b" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M36 45 64 60l28-15M64 60v38" fill="none" stroke="#3959da" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="156" y="78" fill="#211f1b" font-family="Bricolage Grotesque, Hanken Grotesk, Arial, sans-serif" font-size="68" font-weight="800" letter-spacing="-1.8">OneMem</text>
+  <text x="160" y="105" fill="#68625c" font-family="Hanken Grotesk, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="2.8">ONE MEMORY LAYER</text>
 </svg>

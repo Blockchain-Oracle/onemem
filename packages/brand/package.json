@@ -1,28 +1,36 @@
 {
   "name": "@onemem/brand",
   "version": "0.1.2",
-  "description": "OneMem shared brand assets — logo, fonts, OG image templates, design tokens",
+  "description": "OneMem shared brand assets — logo, fonts, design tokens, campaign handoffs, and media kit",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
+    "./ASSET_CLEANUP.md": "./ASSET_CLEANUP.md",
     "./tokens.css": "./tokens.css",
     "./logo/*": "./logo/*",
     "./fonts/*": "./fonts/*",
-    "./og-images/*": "./og-images/*",
-    "./campaign/*": "./campaign/*",
-    "./vendor-logos/*": "./vendor-logos/*"
+    "./briefs/*": "./briefs/*",
+    "./designer-campaign/*": "./designer-campaign/*",
+    "./vendor-logos/*": "./vendor-logos/*",
+    "./media-kit/*": "./media-kit/*"
   },
   "files": [
     "tokens.css",
     "logo",
     "fonts",
-    "og-images",
-    "campaign",
+    "briefs",
+    "designer-campaign",
     "vendor-logos",
+    "media-kit",
+    "ASSET_CLEANUP.md",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
+    "designer-campaign:export": "node designer-campaign/scripts/export-designer-campaign.mjs",
+    "designer-campaign:benchmark": "node designer-campaign/scripts/generate-reference-benchmark.mjs",
+    "designer-campaign:audio-provenance": "node designer-campaign/scripts/generate-audio-provenance.mjs",
+    "media-kit:generate": "node media-kit/generate-media-kit.mjs",
     "lint": "biome check ."
   }
 }

@@ -30,6 +30,7 @@ interface NetworkBlock {
   rpc_url: string;
   suiscan_base: string;
   package_id: string;
+  original_package_id?: string;
   registry_id: string;
   registry_admin_cap_id: string;
   upgrade_cap_id: string;
@@ -71,6 +72,7 @@ function render(cfg: NetworksConfig): string {
     "  readonly rpcUrl: string;",
     "  readonly suiscanBase: string;",
     "  readonly packageId: string;",
+    "  readonly originalPackageId: string;",
     "  readonly registryId: string;",
     "  readonly registryAdminCapId: string;",
     "  readonly upgradeCapId: string;",
@@ -91,6 +93,7 @@ function render(cfg: NetworksConfig): string {
       `    rpcUrl: ${JSON.stringify(b.rpc_url)},`,
       `    suiscanBase: ${JSON.stringify(b.suiscan_base)},`,
       `    packageId: ${JSON.stringify(b.package_id)},`,
+      `    originalPackageId: ${JSON.stringify(b.original_package_id || b.package_id)},`,
       `    registryId: ${JSON.stringify(b.registry_id)},`,
       `    registryAdminCapId: ${JSON.stringify(b.registry_admin_cap_id)},`,
       `    upgradeCapId: ${JSON.stringify(b.upgrade_cap_id)},`,

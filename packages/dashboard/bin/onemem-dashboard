@@ -5,13 +5,29 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { existsSync } from "node:fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const port = process.env.PORT ?? "4040";
-const serverPath = resolve(__dirname, "..", ".next", "standalone", "server.js");
+const packageRoot = resolve(__dirname, "..");
+const standaloneServer = resolve(
+  packageRoot,
+  ".next",
+  "standalone",
+  "packages",
+  "dashboard",
+  "server.js",
+);
+const legacyStandaloneServer = resolve(packageRoot, ".next", "standalone", "server.js");
+const serverPath = existsSync(standaloneServer) ? standaloneServer : legacyStandaloneServer;
+
+// Local-mode default: bind loopback only. This launcher serves your private
+// credentials + memory/trace inventory; 0.0.0.0 would expose it to the whole LAN.
+// Advanced users can opt into a wider bind with HOST (e.g. HOST=0.0.0.0).
+const host = process.env.HOST ?? "127.0.0.1";
 
 const proc = spawn("node", [serverPath], {
-  env: { ...process.env, PORT: port, HOSTNAME: "0.0.0.0" },
+  env: { ...process.env, PORT: port, HOSTNAME: host },
   stdio: "inherit",
 });
 

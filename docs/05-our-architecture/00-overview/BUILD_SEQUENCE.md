@@ -128,7 +128,7 @@ surfaces were built after this tracker was first written.
 
 | Day | Work |
 |---|---|
-| 23 | All 4 demo apps wired + recorded; landing page (`onemem.ai`) + Mintlify docs (`docs.onemem.ai`) + 5 must-have pages; hosted dashboard at `app.onemem.ai`; Walrus Sites mirror; (stretch) start Nautilus TEE integration |
+| 23 | All 4 demo apps wired + recorded; landing page (`onemem.xyz`) + Mintlify docs (`docs.onemem.xyz`) + 5 must-have pages; hosted dashboard at `app.onemem.xyz`; Walrus Sites mirror; (stretch) start Nautilus TEE integration |
 | 24 | Demo video editing; landing copy polish; docs proof-read; OneZeppelin OZ contracts review pass (security score); end-to-end test matrix run |
 | 25 | Final integration tests + bug fixes; demo video uploaded to YouTube; GitHub README per-package polish; submission preview |
 

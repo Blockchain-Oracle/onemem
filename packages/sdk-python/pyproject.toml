@@ -12,8 +12,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://onemem.ai"
-Documentation = "https://docs.onemem.ai"
+Homepage = "https://onemem.xyz"
+Documentation = "https://docs.onemem.xyz"
 Repository = "https://github.com/Blockchain-Oracle/onemem"
 
 [build-system]

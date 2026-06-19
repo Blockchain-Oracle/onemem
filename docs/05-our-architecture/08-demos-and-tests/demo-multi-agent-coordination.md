@@ -80,7 +80,7 @@ Narrator: "Cross-runtime. Cross-framework. Cryptographically composed.
            This doesn't exist anywhere else."
 
 [Demo card]
-"OneMem · onemem.ai"
+"OneMem · onemem.xyz"
 [End]
 ```
 

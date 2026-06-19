@@ -1,6 +1,6 @@
 # Walrus Sites mirror — apps/hosted-dashboard
 
-Decentralized Walrus Sites deploy surface for `app.onemem.ai` fallback work.
+Decentralized Walrus Sites deploy surface for `app.onemem.xyz` fallback work.
 The current checked-in artifact is a small public verifier shell, not the full
 hosted dashboard.
 
@@ -8,7 +8,7 @@ hosted dashboard.
 
 Per `docs/05-our-architecture/06-dashboard/walrus-sites-mirror.md`:
 - Trust narrative — the verifiable-memory product should ship on verifiable infrastructure where possible
-- Resilience — `app.onemem.ai` could go down (Vercel outage, DNS issue, account suspension); Walrus Sites URL still works
+- Resilience — `app.onemem.xyz` could go down (Vercel outage, DNS issue, account suspension); Walrus Sites URL still works
 - The public `/verify/[session_id]` page is the most important surface to mirror — anyone can verify chain integrity even if the centralized host is unreachable
 
 ## Current boundary

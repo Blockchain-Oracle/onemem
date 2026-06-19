@@ -55,11 +55,13 @@ For lifecycle trace capture, configure:
 Codex requires non-managed hooks to be reviewed and trusted before they run. Use
 `/hooks` in Codex after installing or changing the plugin.
 
-Current proof boundary: local `codex exec` tests on Codex CLI 0.140 did not run
-user-level or plugin-local hooks, even with hook features enabled and trust
-bypass flags. Use an interactive trusted `/hooks` session, or a newer Codex
-version with demonstrated hook execution, before claiming automatic Codex hook
-trace coverage.
+Proof note, 2026-06-19: a local marketplace install of
+`onemem-codex@onemem` v0.1.2 on Codex CLI 0.140 was trusted through the
+interactive hook review UI and emitted a real testnet `TraceSession`:
+`0x0c88317632dcd386b6f81b94ee510003ba107d3c4bfa035ba8072fca8304e330`.
+`onemem verify` returned `ok: true`, `callCount: 1`, and matching Merkle roots.
+The older local `codex exec` tests on Codex CLI 0.140 still did not run hooks,
+so `codex exec` is not treated as the hook-proof path.
 
 ## Install From The Public Repository Marketplace
 
@@ -77,10 +79,10 @@ Codex fetches the repository's default branch; use `--ref <branch>` only for
 pre-release testing.
 
 Publication claim boundary: this install path provides the stable MCP layer and
-ships optional hook scripts that flush through the published
-`@onemem/sdk-ts@0.6.0` trace CLI. Do not claim full automatic Codex tool-call
-trace coverage until a trusted `/hooks` session emits a verifiable on-chain
-OneMem `TraceSession`.
+ships optional hook scripts that flush through the current published
+`@onemem/sdk-ts` trace CLI. Live hook trace capture is proven for the patched
+v0.1.2 local marketplace install above, but users still must review and trust
+the optional hooks after install or hook changes.
 
 ## Install From A Local Checkout During Development
 

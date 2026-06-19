@@ -49,7 +49,7 @@ Combined: every v0.1 runtime + every v0.1 framework + every pillar is exercised 
 - Pure SDK / library demos (not enough story)
 - Just the dashboard with no agent (no narrative)
 - Multi-modal demos (not in v0.1 scope)
-- Long-form documentation tutorials (those go in docs.onemem.ai)
+- Long-form documentation tutorials (those go in docs.onemem.xyz)
 
 ---
 

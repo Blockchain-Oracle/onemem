@@ -11,7 +11,7 @@ owns verifiable on-chain trace; claude-mem owns local conversation summary.
 |---|---|---|
 | `SessionStart` | `inject.js` | Opens a OneMem `TraceSession`, persists the mapping |
 | `PostToolUse` | `observe.js` | Buffers the tool call locally — **instant**, never blocks Claude |
-| `SessionEnd` | `summarize.js` | Flushes the buffer on-chain (one `ActionCall` per tool, Seal-encrypted → Walrus) + closes the session |
+| `Stop` | `summarize.js` | Flushes the buffer on-chain (one `ActionCall` per tool, Seal-encrypted -> Walrus) + closes the session |
 
 Buffering keeps the editor responsive; the on-chain work happens once at session
 end, producing one tamper-evident trace you can verify or share.
@@ -23,6 +23,13 @@ end, producing one tamper-evident trace you can verify or share.
 - `ONEMEM_PRIVATE_KEY` — `suiprivkey1…` signer (else the sui keystore's first key).
 - `SUI_NETWORK` — `testnet` (default) | `mainnet` | …
 
+## Bundled MCP
+
+The plugin root includes `.mcp.json`, so Claude Code can expose the same OneMem
+MCP server alongside the lifecycle hooks. The MCP server is the dependable
+memory/search/replay/share/verify layer and works independently of hook trace
+capture.
+
 ## Install From The Public Repository Marketplace
 
 ```bash
@@ -30,13 +37,15 @@ claude plugin marketplace add Blockchain-Oracle/onemem
 claude plugin install onemem@onemem
 ```
 
-**Publication/proof note, 2026-06-18:** this GitHub marketplace path is current,
-and `@onemem/claude-code-plugin@0.1.0` is current on npm after
-`pnpm registry:status --strict`. The gated `tests/plugin.integration.test.ts`
-script can prove a simulated
-SessionStart→PostToolUse→SessionEnd lifecycle on testnet when
-`ONEMEM_INTEGRATION=1`, but a trusted live Claude Code client hook session is a
-separate proof boundary.
+**Publication note, 2026-06-19:** this GitHub marketplace path is current, and
+`@onemem/claude-code-plugin@0.1.1` is current on npm after
+`pnpm registry:status --strict`. It contains the `Stop` hook fix plus bundled
+MCP config. A trusted live Claude Code session emitted testnet TraceSession
+`0x9c88993b6197a8460f4fbd4a886c6353505d36383bf35035e5305088b64825e7`;
+`onemem verify` returned `ok: true`, `callCount: 1`, and matching Merkle roots.
+The gated `tests/plugin.integration.test.ts` script remains available for
+simulated SessionStart -> PostToolUse -> Stop coverage when
+`ONEMEM_INTEGRATION=1`.
 
 This GitHub marketplace path requires `.claude-plugin/marketplace.json` and
 `packages/plugin-claude-code/` to be present on the repository branch Claude Code

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSignTransaction } from "@mysten/dapp-kit";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 
 type ProvisionAction = "namespace-create" | "rw-cap-mint";
@@ -71,6 +71,7 @@ async function postJson<T extends { readonly ok: true }>(
 
 export function SponsoredProvisioning({ sender, onProvisioned }: SponsoredProvisioningProps) {
   const { mutateAsync: signTransaction } = useSignTransaction();
+  const activeRunRef = useRef(0);
   const [status, setStatus] = useState<ProvisionStatus>("idle");
   const [message, setMessage] = useState("Ready to sponsor namespace creation.");
   const [error, setError] = useState<string | null>(null);
@@ -84,24 +85,44 @@ export function SponsoredProvisioning({ sender, onProvisioned }: SponsoredProvis
   const running = status === "preparing" || status === "signing" || status === "executing";
   const done = status === "done";
 
-  async function signAndExecute(prepared: PreparedResponse): Promise<ExecutedResponse> {
+  function assertActive(runId: number): void {
+    if (activeRunRef.current !== runId) throw new Error("Provisioning was cancelled.");
+  }
+
+  function cancelProvisioning(): void {
+    activeRunRef.current += 1;
+    setStatus("idle");
+    setMessage("Provisioning stopped before completion.");
+    setError("Wallet request cancelled. Any later approval for the old prompt will be ignored.");
+  }
+
+  async function signAndExecute(
+    prepared: PreparedResponse,
+    runId: number,
+  ): Promise<ExecutedResponse> {
+    assertActive(runId);
     setStatus("signing");
     setMessage(`Sign ${prepared.action} in your wallet.`);
     const signed = await signTransaction({ transaction: prepared.bytes });
+    assertActive(runId);
     if (!signed.signature) throw new Error("Wallet did not return a signature.");
 
     setStatus("executing");
     setMessage(`Executing sponsored ${prepared.action} transaction.`);
-    return postJson<ExecutedResponse>("/api/onboarding/sponsored/execute", {
+    const executed = await postJson<ExecutedResponse>("/api/onboarding/sponsored/execute", {
       action: prepared.action,
       digest: prepared.digest,
       signature: signed.signature,
       network: prepared.network,
     });
+    assertActive(runId);
+    return executed;
   }
 
   async function provision() {
     if (!sender) return;
+    const runId = activeRunRef.current + 1;
+    activeRunRef.current = runId;
     setError(null);
     setNamespaceId(null);
     setAdminCapId(null);
@@ -120,11 +141,13 @@ export function SponsoredProvisioning({ sender, onProvisioned }: SponsoredProvis
           label: "hosted",
         },
       );
+      assertActive(runId);
       setNamespaceName(preparedNamespace.namespaceName ?? null);
-      const created = await signAndExecute(preparedNamespace);
+      const created = await signAndExecute(preparedNamespace, runId);
       if (!created.namespaceId || !created.adminCapId) {
         throw new Error("Namespace transaction did not return namespace and Admin capability IDs.");
       }
+      assertActive(runId);
       setNamespaceId(created.namespaceId);
       setAdminCapId(created.adminCapId);
       setNamespaceDigest(created.txDigest);
@@ -137,10 +160,12 @@ export function SponsoredProvisioning({ sender, onProvisioned }: SponsoredProvis
         namespaceId: created.namespaceId,
         adminCapId: created.adminCapId,
       });
-      const minted = await signAndExecute(preparedRw);
+      assertActive(runId);
+      const minted = await signAndExecute(preparedRw, runId);
       if (!minted.rwCapId) {
         throw new Error("ReadWrite capability transaction did not return a capability ID.");
       }
+      assertActive(runId);
       setRwCapId(minted.rwCapId);
       setRwCapDigest(minted.txDigest);
       setStatus("done");
@@ -154,6 +179,7 @@ export function SponsoredProvisioning({ sender, onProvisioned }: SponsoredProvis
         rwCapDigest: minted.txDigest,
       });
     } catch (err) {
+      if (activeRunRef.current !== runId) return;
       setStatus("idle");
       setError(err instanceof Error ? err.message : String(err));
       setMessage("Provisioning stopped before completion.");
@@ -179,6 +205,16 @@ export function SponsoredProvisioning({ sender, onProvisioned }: SponsoredProvis
         <Icon name="shield" size={16} />
         {running ? "Provisioning..." : done ? "Provision again" : "Provision namespace"}
       </button>
+      {running ? (
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={cancelProvisioning}
+          style={{ justifyContent: "center" }}
+        >
+          Cancel wallet request
+        </button>
+      ) : null}
 
       {!sender ? (
         <p className="faint" style={{ fontSize: ".78rem", textAlign: "center" }}>

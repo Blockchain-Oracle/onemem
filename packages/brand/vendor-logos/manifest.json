@@ -106,7 +106,6 @@
       "id": "openclaw",
       "label": "OpenClaw",
       "category": "native-runtime",
-      "aliases": ["OpenClaude spoken alias in notes"],
       "files": ["svg/openclaw.svg", "svg/openclaw-color.svg", "svg/openclaw-text.svg"],
       "sourceType": "lobe-icons",
       "source": "https://github.com/lobehub/lobe-icons",
@@ -322,11 +321,6 @@
     }
   ],
   "openQuestions": [
-    {
-      "label": "OpenClaude",
-      "status": "not-found-in-repo",
-      "notes": "No OneMem package or docs target named OpenClaude was found. Current implemented native runtime is OpenClaw."
-    },
     {
       "label": "CYRs",
       "status": "unclear-spoken-alias",

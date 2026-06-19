@@ -171,13 +171,16 @@ echo "  New package ID: $NEW_PACKAGE_ID"
 echo "  Tx digest:      $TX_DIGEST"
 
 DEPLOYED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+ORIGINAL_PACKAGE_ID="$(jq -r --arg n "$NETWORK" '.networks[$n].original_package_id // .networks[$n].package_id // ""' "$NETWORKS_JSON")"
 tmp="$(mktemp)"
 jq \
   --arg net "$NETWORK" \
   --arg pkg "$NEW_PACKAGE_ID" \
+  --arg original "${ORIGINAL_PACKAGE_ID:-$CURRENT_PACKAGE_ID}" \
   --arg digest "$TX_DIGEST" \
   --arg ts "$DEPLOYED_AT" \
   '.networks[$net].package_id = $pkg
+   | .networks[$net].original_package_id = $original
    | .networks[$net].tx_digest = $digest
    | .networks[$net].deployed_at = $ts
    | .active = $net' \

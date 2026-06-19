@@ -7,8 +7,10 @@
 // Spec: docs/05-our-architecture/03-runtimes/claude-code-plugin.md
 
 import {
+  ensureWorker,
   loadClient,
   loadConfig,
+  postWorker,
   readHookInput,
   traceCaptureEnabled,
   writeSessionState,
@@ -17,9 +19,19 @@ import {
 async function main() {
   const input = await readHookInput();
   const claudeSessionId = input.session_id;
-  const config = loadConfig();
-  if (!config || !claudeSessionId) return;
+  if (!claudeSessionId) return;
   if (!(await traceCaptureEnabled("claude-code"))) return;
+
+  await ensureWorker();
+  await postWorker("/api/sessions/init", {
+    id: claudeSessionId,
+    runtime: "claude-code",
+    projectPath: input.cwd ?? input.workspace_path ?? null,
+    startedAt: Date.now(),
+  });
+
+  const config = loadConfig();
+  if (!config) return;
 
   const onemem = await loadClient(config);
   if (!onemem) return;
@@ -29,12 +41,20 @@ async function main() {
     rwCapId: config.rwCapId,
     agentId: "claude-code",
     environment: "claude-code",
-    sdkVersion: "0.1.0",
+    sdkVersion: "0.1.1",
   });
   writeSessionState(claudeSessionId, {
     onememSessionId: session.sessionId,
     namespaceId: config.namespaceId,
     rwCapId: config.rwCapId,
+  });
+  await postWorker("/api/sessions/init", {
+    id: claudeSessionId,
+    runtime: "claude-code",
+    projectPath: input.cwd ?? input.workspace_path ?? null,
+    namespaceId: config.namespaceId,
+    onememSessionId: session.sessionId,
+    startedAt: Date.now(),
   });
   process.stderr.write(`[onemem] trace session ${session.sessionId} started\n`);
 }

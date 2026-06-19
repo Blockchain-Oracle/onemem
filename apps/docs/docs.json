@@ -7,6 +7,11 @@
     "light": "#16A34A",
     "dark": "#0EA5E9"
   },
+  "seo": {
+    "metatags": {
+      "canonical": "https://docs.onemem.xyz"
+    }
+  },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [

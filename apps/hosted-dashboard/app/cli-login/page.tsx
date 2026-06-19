@@ -12,7 +12,8 @@ import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import { generateDelegateKey } from "@mysten-incubation/memwal/account";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useHostedAuthConfig } from "@/components/HostedProviders";
 import { Icon } from "@/components/Icon";
 import {
   bytesToHex,
@@ -24,22 +25,8 @@ import {
   shortId,
 } from "@/lib/cli-login-client";
 import { type HostedProvisioningState, loadHostedProvisioningState } from "@/lib/hosted-state";
-
-const TTL_OPTIONS = [
-  { label: "1 hour", seconds: 3_600 },
-  { label: "24 hours", seconds: 86_400 },
-  { label: "30 days", seconds: 2_592_000 },
-  { label: "90 days", seconds: 7_776_000 },
-] as const;
-
-type PairingStatus =
-  | "idle"
-  | "loading-account"
-  | "creating-account"
-  | "generating-delegate"
-  | "registering-delegate"
-  | "posting-callback"
-  | "paired";
+import { CliLoginFallback } from "./fallback";
+import { isPairingRunning, type PairingStatus, pairingStatusMessage, TTL_OPTIONS } from "./model";
 
 const textEncoder = new TextEncoder();
 
@@ -48,8 +35,10 @@ function CliLoginInner() {
   const nonce = params.get("nonce") ?? "";
   const port = params.get("port") ?? "";
   const account = useCurrentAccount();
+  const authConfig = useHostedAuthConfig();
   const suiClient = useSuiClient();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const activeRunRef = useRef(0);
   const [status, setStatus] = useState<PairingStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [delegateLabel, setDelegateLabel] = useState("onemem-cli");
@@ -59,28 +48,35 @@ function CliLoginInner() {
   const [lastDelegateDigest, setLastDelegateDigest] = useState<string | null>(null);
 
   const canPair = Boolean(nonce && port && account && lookup?.accountId);
-  const running =
-    status === "creating-account" ||
-    status === "generating-delegate" ||
-    status === "registering-delegate" ||
-    status === "posting-callback";
+  const running = isPairingRunning(status);
+  const connectText = authConfig.enokiConfigured
+    ? "Connect wallet or Google"
+    : "Connect Sui wallet";
   const pairingUrlValid = nonce.length > 0 && port.length > 0;
 
-  const statusMessage = useMemo(() => {
-    if (!pairingUrlValid)
-      return "Open this page from `onemem login` so it includes nonce and port.";
-    if (!account) return "Connect the wallet that should own the CLI delegate.";
-    if (status === "loading-account") return "Looking up your MemWal account.";
-    if (status === "creating-account") return "Creating a MemWal account with your wallet.";
-    if (status === "generating-delegate") return "Generating a fresh CLI delegate key locally.";
-    if (status === "registering-delegate") return "Registering the delegate public key on-chain.";
-    if (status === "posting-callback") return "Sending the credential to your local CLI callback.";
-    if (status === "paired") return "Pairing complete. Return to your terminal.";
-    if (!lookup?.accountId) return "No MemWal account found yet. Create one to continue.";
-    return "Ready to mint and register a CLI delegate key.";
-  }, [account, lookup?.accountId, pairingUrlValid, status]);
+  const statusMessage = useMemo(
+    () =>
+      pairingStatusMessage({
+        hasAccount: Boolean(account),
+        hasMemWalAccount: Boolean(lookup?.accountId),
+        pairingUrlValid,
+        status,
+      }),
+    [account, lookup?.accountId, pairingUrlValid, status],
+  );
+
+  function assertActive(runId: number): void {
+    if (activeRunRef.current !== runId) throw new Error("CLI pairing was cancelled.");
+  }
+
+  function cancelWalletRequest(): void {
+    activeRunRef.current += 1;
+    setStatus("idle");
+    setError("Wallet request cancelled. Any later approval for the old prompt will be ignored.");
+  }
 
   useEffect(() => {
+    activeRunRef.current += 1;
     if (!account) {
       setLookup(null);
       setHostedState(null);
@@ -124,6 +120,8 @@ function CliLoginInner() {
 
   async function createMemWalAccount() {
     if (!account || !lookup) return;
+    const runId = activeRunRef.current + 1;
+    activeRunRef.current = runId;
     setError(null);
     setStatus("creating-account");
     try {
@@ -137,12 +135,15 @@ function CliLoginInner() {
           typeof signAndExecuteTransaction
         >[0]["transaction"],
       });
+      assertActive(runId);
       const digest = digestFromExecuteResult(executed);
       const confirmed = await waitForDigest(digest);
+      assertActive(runId);
       const accountId = findCreatedObject(confirmed, "::account::MemWalAccount");
       setLookup({ ...lookup, accountId });
       setStatus("idle");
     } catch (err) {
+      if (activeRunRef.current !== runId) return;
       setStatus("idle");
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -150,6 +151,8 @@ function CliLoginInner() {
 
   async function approve() {
     if (!account || !lookup?.accountId) return;
+    const runId = activeRunRef.current + 1;
+    activeRunRef.current = runId;
     setError(null);
     setLastDelegateDigest(null);
     const label = delegateLabel.trim() || "onemem-cli";
@@ -157,6 +160,7 @@ function CliLoginInner() {
     try {
       setStatus("generating-delegate");
       const delegate = await generateDelegateKey();
+      assertActive(runId);
       const delegatePublicKey = `0x${bytesToHex(delegate.publicKey)}`;
 
       setStatus("registering-delegate");
@@ -176,8 +180,10 @@ function CliLoginInner() {
           typeof signAndExecuteTransaction
         >[0]["transaction"],
       });
+      assertActive(runId);
       const delegateDigest = digestFromExecuteResult(executed);
       await waitForDigest(delegateDigest);
+      assertActive(runId);
       setLastDelegateDigest(delegateDigest);
 
       const keypair = Ed25519Keypair.fromSecretKey(hexToBytes(delegate.privateKey));
@@ -186,6 +192,7 @@ function CliLoginInner() {
       const expiresAt = new Date(createdAt.getTime() + delegateTtlSeconds * 1000);
 
       setStatus("posting-callback");
+      assertActive(runId);
       const res = await fetch(`http://127.0.0.1:${port}/callback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -211,9 +218,11 @@ function CliLoginInner() {
           delegateRegistrationDigest: delegateDigest,
         }),
       });
+      assertActive(runId);
       if (!res.ok) throw new Error(`CLI callback returned ${res.status}`);
       setStatus("paired");
     } catch (err) {
+      if (activeRunRef.current !== runId) return;
       setStatus("idle");
       setError(
         err instanceof Error
@@ -248,7 +257,7 @@ function CliLoginInner() {
               </div>
 
               <div style={{ marginTop: 12 }}>
-                <ConnectButton className="auth-btn" connectText="Connect wallet or Google" />
+                <ConnectButton className="auth-btn" connectText={connectText} />
               </div>
 
               <div className="receipt" style={{ marginTop: 14 }}>
@@ -326,6 +335,16 @@ function CliLoginInner() {
                 <Icon name="shield" size={16} />
                 {running ? "Pairing..." : "Approve & mint delegate key"}
               </button>
+              {running ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  style={{ marginTop: 10, width: "100%", justifyContent: "center" }}
+                  onClick={cancelWalletRequest}
+                >
+                  Cancel wallet request
+                </button>
+              ) : null}
               {error ? (
                 <p
                   style={{
@@ -373,7 +392,7 @@ function CliLoginInner() {
 
 export default function CliLoginPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<CliLoginFallback />}>
       <CliLoginInner />
     </Suspense>
   );

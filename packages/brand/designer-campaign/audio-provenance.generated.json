@@ -1,0 +1,100 @@
+{
+  "generatedAt": "2026-06-19",
+  "boundary": "The current launch audio is an intentionally silent placeholder. The rejected sound bed has been removed; third-party reference videos remain benchmark inputs only and must not be shipped, sampled, or recreated too closely.",
+  "sourceAssets": [
+    {
+      "id": "silent-placeholder",
+      "label": "Digital silence placeholder",
+      "pageUrl": null,
+      "directContentUrl": null,
+      "author": "OneMem",
+      "license": "Project-generated placeholder",
+      "use": "Current 30-second WAV is intentionally silent so the rejected sound bed is removed from the launch video pending a researched replacement."
+    }
+  ],
+  "processingNotes": [
+    "No ElevenLabs output is used.",
+    "The previous pulse/click-style generated bed was rejected by Abu because it sounded like a repetitive beat.",
+    "The later CC0 wind ambience attempt was also rejected by Abu and has been removed from the launch export.",
+    "The current audio file is 30 seconds of stereo 48 kHz PCM silence generated with ffmpeg anullsrc.",
+    "The replacement brief remains: no drums, BPM grid, click loop, synthetic memory-write ticks, or repeated pulse layer."
+  ],
+  "ownedAudio": {
+    "file": "audio/onemem-launch-bed.wav",
+    "sizeBytes": 5760078,
+    "sha256": "b96b59dcb0153a383ff6ddc3ae729c687e4fb9efb816dcc4f719f1718ef58574",
+    "durationSeconds": 30,
+    "streams": [
+      {
+        "codec_name": "pcm_s16le",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "volume": {
+      "meanDb": -91,
+      "maxDb": -91
+    }
+  },
+  "renderedLaunchVideo": {
+    "file": "exports/video/onemem-launch-30s.mp4",
+    "sizeBytes": 1360615,
+    "sha256": "2c1e0859dba5a8f970c34dde35a200efb188477bbfc80646683c604693903ee0",
+    "durationSeconds": 30,
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "30/1",
+        "side_data_list": [{}]
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "volume": {
+      "meanDb": -91,
+      "maxDb": -91
+    }
+  },
+  "references": [
+    {
+      "id": "sui-network",
+      "label": "Sui Network launch reference",
+      "sourceUrl": "https://x.com/SuiNetwork/status/2065207200059109376",
+      "zipEntry": "uploads/SuiNetwork_2065207200059109376_720.mp4",
+      "use": "Benchmark pacing, contrast, and loudness only; do not use audio as source material."
+    },
+    {
+      "id": "agentcard",
+      "label": "AgentCard product-card reference",
+      "sourceUrl": "https://x.com/agentcardai/status/2032521033929076741",
+      "zipEntry": "uploads/agentcardai_2032521033929076741_1080.mp4",
+      "use": "Benchmark pacing, contrast, and loudness only; do not use audio as source material."
+    },
+    {
+      "id": "triton-seal",
+      "label": "Triton / Seal protocol reference",
+      "sourceUrl": "https://x.com/triton_one/status/2067664813514281095",
+      "zipEntry": "uploads/triton_one_2067661855162777600_720.mp4",
+      "use": "Benchmark pacing, contrast, and loudness only; do not use audio as source material."
+    }
+  ],
+  "scoringPrompt": "Research and source a new 30-second sound bed for OneMem; calm infrastructure, warm trust, quiet continuity; no beat, BPM, drums, click loop, mechanical pulse, repeated transient pattern, obvious melody, vocals, trailer impact, artist imitation, or famous-track style. The current shipped WAV is silence until the new source is approved.",
+  "releaseChecks": [
+    "Keep source WAV and rendered MP4 hashes in this manifest current.",
+    "Do not replace the silent placeholder until the source/license and no-beat direction are documented.",
+    "Check that any future rendered bed has no repeated pulse, click loop, or beat-like transient pattern.",
+    "Keep third-party reference videos inside the raw zip or as links only.",
+    "Re-run reference and audio provenance after replacing the score.",
+    "Public masters should be checked for upload-specific loudness/headroom."
+  ]
+}

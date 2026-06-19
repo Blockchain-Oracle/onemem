@@ -22,7 +22,7 @@
 //
 //   const { sessionId } = await onemem.traces.startSession({
 //     namespaceId, rwCapId,
-//     agentId: "my-agent", environment: "dev", sdkVersion: "0.1.0",
+//     agentId: "my-agent", environment: "dev", sdkVersion: VERSION,
 //   });
 //
 //   await onemem.traces.appendCall({
@@ -42,8 +42,6 @@
 // codegen-emitted manifest at src/generated/addresses.ts resolves all
 // addresses. Until mainnet is deployed, mainnet calls throw a clear
 // "OneMem is not deployed on mainnet" error (per the portability rule).
-
-export const VERSION = "0.1.0";
 
 export { OneMem, type OneMemConfig } from "./client.js";
 export {
@@ -124,6 +122,7 @@ export type {
 // value and `kind: NamespaceKind` for the type. Don't add a `type` prefix
 // to these re-exports; doing so masks the runtime value.
 export { CallStatus, NamespaceKind, SessionStatus } from "./types/move.js";
+export { VERSION } from "./version.js";
 export {
   isRetryableWalrusError,
   UPLOAD_RELAY_BY_NETWORK,

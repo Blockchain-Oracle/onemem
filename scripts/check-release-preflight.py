@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 import tarfile
+import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,31 @@ from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_STATUS_SCRIPT = ROOT / "scripts" / "check-registry-status.py"
 TRUE_VALUES = {"1", "true", "yes", "on"}
+REQUEST_ATTEMPTS = 3
+
+
+def load_local_env() -> None:
+    """Load gitignored local release credentials without overriding the shell."""
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text(encoding="utf8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line.removeprefix("export ").strip()
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        value = value.strip().strip("'\"")
+        os.environ[key] = value
+
+
+load_local_env()
 
 
 @dataclass(frozen=True)
@@ -32,6 +58,16 @@ class ArtifactMarker:
 
 
 ARTIFACT_MARKERS = [
+    ArtifactMarker(
+        ecosystem="npm",
+        name="@onemem/sdk-ts",
+        marker="resolveMemoryConfigFromSources",
+        path_suffixes=(
+            "package/dist/runtime.js",
+            "package/dist/runtime.cjs",
+            "package/dist/runtime.d.ts",
+        ),
+    ),
     ArtifactMarker(
         ecosystem="npm",
         name="@onemem/vercel-ai-provider",
@@ -77,11 +113,13 @@ ARTIFACT_MARKERS = [
 class AuthStatus:
     npm_token: bool
     npm_trusted_publishing: bool
+    npm_profile_authenticated: bool
+    npm_profile_error: str | None
     pypi_token: bool
 
     @property
     def npm_ready(self) -> bool:
-        return self.npm_token or self.npm_trusted_publishing
+        return self.npm_token or self.npm_trusted_publishing or self.npm_profile_authenticated
 
     @property
     def pypi_ready(self) -> bool:
@@ -96,10 +134,36 @@ def env_present(*names: str) -> bool:
     return any(bool(os.environ.get(name, "").strip()) for name in names)
 
 
+def npm_profile_auth() -> tuple[bool, str | None]:
+    try:
+        result = subprocess.run(
+            ["npm", "whoami", "--registry", "https://registry.npmjs.org"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except subprocess.TimeoutExpired:
+        return False, "npm whoami timed out"
+    if result.returncode == 0:
+        return True, None
+    detail = [
+        line
+        for line in (result.stderr or result.stdout).strip().splitlines()
+        if not line.startswith("npm warn ")
+        and "A complete log of this run can be found" not in line
+    ]
+    return False, detail[0] if detail else f"npm whoami exited {result.returncode}"
+
+
 def auth_status() -> AuthStatus:
+    npm_profile_authenticated, npm_profile_error = npm_profile_auth()
     return AuthStatus(
         npm_token=env_present("NPM_TOKEN", "NODE_AUTH_TOKEN"),
         npm_trusted_publishing=env_enabled("ONEMEM_NPM_TRUSTED_PUBLISHING"),
+        npm_profile_authenticated=npm_profile_authenticated,
+        npm_profile_error=npm_profile_error,
         pypi_token=env_present("PYPI_TOKEN", "UV_PUBLISH_TOKEN"),
     )
 
@@ -128,8 +192,15 @@ def registry_statuses(timeout: float) -> list[dict[str, Any]]:
 
 def fetch_bytes(url: str, timeout: float) -> bytes:
     request = Request(url, headers={"User-Agent": "onemem-release-preflight/0.1"})
-    with urlopen(request, timeout=timeout) as response:
-        return response.read()
+    for attempt in range(REQUEST_ATTEMPTS):
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                return response.read()
+        except (URLError, TimeoutError, OSError):
+            if attempt == REQUEST_ATTEMPTS - 1:
+                raise
+            time.sleep(0.5 * (attempt + 1))
+    raise RuntimeError(f"failed to fetch {url}")
 
 
 def fetch_json(url: str, timeout: float) -> dict[str, Any]:
@@ -307,6 +378,10 @@ def auth_line(auth: AuthStatus, ecosystem: str) -> str:
             return "available via NPM_TOKEN or NODE_AUTH_TOKEN"
         if auth.npm_trusted_publishing:
             return "available via ONEMEM_NPM_TRUSTED_PUBLISHING"
+        if auth.npm_profile_authenticated:
+            return "available via local npm profile"
+        if auth.npm_profile_error:
+            return f"missing: npm profile auth failed ({auth.npm_profile_error})"
         return "missing: set NPM_TOKEN/NODE_AUTH_TOKEN or enable trusted publishing"
     if auth.pypi_token:
         return "available via PYPI_TOKEN or UV_PUBLISH_TOKEN"

@@ -1,5 +1,4 @@
 {
-  "description": "Optional OneMem Codex trace hooks. MCP memory tools work without trusting these hooks.",
   "hooks": {
     "SessionStart": [
       {

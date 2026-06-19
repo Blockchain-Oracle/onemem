@@ -10,6 +10,7 @@ import {
   relatedMemories,
   shortId,
 } from "@/lib/memory-view";
+import { LocalMemoryFeed } from "./LocalMemoryFeed";
 import { MemoryDrawer } from "./MemoryDrawer";
 
 const FILTERS: Array<{ key: MemoryFilter; label: string; icon: string }> = [
@@ -80,6 +81,8 @@ export function MemoriesView({
           );
         })}
       </div>
+
+      <LocalMemoryFeed />
 
       <div className="card panel">
         <div className="panel-head">

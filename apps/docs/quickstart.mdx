@@ -12,9 +12,10 @@ npm install -g @onemem/cli
 ```
 
 <Note>
-Registry note, 2026-06-18: `@onemem/cli` and `@onemem/dashboard` are current on
-npm after `pnpm registry:status --strict`. Re-run that command before making a
-fresh install claim.
+Publication note, 2026-06-19: the published `@onemem/cli@0.6.3` install path is
+verified. `npm exec --yes --package @onemem/cli@0.6.3 -- onemem --version`
+prints `0.6.3`, and `pnpm release:preflight --strict --timeout 30` plus
+`pnpm registry:status --strict` both pass.
 </Note>
 
 ## 2. Provision (zero-config)
@@ -35,7 +36,9 @@ It prints the namespace + cap and the env vars any runtime can use:
 
 ## 3. Instrument your runtime
 
-Pick your stack — each is one line. Traces start recording automatically.
+Pick your stack — each is one line. Trace-capable integrations record after the
+runtime plugin/provider is installed, configured, and trusted by that runtime.
+MCP tools are available without hook trust.
 
 <Note>
 Provider examples below are available from the current npm/PyPI artifacts after
@@ -80,7 +83,7 @@ onemem verify <session-id>
   merkleRoot 0x2ec8c2…
 ```
 
-Or share `app.onemem.ai/verify/<session-id>` — anyone can confirm the chain, no login.
+Or share `app.onemem.xyz/verify/<session-id>` — anyone can confirm the chain, no login.
 
 <Card title="How verification works" icon="shield-check" href="/concepts/verify">
   What the green check actually proves.

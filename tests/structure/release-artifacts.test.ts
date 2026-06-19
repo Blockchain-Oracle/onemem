@@ -24,8 +24,8 @@ describe("OneMem monorepo structure", () => {
       const vercel = readJson<PackageJson>("packages/provider-vercel-ai/package.json");
       const openai = readJson<PackageJson>("packages/provider-openai-agents/package.json");
 
-      assert.equal(vercel.version, "0.1.2");
-      assert.equal(openai.version, "0.1.3");
+      assert.equal(vercel.version, "0.1.4");
+      assert.equal(openai.version, "0.1.5");
 
       const pythonProviders = [
         [

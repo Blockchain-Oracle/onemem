@@ -14,8 +14,8 @@ identity is `onemem.xyz`) + the developer reference (`docs.onemem.xyz`).
 | File | Purpose |
 |---|---|
 | `README.md` | This file — design principles |
-| `landing-architecture.md` | `onemem.ai` — copy, IA, hero, comparison, integration installs |
-| `docs-architecture.md` | `docs.onemem.ai` — Mintlify config, IA, 5 must-have pages at v0.1 |
+| `landing-architecture.md` | `onemem.xyz` — copy, IA, hero, comparison, integration installs |
+| `docs-architecture.md` | `docs.onemem.xyz` — Mintlify config, IA, 5 must-have pages at v0.1 |
 
 ---
 
@@ -47,10 +47,10 @@ identity is `onemem.xyz`) + the developer reference (`docs.onemem.xyz`).
 
 | Component | Status |
 |---|---|
-| `onemem.ai` landing | ⏳ pending |
-| `docs.onemem.ai` Mintlify setup | ⏳ pending |
-| 5 must-have docs pages | ⏳ pending |
+| `onemem.xyz` landing | ✅ live; re-verify with production route checks before a fresh release claim |
+| `docs.onemem.xyz` Mintlify setup | ✅ live via Vercel `onemem-docs` static Mintlify export; native Mintlify dashboard deployment remains optional future automation |
+| 5 must-have docs pages | ✅ source present in `apps/docs/`; hosted route proof passed for `/`, `/quickstart`, `/reference/cli`, and `/integrations/runtimes` |
 | `@onemem/brand` logo SVGs | ✅ source assets in `packages/brand/logo/` |
 | `@onemem/brand` social/OG SVGs | ✅ source assets in `packages/brand/og-images/` |
 | `@onemem/brand` social/OG PNGs | ✅ platform-ready exports in `packages/brand/og-images/` |
-| `onemem.xyz` DNS/hosting | ⏳ pending; verify DNS records before claiming live deployment |
+| `onemem.xyz` DNS/hosting | ✅ live as of the 2026-06-19 production route checks |

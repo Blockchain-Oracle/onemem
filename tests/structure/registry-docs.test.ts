@@ -50,11 +50,23 @@ describe("registry-aware docs", () => {
 
     for (const doc of packageReadmes) {
       const content = readText(doc);
-      assert.match(content, /Publication note, 2026-06-18|Publication\/proof note, 2026-06-18/);
-      assert.match(content, /current on\s+(npm|PyPI)/, `${doc} must state current registry status`);
       assert.match(
         content,
-        /pnpm registry:status --strict/,
+        /Publication note, 2026-06-(18|19)|Publication\/proof note, 2026-06-18/,
+      );
+      if (doc === "packages/cli-ts/README.md") {
+        assert.match(content, /@onemem\/cli@0\.6\.3/);
+        assert.match(content, /npm exec --yes --package @onemem\/cli@0\.6\.3 --/);
+      } else {
+        assert.match(
+          content,
+          /current on\s+(npm|PyPI)/,
+          `${doc} must state current registry status`,
+        );
+      }
+      assert.match(
+        content,
+        /pnpm registry:status\s+--strict/,
         `${doc} must cite strict registry status`,
       );
     }
@@ -75,15 +87,12 @@ describe("registry-aware docs", () => {
     const runtimes = readText("docs/05-our-architecture/03-runtimes/README.md");
     assert.match(runtimes, /Repository marketplace\s+install is current/);
     assert.match(runtimes, /runtime npm\/PyPI packages are current/);
-    assert.match(runtimes, /trusted-client on-chain proof/);
+    assert.match(runtimes, /Trusted Codex\/Claude\s+hook proof is recorded/);
 
     const claude = readText("packages/plugin-claude-code/README.md");
     assert.match(claude, /marketplace path is current/);
     assert.match(claude, /current on npm/);
-    assert.match(
-      claude,
-      /trusted live Claude Code client hook session is a\s+separate proof boundary/,
-    );
+    assert.match(claude, /trusted live Claude Code session emitted testnet TraceSession/);
   });
 
   test("MCP README treats the published package as the primary public path", () => {

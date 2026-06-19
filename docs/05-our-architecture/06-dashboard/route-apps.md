@@ -168,7 +168,7 @@ How dashboard knows a runtime is "connected":
 - "Last seen" computed from latest heartbeat
 - "● online" if seen <60s ago; "◐ idle" if 60s-15m; "○ offline" if >15m
 
-For local mode: heartbeats go to `localhost:4040/api/runtimes/heartbeat`. For hosted: to `app.onemem.ai/api/runtimes/heartbeat` (authenticated via delegate key).
+For local mode: heartbeats go to `localhost:4040/api/runtimes/heartbeat`. For hosted: to `app.onemem.xyz/api/runtimes/heartbeat` (authenticated via delegate key).
 
 ---
 

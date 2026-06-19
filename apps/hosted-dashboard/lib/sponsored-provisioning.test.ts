@@ -22,12 +22,33 @@ const recipient = `0x${"4".repeat(64)}`;
 const capId = `0x${"5".repeat(64)}`;
 
 function createdCapChange(kind: "ReadOnly" | "ReadWrite") {
-  const { packageId } = addressesFor("testnet");
+  const { packageId, originalPackageId } = addressesFor("testnet");
+  const typePackageId = originalPackageId || packageId;
   return {
     type: "created",
-    objectType: `${packageId}::namespace::NamespaceCapability<${packageId}::namespace::${kind}>`,
+    objectType: `${typePackageId}::namespace::NamespaceCapability<${typePackageId}::namespace::${kind}>`,
     objectId: capId,
   };
+}
+
+function createdNamespaceChangesForPackage(typePackageId: string) {
+  return [
+    {
+      type: "created",
+      objectType: `${typePackageId}::namespace::MemoryNamespace`,
+      objectId: namespaceId,
+    },
+    {
+      type: "created",
+      objectType: `${typePackageId}::namespace::NamespaceCapability<${typePackageId}::namespace::Admin>`,
+      objectId: adminCapId,
+    },
+  ];
+}
+
+function createdNamespaceChanges() {
+  const { packageId, originalPackageId } = addressesFor("testnet");
+  return createdNamespaceChangesForPackage(originalPackageId || packageId);
 }
 
 describe("sponsored provisioning guardrails", () => {
@@ -201,6 +222,43 @@ describe("sponsored provisioning guardrails", () => {
     expect(executed.action).toBe("cap-self-revoke");
     expect(executed.capKind).toBe("Admin");
     expect(executed.revokedCapId).toBe(capId);
+  });
+
+  it("parses namespace-create objects using the original package ID after upgrades", async () => {
+    const executed = await executeSponsoredProvisioning(
+      { action: "namespace-create", digest: "digest".repeat(5), signature: "sig".repeat(8) },
+      env({ ENOKI_PRIVATE_KEY: "secret" }),
+      {
+        executeSponsoredTransaction: async () => ({ digest: "tx".repeat(16) }),
+        waitForTransaction: async () =>
+          ({
+            effects: { status: { status: "success" } },
+            objectChanges: createdNamespaceChanges(),
+          }) as never,
+      },
+    );
+
+    expect(executed.namespaceId).toBe(namespaceId);
+    expect(executed.adminCapId).toBe(adminCapId);
+  });
+
+  it("parses namespace-create objects by Move type shape when package IDs drift", async () => {
+    const { packageId } = addressesFor("testnet");
+    const executed = await executeSponsoredProvisioning(
+      { action: "namespace-create", digest: "digest".repeat(5), signature: "sig".repeat(8) },
+      env({ ENOKI_PRIVATE_KEY: "secret" }),
+      {
+        executeSponsoredTransaction: async () => ({ digest: "tx".repeat(16) }),
+        waitForTransaction: async () =>
+          ({
+            effects: { status: { status: "success" } },
+            objectChanges: createdNamespaceChangesForPackage(packageId),
+          }) as never,
+      },
+    );
+
+    expect(executed.namespaceId).toBe(namespaceId);
+    expect(executed.adminCapId).toBe(adminCapId);
   });
 
   it("rejects failed holder self-revoke transactions", async () => {

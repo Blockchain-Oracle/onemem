@@ -1,6 +1,6 @@
 {
   "name": "@onemem/demo-switch-laptops",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "description": "Executable OneMem demo: mocked laptop/runtime handoff recorded as two real verifiable testnet traces in one namespace",
   "license": "Apache-2.0",

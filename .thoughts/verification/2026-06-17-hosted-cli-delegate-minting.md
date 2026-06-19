@@ -2,7 +2,7 @@
 
 ## Verdict
 
-Pass with one manual-wallet limitation.
+Pass for the current hosted CLI delegate flow.
 
 Hosted onboarding now persists provisioned namespace metadata for the connected
 wallet and network. Hosted `/cli-login` can look up or create the user's MemWal
@@ -12,10 +12,13 @@ payload to the local `onemem login` callback. The CLI validates the nonce,
 delegate private/public keypair, delegate signature, and Sui transaction proof
 before writing credentials.
 
-The remaining manual limitation is expected: the browser delegate registration
-transaction requires interactive wallet approval, so automated smoke tests cover
-the route, UI, signature verifier, and mocked registration-proof verifier, while
-full end-to-end delegate minting is manual-browser work.
+The manual approval boundary is now covered by one real Chrome run. On
+2026-06-18, live Chrome verification reached the real Slush
+delegate-registration prompt on `https://app.onemem.xyz`, confirmed the
+connected wallet and MemWal account, verified the deployed app-side
+cancel/stale-request guard, and then a default-browser rerun completed wallet
+approval, callback delivery, and CLI credential persistence under an isolated
+temp HOME.
 
 ## Artifacts Checked
 
@@ -38,6 +41,7 @@ full end-to-end delegate minting is manual-browser work.
   `packages/cli-ts/src/commands/login.ts`
   `packages/cli-ts/tests/login.test.ts`
   `tests/structure.test.ts`
+  `tests/structure/plugins-apps.test.ts`
 
 ## Requirement Traceability
 
@@ -61,6 +65,8 @@ full end-to-end delegate minting is manual-browser work.
 - R9: Browser smoke checks disconnected CLI-login UI and lookup route behavior.
 - R10: Structure tests require the new implementation and Context Engineering
   artifact paths.
+- R11: Hosted `/cli-login` exposes an app-side cancel path while wallet requests
+  are pending and ignores late approvals from cancelled requests.
 
 ## Acceptance Criteria Coverage
 
@@ -76,8 +82,14 @@ full end-to-end delegate minting is manual-browser work.
   reject nonce mismatch, wrong-key signatures, mismatched private/public key
   pairs, bad delegate address, missing fields, failed registration transactions,
   and registration transactions for the wrong owner/account/package/delegate key.
-- AC6: Passed. Hosted lint/typecheck/build/browser smoke, CLI test/typecheck, and
-  structure checks passed.
+- AC6: Passed. Hosted typecheck/build/tests, CLI test/typecheck, and structure
+  checks passed.
+- AC7: Passed. Live Chrome verified the real hosted CLI pairing route with
+  connected Slush wallet `0x93b37bc1...d119d6`, MemWal account
+  `0x76bf026a4d...e2940b04`, active namespace `0x1363c4b1...5e23f9`, app-side
+  cancellation at the delegate wallet prompt, and a later default-browser rerun
+  that completed `account::add_delegate_key` approval and wrote validated CLI
+  credentials.
 
 ## Quality Gates
 
@@ -93,6 +105,24 @@ full end-to-end delegate minting is manual-browser work.
   wrote `apps/hosted-dashboard/.browser-smoke/hosted-sponsored-provisioning.png`.
 - `pnpm test:structure` passed 186 tests after the CLI-login page and CLI login
   validator were split under the structure test's line-count cap.
+- `node --import tsx --test tests/structure/plugins-apps.test.ts` passed after
+  the CLI-login cancel/stale-request guard: 19 tests.
+- `pnpm --filter @onemem/hosted-dashboard typecheck` passed after the
+  CLI-login cancel/stale-request guard.
+- `pnpm --filter @onemem/hosted-dashboard test` passed after the CLI-login
+  cancel/stale-request guard: 41 tests.
+- `pnpm --filter @onemem/hosted-dashboard build` passed after the CLI-login
+  cancel/stale-request guard.
+- `pnpm test:structure` passed after regenerating the stale brand recording pack:
+  440 tests.
+- `pnpm --filter @onemem/cli lint` passed after the CLI memory-config message
+  fix.
+- `pnpm --filter @onemem/cli test` passed after the CLI memory-config message
+  fix: 58 tests.
+- `pnpm --filter @onemem/cli typecheck` passed after the CLI memory-config
+  message fix.
+- `pnpm --filter @onemem/cli build` passed after the CLI memory-config message
+  fix.
 - `git diff --check` passed.
 - Live testnet MemWal registry lookup passed with local env supplied:
   - network `testnet`
@@ -104,9 +134,8 @@ full end-to-end delegate minting is manual-browser work.
 - Context7 did not have a direct MemWal documentation entry; the implementation
   used Context7 Sui dApp Kit docs plus installed MemWal package types and local
   testnet object inspection.
-- The Chrome connector/plugin was not callable in this Codex session after tool
-  discovery. Verification used the repo-owned browser smoke harness instead of
-  Playwright MCP.
+- Earlier verification used the repo-owned browser smoke harness. The 2026-06-18
+  follow-up used the Codex Chrome plugin against production.
 - A production build attempted in parallel with the browser smoke dev server hit
   a transient Next `.next` collection error. The same build was rerun serially and
   passed.
@@ -125,14 +154,19 @@ full end-to-end delegate minting is manual-browser work.
 ## Gaps And Risks
 
 - Automated tests do not click through a real wallet popup for delegate
-  registration; they validate the CLI trust boundary with a mocked Sui transaction
-  response. Manual-browser verification remains needed for wallet popup UX.
-- CLI memory write/use still requires an embedding API key or a future hosted-safe
-  embedding/proxy design.
+  registration; they validate the CLI trust boundary with a mocked Sui
+  transaction response. Manual Chrome verification now covers one successful
+  wallet-popup approval path.
+- CLI memory write/use still requires an embedding API key or a future
+  hosted-safe embedding/proxy design. The CLI now reports that boundary without
+  falsely listing `MEMWAL_PACKAGE_ID` when the login credential already contains
+  the package id.
 - Delegate revoke remains deferred until the product defines an owner-driven
   lifecycle UX and support path.
 - Browser localStorage is only a near-term hosted-shell persistence layer; a real
   hosted account/session store is still needed.
+- A cancelled wallet prompt may still exist in Slush until the user rejects or
+  closes it; the hosted app now ignores late approvals for cancelled runs.
 
 ## Evidence Log
 
@@ -144,3 +178,22 @@ full end-to-end delegate minting is manual-browser work.
   subagent review fixes.
 - Browser smoke covered hosted CLI-login UI and non-secret lookup response
   behavior.
+- Live production deployment
+  `dpl_GXYFnN5DvQdMPCP3Ly3h75z92Xf2` is aliased to `https://app.onemem.xyz`.
+- Live Chrome CLI-login audit used a temporary CLI HOME and URL
+  `/cli-login?nonce=798d95967d5b39c020d6212e53a41ed9&port=51929`.
+- Live default-browser CLI-login proof used a temporary CLI HOME and URL
+  `/cli-login?nonce=51d21ce24dfcdc8dd8caf2a82e1af911&port=52119`. Chrome opened
+  the page, Slush approved delegate registration, the hosted page rendered
+  "Pairing complete", and the CLI wrote credentials to
+  `/tmp/onemem-cli-login-default-browser.LhDvOU/.onemem/credentials.json`.
+  That isolated temp HOME was removed after sanitized inspection so the delegate
+  private key is not left on disk.
+- Sanitized credential inspection confirmed network `testnet`, owner
+  `0x93b37bc1...d119d6`, MemWal account `0x76bf026a...940b04`, active namespace
+  `0x1363c4b1...5e23f9`, delegate public key, registration digest, and
+  2026-06-19 expiry. The delegate private key was not printed.
+- CLI search with only the browser-login credential now reports only
+  `ONEMEM_EMBEDDING_API_KEY` missing. With the repo `.env` embedding key added
+  and delegate/account/package still coming from the login credential, the same
+  search command exited 0 with redacted zero-result JSON.

@@ -24,7 +24,7 @@
         ]
       }
     ],
-    "SessionEnd": [
+    "Stop": [
       {
         "matcher": "",
         "hooks": [

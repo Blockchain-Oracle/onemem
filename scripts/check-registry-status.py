@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 import tomllib
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -20,6 +21,7 @@ STATUS_CURRENT = "current"
 STATUS_MISSING = "missing"
 STATUS_DRIFT = "version-drift"
 STATUS_ERROR = "error"
+REQUEST_ATTEMPTS = 3
 
 Ecosystem = Literal["npm", "pypi"]
 
@@ -83,8 +85,15 @@ def load_pypi_packages() -> list[LocalPackage]:
 
 def fetch_json(url: str, timeout: float) -> dict[str, Any]:
     request = Request(url, headers={"User-Agent": "onemem-registry-status/0.1"})
-    with urlopen(request, timeout=timeout) as response:
-        payload = response.read().decode("utf8")
+    for attempt in range(REQUEST_ATTEMPTS):
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                payload = response.read().decode("utf8")
+            break
+        except (URLError, TimeoutError):
+            if attempt == REQUEST_ATTEMPTS - 1:
+                raise
+            time.sleep(0.5 * (attempt + 1))
     data = json.loads(payload)
     if not isinstance(data, dict):
         raise ValueError(f"Expected JSON object from {url}")

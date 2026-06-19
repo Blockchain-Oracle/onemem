@@ -10,7 +10,7 @@ This is the surface that makes "verifiable on-chain" concrete to non-users.
 
 ## What it does
 
-User visits `app.onemem.ai/verify/0xsession_id`. Page:
+User visits `app.onemem.xyz/verify/0xsession_id`. Page:
 
 1. Fetches the `TraceSession` Move object from Sui by ID (read-only Sui RPC; no auth)
 2. Fetches all `ActionCallEmitted` + `ActionCallClosed` events for that session_id (Sui RPC)
@@ -159,7 +159,7 @@ Optimized for sharing — that's the point.
 
 ## Demo flow (for the official Demo Day video)
 
-Frame 1: `app.onemem.ai/verify/0xsess_id` URL in browser bar (incognito mode — emphasis on "no login")
+Frame 1: `app.onemem.xyz/verify/0xsess_id` URL in browser bar (incognito mode — emphasis on "no login")
 Frame 2: Page loads; metadata appears; progress bar animates
 Frame 3: All 47 calls tick ✓
 Frame 4: Chartreuse "VERIFIED" badge animates in

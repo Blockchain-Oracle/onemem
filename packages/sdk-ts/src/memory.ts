@@ -250,7 +250,7 @@ export class MemoryAPI {
       capturedAt: number;
     }>
   > {
-    const packageId = this.client.addresses.packageId;
+    const packageId = this.client.addresses.originalPackageId || this.client.addresses.packageId;
     const out: Array<{
       walrusBlobId: string | null;
       contentHash: string;

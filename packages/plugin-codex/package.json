@@ -1,6 +1,6 @@
 {
   "name": "@onemem/codex-plugin",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "OneMem plugin for Codex - bundles verifiable memory MCP tools and optional lifecycle trace hooks",
   "license": "Apache-2.0",
   "type": "module",
@@ -29,8 +29,11 @@
     "test": "vitest run --passWithNoTests",
     "lint": "biome check ."
   },
+  "dependencies": {
+    "@onemem/worker": "workspace:*"
+  },
   "devDependencies": {
-    "@onemem/sdk-ts": "^0.6.0",
+    "@onemem/sdk-ts": "^0.6.3",
     "vitest": "^2.1.0"
   }
 }

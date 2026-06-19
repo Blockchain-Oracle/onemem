@@ -1,6 +1,6 @@
 {
   "name": "@onemem/demo-multi-agent-coordination",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "description": "Executable OneMem demo: mocked multi-agent coordination recorded as real cross-linked testnet traces",
   "license": "Apache-2.0",

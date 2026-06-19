@@ -18,9 +18,9 @@ Browser-based wallet login that writes `~/.onemem/credentials.json`. Mirrors the
 2. CLI starts an ephemeral HTTP server on 127.0.0.1 using an OS-assigned free port
 
 3. CLI opens browser to:
-   https://app.onemem.ai/cli-login?nonce=<random>&port=<bound-port>
+   https://app.onemem.xyz/cli-login?nonce=<random>&port=<bound-port>
    
-   (or https://staging.app.onemem.ai/... in staging mode)
+   (or https://staging.app.onemem.xyz/... in staging mode)
 
 4. Browser loads OneMem hosted dashboard's CLI-login page
    - User connects wallet via @mysten/dapp-kit
@@ -104,7 +104,7 @@ Permissions: `chmod 600` (owner read/write only). Refuse to load if perms are wi
 
 ## Refresh / expiry handling
 
-- Delegate keys default to 30-day expiry (configurable per `app.onemem.ai/cli-login`)
+- Delegate keys default to 30-day expiry (configurable per `app.onemem.xyz/cli-login`)
 - CLI checks `expiresAt` on every command; warns at <7 days remaining
 - On expiry: any command fails with `OneMemAuthError`; user runs `onemem login` again
 - There is no current logout command; credential deletion and on-chain delegate
@@ -131,7 +131,7 @@ With `onemem --profile work search ...`. Out of scope at v0.1.
 
 ## Browser-side implementation reference
 
-The browser side is implemented in the hosted dashboard (`app.onemem.ai/cli-login`). It uses:
+The browser side is implemented in the hosted dashboard (`app.onemem.xyz/cli-login`). It uses:
 
 - `@mysten/dapp-kit` for wallet connect
 - `@mysten/sui` for tx building
@@ -160,6 +160,6 @@ Detail in `06-dashboard/hosted-deploy.md` §"CLI login page".
 - `command-surface.md` — `onemem login` command spec
 - `cli-typescript-impl.md` — Node implementation of login server
 - `cli-python-impl.md` — historical Python parity sketch; current Python CLI has no login command
-- `../06-dashboard/hosted-deploy.md` — `app.onemem.ai/cli-login` page detail
+- `../06-dashboard/hosted-deploy.md` — `app.onemem.xyz/cli-login` page detail
 - `../../01-sui-ecosystem/enoki-zklogin.md` — Enoki sponsored-tx mechanics
 - `../../02-inspirations/memwal-incubation/README.md` — MemWal MCP login pattern (the reference)

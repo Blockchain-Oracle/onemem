@@ -1,0 +1,191 @@
+{
+  "generatedAt": "2026-06-19",
+  "sourceDownload": "/Users/abu/Downloads/One Mem (1).zip",
+  "purpose": "Designer-provided OneMem campaign package replacing deleted generated campaign/OG/render outputs.",
+  "boundary": "Screenshots are previews. Current generated board/video exports live in exports/. Use the raw zip HTML source to regenerate final board sizes and the launch animatic; the exported MP4 uses intentional silent placeholder audio and does not reuse reference video audio.",
+  "staticBoardTargets": {
+    "readmeHero": "1280x420",
+    "xHeader": "1500x500",
+    "linkCard": "1200x630",
+    "toolsPoster": "1600x900",
+    "architecture": "1920x1080"
+  },
+  "launchVideo": {
+    "size": "1920x1080",
+    "durationSeconds": 30,
+    "beats": [
+      "agents-forget",
+      "one-namespace",
+      "decentralized-stack",
+      "runtime-proof",
+      "runtime-surface",
+      "close"
+    ],
+    "audio": "audio/onemem-launch-bed.wav",
+    "silent": true
+  },
+  "files": [
+    {
+      "id": "campaign-readme",
+      "path": "README.md",
+      "use": "How to use the imported package",
+      "sizeBytes": 5627,
+      "sha256": "aa14ad4e486b13574c0e4224e25bb00e81c9e3aa5b3dccf63e24ed7b52efff0b",
+      "dimensions": null
+    },
+    {
+      "id": "sound-research",
+      "path": "SOUND_RESEARCH.md",
+      "use": "Online sound sourcing notes and prompt seed",
+      "sizeBytes": 5699,
+      "sha256": "ec03f2684d0b48278d1b00a9a157edaf2db49d842fb95f3ba90cbf657074c324",
+      "dimensions": null
+    },
+    {
+      "id": "raw-source",
+      "path": "raw/one-mem-campaign-source.zip",
+      "use": "Exact downloaded source archive",
+      "sizeBytes": 9855298,
+      "sha256": "9f024aac1d7da1ad36ff2fc291b6081ad400e8418c65727f7e5ba17fbe06274d",
+      "dimensions": null
+    },
+    {
+      "id": "brand-kit-html",
+      "path": "html/Brand Kit.html",
+      "use": "Static campaign board canvas",
+      "sizeBytes": 2384,
+      "sha256": "e4bb3cf037e7e43135e278c5a6dd20ecf1e6b3ad19e1406ab00254b62b657ffe",
+      "dimensions": null
+    },
+    {
+      "id": "launch-video-html",
+      "path": "html/Launch Video.html",
+      "use": "Silent 30-second launch animatic",
+      "sizeBytes": 2866,
+      "sha256": "d83d4b6ab55f9acfdf34867aba1f0d79a2e587ca050f114ec560d51c330375bd",
+      "dimensions": null
+    },
+    {
+      "id": "sound-design-html",
+      "path": "html/Sound Design.html",
+      "use": "Visual sound-design beat map",
+      "sizeBytes": 9977,
+      "sha256": "a33604fa785b2f1b17cca4426914aebd3bc040415061913c63b1fe4180f96f61",
+      "dimensions": null
+    },
+    {
+      "id": "handoff-html",
+      "path": "html/OneMem Handoff Guide.html",
+      "use": "Original handoff guide",
+      "sizeBytes": 20636,
+      "sha256": "5368c9ace5d8153267cf22628b7cd92c9b3c533803dd1ccfd615af4ece19d08b",
+      "dimensions": null
+    },
+    {
+      "id": "audio-spec-md",
+      "path": "video/OneMem Launch Video - Audio Spec.md",
+      "use": "Plain-text audio specification",
+      "sizeBytes": 5414,
+      "sha256": "a237b65da4647ab9824ace61e5b22b9bef5fd168f50ea19e7113664791421789",
+      "dimensions": null
+    },
+    {
+      "id": "launch-audio-bed",
+      "path": "audio/onemem-launch-bed.wav",
+      "use": "OneMem-owned launch audio bed used by the generated MP4",
+      "sizeBytes": 5760078,
+      "sha256": "b96b59dcb0153a383ff6ddc3ae729c687e4fb9efb816dcc4f719f1718ef58574",
+      "dimensions": null
+    },
+    {
+      "id": "audio-provenance-md",
+      "path": "AUDIO_PROVENANCE.generated.md",
+      "use": "Launch audio hashes, loudness, and reference-only boundary",
+      "sizeBytes": 3056,
+      "sha256": "d9485a6536d0dd071ddf62e1399d25e0e3a6cb529bfe9d12047138a8dcc5fac6",
+      "dimensions": null
+    },
+    {
+      "id": "audio-provenance-json",
+      "path": "audio-provenance.generated.json",
+      "use": "Machine-readable launch audio provenance",
+      "sizeBytes": 4225,
+      "sha256": "bd7830963d617dfdb9275f45676b2652021200c601d795b08728a7b14c05acbe",
+      "dimensions": null
+    },
+    {
+      "id": "audio-provenance-script",
+      "path": "scripts/generate-audio-provenance.mjs",
+      "use": "Regenerates launch audio provenance",
+      "sizeBytes": 7842,
+      "sha256": "b8e7eb88558aed5f5438f2d2291a51416363a8667d01ba3b94868965579fbe27",
+      "dimensions": null
+    },
+    {
+      "id": "screenshot-architecture",
+      "path": "screenshots/arch.png",
+      "use": "Architecture preview snapshot",
+      "sizeBytes": 96699,
+      "sha256": "5d3a7dcf174a87169cb39add13adbc89e4885cf8472f35da79e692d799c34bb8",
+      "dimensions": {
+        "width": 924,
+        "height": 540
+      }
+    },
+    {
+      "id": "screenshot-kit-overview",
+      "path": "screenshots/kit-overview.png",
+      "use": "Brand kit overview preview snapshot",
+      "sizeBytes": 159007,
+      "sha256": "ce86fb1fb40446b5442a8a6087b3e0246ecffc5feef8ea8505adb25dd7660206",
+      "dimensions": {
+        "width": 924,
+        "height": 540
+      }
+    },
+    {
+      "id": "screenshot-link-card",
+      "path": "screenshots/linkcard.png",
+      "use": "Link card preview snapshot",
+      "sizeBytes": 81168,
+      "sha256": "3e3061ce3da2238b5b0dbe47d6c2c12eb9ce96007671b4e16c2654f066ec3a77",
+      "dimensions": {
+        "width": 924,
+        "height": 540
+      }
+    },
+    {
+      "id": "screenshot-link-card-alt",
+      "path": "screenshots/linkcard2.png",
+      "use": "Alternate link card preview snapshot",
+      "sizeBytes": 71642,
+      "sha256": "6442ee17fdf04599f6f2b9061ae849eaa65987dff20e889250f40758c0189428",
+      "dimensions": {
+        "width": 924,
+        "height": 540
+      }
+    },
+    {
+      "id": "screenshot-tools-poster",
+      "path": "screenshots/poster.png",
+      "use": "Tools poster preview snapshot",
+      "sizeBytes": 99486,
+      "sha256": "a06f1d96f736236a3d931eb2f0aafa1934e3baa9898a1f287307b3236440815e",
+      "dimensions": {
+        "width": 924,
+        "height": 540
+      }
+    },
+    {
+      "id": "screenshot-x-header",
+      "path": "screenshots/xheader.png",
+      "use": "X header preview snapshot",
+      "sizeBytes": 107645,
+      "sha256": "002750834ea642b72f0bd1ce5dabbd54b5f1e1ff0ce8444d5b4a2b43d68dd159",
+      "dimensions": {
+        "width": 924,
+        "height": 540
+      }
+    }
+  ]
+}

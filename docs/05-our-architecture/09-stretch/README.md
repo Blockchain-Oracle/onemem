@@ -27,7 +27,7 @@ This folder exists so the vision is documented + the build sequence has a clear 
 | Pillar 12 — Nautilus TEE (stretch, ship-if-time) | v0.2+ vision (teased, NOT shipped at v0.1) |
 |---|---|
 | Build in Days 23-26 if v0.1 is on track | Mentioned in landing page Vision section + this folder |
-| Documented as "experimental" in docs.onemem.ai | NOT documented in v0.1 docs |
+| Documented as "experimental" in docs.onemem.xyz | NOT documented in v0.1 docs |
 | Live deploy attempted; if it doesn't land, drop without losing v0.1 | Roadmap only |
 
 ---
@@ -36,7 +36,7 @@ This folder exists so the vision is documented + the build sequence has a clear 
 
 Per `feedback_problem_statements_are_snapshots.md`: "build what the sponsor would write into the brief if they were rewriting it after seeing your submission."
 
-The v0.2+ vision section on `onemem.ai` shows judges + the Walrus team where this is going beyond what they explicitly asked for:
+The v0.2+ vision section on `onemem.xyz` shows judges + the Walrus team where this is going beyond what they explicitly asked for:
 - Reputation graphs — accountability extends to provable agent reputation
 - Memory marketplaces — namespaces become commerce primitives on Sui
 - ERC-8004 bridge — interop with the broader Web3 agent identity stack

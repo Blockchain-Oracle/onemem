@@ -1,0 +1,621 @@
+{
+  "generatedAt": "2026-06-19",
+  "source": "packages/brand/media-kit/generate-media-kit.mjs",
+  "identity": {
+    "product": "OneMem",
+    "domain": "onemem.xyz",
+    "docs": "docs.onemem.xyz",
+    "x": "x.com/OneMemAI",
+    "github": "github.com/Blockchain-Oracle/onemem",
+    "motto": "One memory layer for every agent.",
+    "socialLine": "Decentralized persistent memory for AI agents."
+  },
+  "guardrails": [
+    "Use OpenClaw spelling.",
+    "Keep the story memory-first; proof is the confidence layer.",
+    "Use third-party logos only for truthful identification, not endorsement.",
+    "Do not use OneMem .ai domains.",
+    "Do not claim WASI, Nautilus, or TEE as shipped behavior without implementation evidence.",
+    "Do not call brand launch media final live proof."
+  ],
+  "assetGroups": [
+    {
+      "id": "designer-briefs",
+      "title": "Designer Briefs",
+      "use": "Prompt and product-truth briefing for designers, ChatGPT, and video agents.",
+      "assets": [
+        {
+          "label": "Full brand and asset brief",
+          "file": "briefs/one-mem-full-brand-and-asset-brief.md",
+          "use": "Copy/paste prompt and asset direction",
+          "sizeBytes": 6697,
+          "size": "6.5 KiB"
+        },
+        {
+          "label": "Asset cleanup manifest",
+          "file": "ASSET_CLEANUP.md",
+          "use": "Canonical, deleted-output, reference-link, and disposable asset boundaries",
+          "sizeBytes": 6040,
+          "size": "5.9 KiB"
+        }
+      ]
+    },
+    {
+      "id": "brand-logo",
+      "title": "Brand Logo",
+      "use": "OneMem marks and lockups for product identity.",
+      "assets": [
+        {
+          "label": "OneMem mark",
+          "file": "logo/onemem-mark.svg",
+          "use": "Primary mark",
+          "sizeBytes": 599,
+          "size": "0.6 KiB"
+        },
+        {
+          "label": "OneMem wordmark",
+          "file": "logo/onemem-wordmark.svg",
+          "use": "Wordmark",
+          "sizeBytes": 435,
+          "size": "0.4 KiB"
+        },
+        {
+          "label": "Horizontal lockup",
+          "file": "logo/onemem-lockup-horizontal.svg",
+          "use": "Default lockup",
+          "sizeBytes": 966,
+          "size": "0.9 KiB"
+        },
+        {
+          "label": "Dark lockup",
+          "file": "logo/onemem-lockup-dark.svg",
+          "use": "Dark-surface lockup",
+          "sizeBytes": 1015,
+          "size": "1.0 KiB"
+        },
+        {
+          "label": "Light lockup",
+          "file": "logo/onemem-lockup-light.svg",
+          "use": "Light-surface lockup",
+          "sizeBytes": 1019,
+          "size": "1.0 KiB"
+        }
+      ]
+    },
+    {
+      "id": "designer-campaign",
+      "title": "Designer Campaign Package",
+      "use": "Downloaded campaign source package, board previews, launch animatic, and sound spec.",
+      "assets": [
+        {
+          "label": "Designer campaign README",
+          "file": "designer-campaign/README.md",
+          "use": "How to use the imported package",
+          "sizeBytes": 5627,
+          "size": "5.5 KiB"
+        },
+        {
+          "label": "Designer campaign manifest",
+          "file": "designer-campaign/manifest.json",
+          "use": "Hashes, boundaries, and target sizes",
+          "sizeBytes": 6253,
+          "size": "6.1 KiB"
+        },
+        {
+          "label": "Raw campaign source zip",
+          "file": "designer-campaign/raw/one-mem-campaign-source.zip",
+          "use": "Exact downloaded runnable package",
+          "sizeBytes": 9855298,
+          "size": "9.4 MiB"
+        },
+        {
+          "label": "Brand Kit HTML",
+          "file": "designer-campaign/html/Brand Kit.html",
+          "use": "Five-board static campaign canvas",
+          "sizeBytes": 2384,
+          "size": "2.3 KiB"
+        },
+        {
+          "label": "Launch Video HTML",
+          "file": "designer-campaign/html/Launch Video.html",
+          "use": "Silent 30-second launch animatic",
+          "sizeBytes": 2866,
+          "size": "2.8 KiB"
+        },
+        {
+          "label": "Sound Design HTML",
+          "file": "designer-campaign/html/Sound Design.html",
+          "use": "Visual audio beat map",
+          "sizeBytes": 9977,
+          "size": "9.7 KiB"
+        },
+        {
+          "label": "Original handoff HTML",
+          "file": "designer-campaign/html/OneMem Handoff Guide.html",
+          "use": "Downloaded package guide",
+          "sizeBytes": 20636,
+          "size": "20.2 KiB"
+        },
+        {
+          "label": "Audio spec",
+          "file": "designer-campaign/video/OneMem Launch Video - Audio Spec.md",
+          "use": "Plain-text launch score direction",
+          "sizeBytes": 5414,
+          "size": "5.3 KiB"
+        },
+        {
+          "label": "Silent audio placeholder",
+          "file": "designer-campaign/audio/onemem-launch-bed.wav",
+          "use": "Temporary silent WAV used by the launch MP4 pending a researched replacement",
+          "sizeBytes": 5760078,
+          "size": "5.5 MiB"
+        },
+        {
+          "label": "Audio provenance",
+          "file": "designer-campaign/AUDIO_PROVENANCE.generated.md",
+          "use": "Hashes, loudness, rejected-sound notes, and reference-only audio boundary",
+          "sizeBytes": 3056,
+          "size": "3.0 KiB"
+        },
+        {
+          "label": "Audio provenance JSON",
+          "file": "designer-campaign/audio-provenance.generated.json",
+          "use": "Machine-readable launch-audio provenance",
+          "sizeBytes": 4245,
+          "size": "4.1 KiB"
+        },
+        {
+          "label": "Sound research",
+          "file": "designer-campaign/SOUND_RESEARCH.md",
+          "use": "Rejected sound history and next sound-research brief",
+          "sizeBytes": 5699,
+          "size": "5.6 KiB"
+        },
+        {
+          "label": "Reference benchmark",
+          "file": "designer-campaign/REFERENCE_BENCHMARK.generated.md",
+          "use": "Measured inspiration notes for the three reference videos",
+          "sizeBytes": 2389,
+          "size": "2.3 KiB"
+        },
+        {
+          "label": "Reference benchmark JSON",
+          "file": "designer-campaign/reference-benchmark.generated.json",
+          "use": "Machine-readable reference/video loudness metrics",
+          "sizeBytes": 4915,
+          "size": "4.8 KiB"
+        },
+        {
+          "label": "Export manifest",
+          "file": "designer-campaign/exports/manifest.json",
+          "use": "Generated board/video hashes, dimensions, and source patches",
+          "sizeBytes": 3045,
+          "size": "3.0 KiB"
+        },
+        {
+          "label": "Export README",
+          "file": "designer-campaign/exports/README.md",
+          "use": "How to regenerate generated campaign exports",
+          "sizeBytes": 432,
+          "size": "0.4 KiB"
+        },
+        {
+          "label": "README hero PNG",
+          "file": "designer-campaign/exports/static/readme-hero.png",
+          "use": "Exact 1280x420 README banner",
+          "sizeBytes": 141814,
+          "size": "138.5 KiB"
+        },
+        {
+          "label": "X header PNG",
+          "file": "designer-campaign/exports/static/x-header.png",
+          "use": "Exact 1500x500 X profile banner",
+          "sizeBytes": 170908,
+          "size": "166.9 KiB"
+        },
+        {
+          "label": "Link card PNG",
+          "file": "designer-campaign/exports/static/link-card.png",
+          "use": "Exact 1200x630 social link card",
+          "sizeBytes": 51109,
+          "size": "49.9 KiB"
+        },
+        {
+          "label": "Tools poster PNG",
+          "file": "designer-campaign/exports/static/tools-poster.png",
+          "use": "Exact 1600x900 tools and integrations board",
+          "sizeBytes": 222356,
+          "size": "217.1 KiB"
+        },
+        {
+          "label": "Architecture PNG",
+          "file": "designer-campaign/exports/static/architecture.png",
+          "use": "Exact 1920x1080 designed architecture board",
+          "sizeBytes": 215822,
+          "size": "210.8 KiB"
+        },
+        {
+          "label": "Launch video MP4",
+          "file": "designer-campaign/exports/video/onemem-launch-30s.mp4",
+          "use": "30-second 1920x1080 launch video with silent placeholder audio",
+          "sizeBytes": 1360615,
+          "size": "1.3 MiB"
+        },
+        {
+          "label": "Campaign export script",
+          "file": "designer-campaign/scripts/export-designer-campaign.mjs",
+          "use": "Regenerates static boards and the launch MP4 from the raw zip",
+          "sizeBytes": 17371,
+          "size": "17.0 KiB"
+        },
+        {
+          "label": "Audio provenance script",
+          "file": "designer-campaign/scripts/generate-audio-provenance.mjs",
+          "use": "Regenerates launch-audio provenance without retaining reference audio",
+          "sizeBytes": 7842,
+          "size": "7.7 KiB"
+        },
+        {
+          "label": "Reference benchmark script",
+          "file": "designer-campaign/scripts/generate-reference-benchmark.mjs",
+          "use": "Measures raw-zip reference videos without keeping copied MP4s",
+          "sizeBytes": 7884,
+          "size": "7.7 KiB"
+        },
+        {
+          "label": "Brand kit preview",
+          "file": "designer-campaign/screenshots/kit-overview.png",
+          "use": "Preview only; export final boards from HTML",
+          "sizeBytes": 159007,
+          "size": "155.3 KiB"
+        },
+        {
+          "label": "X header preview",
+          "file": "designer-campaign/screenshots/xheader.png",
+          "use": "Preview only; export final 1500x500 board from HTML",
+          "sizeBytes": 107645,
+          "size": "105.1 KiB"
+        },
+        {
+          "label": "Link card preview",
+          "file": "designer-campaign/screenshots/linkcard.png",
+          "use": "Preview only; export final 1200x630 board from HTML",
+          "sizeBytes": 81168,
+          "size": "79.3 KiB"
+        },
+        {
+          "label": "Tools poster preview",
+          "file": "designer-campaign/screenshots/poster.png",
+          "use": "Preview only; export final 1600x900 board from HTML",
+          "sizeBytes": 99486,
+          "size": "97.2 KiB"
+        },
+        {
+          "label": "Architecture preview",
+          "file": "designer-campaign/screenshots/arch.png",
+          "use": "Preview only; export final 1920x1080 board from HTML",
+          "sizeBytes": 96699,
+          "size": "94.4 KiB"
+        }
+      ]
+    }
+  ],
+  "logoGroups": [
+    {
+      "id": "core-stack",
+      "title": "Core Stack Logos",
+      "vendorIds": ["sui", "walrus", "seal", "memwal"],
+      "assets": [
+        {
+          "id": "sui",
+          "label": "Sui",
+          "category": "core-protocol",
+          "files": ["vendor-logos/svg/sui.svg"],
+          "preferredFile": "vendor-logos/svg/sui.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "walrus",
+          "label": "Walrus",
+          "category": "core-protocol",
+          "files": [
+            "vendor-logos/svg/walrus-icon.svg",
+            "vendor-logos/svg/walrus-docs.svg",
+            "vendor-logos/png/walrus-logo.png"
+          ],
+          "preferredFile": "vendor-logos/svg/walrus-icon.svg",
+          "sourceType": "official-site",
+          "notes": "PNG logo came from Walrus organization metadata. SVG docs/icon marks came from docs.wal.app."
+        },
+        {
+          "id": "seal",
+          "label": "Seal",
+          "category": "core-protocol",
+          "files": ["vendor-logos/svg/seal.svg"],
+          "preferredFile": "vendor-logos/svg/seal.svg",
+          "sourceType": "official-docs",
+          "notes": ""
+        },
+        {
+          "id": "memwal",
+          "label": "MemWal / Walrus Memory",
+          "category": "core-protocol",
+          "files": ["vendor-logos/svg/walrus-docs.svg", "vendor-logos/svg/walrus-icon.svg"],
+          "preferredFile": "vendor-logos/svg/walrus-docs.svg",
+          "sourceType": "official-docs",
+          "notes": "Use Walrus Memory/Walrus docs artwork unless an official standalone MemWal mark is provided."
+        }
+      ]
+    },
+    {
+      "id": "native-runtimes",
+      "title": "Native Runtime Logos",
+      "vendorIds": ["claude-code", "codex", "openclaw", "hermes-agent"],
+      "assets": [
+        {
+          "id": "claude-code",
+          "label": "Claude Code",
+          "category": "native-runtime",
+          "files": [
+            "vendor-logos/svg/claude-code.svg",
+            "vendor-logos/svg/claude-code-color.svg",
+            "vendor-logos/svg/claude-code-text.svg"
+          ],
+          "preferredFile": "vendor-logos/svg/claude-code.svg",
+          "sourceType": "simple-icons+lobe-icons",
+          "notes": ""
+        },
+        {
+          "id": "codex",
+          "label": "Codex",
+          "category": "native-runtime",
+          "files": [
+            "vendor-logos/svg/codex.svg",
+            "vendor-logos/svg/codex-color.svg",
+            "vendor-logos/svg/codex-text.svg"
+          ],
+          "preferredFile": "vendor-logos/svg/codex.svg",
+          "sourceType": "lobe-icons",
+          "notes": ""
+        },
+        {
+          "id": "openclaw",
+          "label": "OpenClaw",
+          "category": "native-runtime",
+          "files": [
+            "vendor-logos/svg/openclaw.svg",
+            "vendor-logos/svg/openclaw-color.svg",
+            "vendor-logos/svg/openclaw-text.svg"
+          ],
+          "preferredFile": "vendor-logos/svg/openclaw.svg",
+          "sourceType": "lobe-icons",
+          "notes": "The implemented OneMem package is @onemem/oc-onemem."
+        },
+        {
+          "id": "hermes-agent",
+          "label": "Hermes Agent",
+          "category": "native-runtime",
+          "files": [
+            "vendor-logos/svg/hermes-agent.svg",
+            "vendor-logos/svg/hermes-agent-text.svg",
+            "vendor-logos/svg/nous-research.svg",
+            "vendor-logos/svg/nous-research-text.svg"
+          ],
+          "preferredFile": "vendor-logos/svg/hermes-agent.svg",
+          "sourceType": "lobe-icons",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "mcp-surface",
+      "title": "MCP And Client Logos",
+      "vendorIds": [
+        "model-context-protocol",
+        "cursor",
+        "windsurf",
+        "opencode",
+        "cline",
+        "github-copilot",
+        "antigravity"
+      ],
+      "assets": [
+        {
+          "id": "model-context-protocol",
+          "label": "Model Context Protocol",
+          "category": "mcp",
+          "files": [
+            "vendor-logos/svg/model-context-protocol.svg",
+            "vendor-logos/svg/mcp.svg",
+            "vendor-logos/svg/mcp-text.svg"
+          ],
+          "preferredFile": "vendor-logos/svg/model-context-protocol.svg",
+          "sourceType": "simple-icons+lobe-icons",
+          "notes": ""
+        },
+        {
+          "id": "cursor",
+          "label": "Cursor",
+          "category": "mcp-runtime-target",
+          "files": ["vendor-logos/svg/cursor.svg"],
+          "preferredFile": "vendor-logos/svg/cursor.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "windsurf",
+          "label": "Windsurf",
+          "category": "mcp-runtime-target",
+          "files": ["vendor-logos/svg/windsurf.svg"],
+          "preferredFile": "vendor-logos/svg/windsurf.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "opencode",
+          "label": "OpenCode",
+          "category": "mcp-runtime-target",
+          "files": ["vendor-logos/svg/opencode.svg"],
+          "preferredFile": "vendor-logos/svg/opencode.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "cline",
+          "label": "Cline",
+          "category": "mcp-runtime-target",
+          "files": ["vendor-logos/svg/cline.svg"],
+          "preferredFile": "vendor-logos/svg/cline.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "github-copilot",
+          "label": "GitHub Copilot",
+          "category": "mcp-runtime-target",
+          "files": ["vendor-logos/svg/github-copilot.svg"],
+          "preferredFile": "vendor-logos/svg/github-copilot.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "antigravity",
+          "label": "Antigravity",
+          "category": "mcp-runtime-target",
+          "files": [
+            "vendor-logos/svg/antigravity.svg",
+            "vendor-logos/svg/antigravity-color.svg",
+            "vendor-logos/svg/antigravity-text.svg",
+            "vendor-logos/svg/google-gemini.svg",
+            "vendor-logos/svg/google.svg"
+          ],
+          "preferredFile": "vendor-logos/svg/antigravity.svg",
+          "sourceType": "lobe-icons+simple-icons",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "frameworks",
+      "title": "Framework And Provider Logos",
+      "vendorIds": ["vercel-ai-sdk", "openai-agents", "crewai", "livekit", "elevenlabs"],
+      "assets": [
+        {
+          "id": "vercel-ai-sdk",
+          "label": "Vercel AI SDK",
+          "category": "framework-provider",
+          "files": ["vendor-logos/svg/vercel-ai-sdk.svg", "vendor-logos/svg/vercel.svg"],
+          "preferredFile": "vendor-logos/svg/vercel-ai-sdk.svg",
+          "sourceType": "official-brand-page+simple-icons",
+          "notes": "AI SDK wordmark shape was transcribed from Vercel's public Geist brand page payload."
+        },
+        {
+          "id": "openai-agents",
+          "label": "OpenAI Agents SDK",
+          "category": "framework-provider",
+          "files": ["vendor-logos/svg/openai.svg", "vendor-logos/svg/openai-text.svg"],
+          "preferredFile": "vendor-logos/svg/openai.svg",
+          "sourceType": "lobe-icons",
+          "notes": ""
+        },
+        {
+          "id": "crewai",
+          "label": "CrewAI",
+          "category": "framework-provider",
+          "files": ["vendor-logos/svg/crewai.svg"],
+          "preferredFile": "vendor-logos/svg/crewai.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "livekit",
+          "label": "LiveKit Agents",
+          "category": "framework-provider",
+          "files": ["vendor-logos/svg/livekit.svg"],
+          "preferredFile": "vendor-logos/svg/livekit.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "elevenlabs",
+          "label": "ElevenLabs Conversational AI",
+          "category": "framework-provider",
+          "files": ["vendor-logos/svg/elevenlabs.svg"],
+          "preferredFile": "vendor-logos/svg/elevenlabs.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "distribution",
+      "title": "Distribution And Tooling Logos",
+      "vendorIds": ["github", "npm", "pypi", "python", "x"],
+      "assets": [
+        {
+          "id": "github",
+          "label": "GitHub",
+          "category": "project-surface",
+          "files": ["vendor-logos/svg/github.svg"],
+          "preferredFile": "vendor-logos/svg/github.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "npm",
+          "label": "npm",
+          "category": "package-distribution",
+          "files": ["vendor-logos/svg/npm.svg"],
+          "preferredFile": "vendor-logos/svg/npm.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "pypi",
+          "label": "PyPI",
+          "category": "package-distribution",
+          "files": ["vendor-logos/svg/pypi.svg"],
+          "preferredFile": "vendor-logos/svg/pypi.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "python",
+          "label": "Python",
+          "category": "sdk-tooling",
+          "files": ["vendor-logos/svg/python.svg"],
+          "preferredFile": "vendor-logos/svg/python.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        },
+        {
+          "id": "x",
+          "label": "X",
+          "category": "social-surface",
+          "files": ["vendor-logos/svg/x.svg"],
+          "preferredFile": "vendor-logos/svg/x.svg",
+          "sourceType": "simple-icons",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "comparison",
+      "title": "Comparison Anchor",
+      "vendorIds": ["mem0"],
+      "assets": [
+        {
+          "id": "mem0",
+          "label": "Mem0",
+          "category": "comparison-anchor",
+          "files": ["vendor-logos/svg/mem0-light.svg"],
+          "preferredFile": "vendor-logos/svg/mem0-light.svg",
+          "sourceType": "official-site-metadata",
+          "notes": "Use only when discussing the Mem0-style memory comparison, not as a OneMem dependency logo."
+        }
+      ]
+    }
+  ],
+  "proofBoundary": "Brand media is not final live proof. Use a separate approved capture and verification pass before making real-wallet, physical-device, or live-runtime proof claims."
+}

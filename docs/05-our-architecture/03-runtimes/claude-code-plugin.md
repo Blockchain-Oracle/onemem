@@ -18,15 +18,38 @@ Source-of-truth references:
 onemem-claude-code-plugin/
 ├── .claude-plugin/
 │   └── plugin.json
+├── .mcp.json                         # bundled OneMem MCP server
 ├── hooks/
 │   └── hooks.json
 ├── scripts/
 │   ├── observe.js                     # PostToolUse → buffer locally
 │   ├── inject.js                      # SessionStart → open TraceSession
-│   └── summarize.js                   # SessionEnd → flush calls + close session
+│   └── summarize.js                   # Stop -> flush calls + close session
 ├── package.json
 └── README.md
 ```
+
+---
+
+## Current verification
+
+Live trusted hook proof, 2026-06-19:
+
+- Installed plugin: `onemem@onemem` v0.1.1 from the local repository
+  marketplace.
+- Trusted hook events observed with `--include-hook-events`: `SessionStart`,
+  `PostToolUse:Bash`, and `Stop`.
+- Testnet TraceSession:
+  `0x9c88993b6197a8460f4fbd4a886c6353505d36383bf35035e5305088b64825e7`.
+- Verification: `onemem --network testnet --json verify
+  0x9c88993b6197a8460f4fbd4a886c6353505d36383bf35035e5305088b64825e7`
+  returned `ok: true`, `callCount: 1`, `sessionStatus: 1`,
+  `rootMatches: true`, `countMatches: true`, and agent id `claude-code`.
+- MCP verification through published `@onemem/mcp@0.6.3` returned `ok: true`
+  with the same computed root.
+
+The plugin root also includes `.mcp.json`, matching ClaudeMem's install shape:
+one plugin install can expose both lifecycle hooks and the OneMem MCP server.
 
 ---
 
@@ -35,13 +58,13 @@ onemem-claude-code-plugin/
 ```json
 {
   "name": "onemem",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Verifiable agent memory + action trace for Claude Code, backed by Sui + Walrus + Seal + MemWal",
   "repository": "https://github.com/onemem/claude-code-plugin",
   "license": "Apache-2.0",
   "keywords": ["memory", "trace", "verifiability", "walrus", "sui", "memwal", "mcp", "hooks"],
-  "homepage": "https://onemem.ai",
-  "documentation": "https://docs.onemem.ai/runtimes/claude-code"
+  "homepage": "https://onemem.xyz",
+  "documentation": "https://docs.onemem.xyz/runtimes/claude-code"
 }
 ```
 
@@ -60,7 +83,7 @@ Mirrors claude-mem's hook structure (per `HOOKS_AND_VIEWER_REFERENCE.md`). Same 
     "PostToolUse": [
       { "matcher": "", "hooks": [{ "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/observe.js" }] }
     ],
-    "SessionEnd": [
+    "Stop": [
       { "matcher": "", "hooks": [{ "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/summarize.js" }] }
     ]
   }
@@ -162,10 +185,10 @@ if (mode === "context" || mode === "session-init") {
 }
 ```
 
-### `scripts/summarize.js` (SessionEnd)
+### `scripts/summarize.js` (Stop)
 
 ```js
-// SessionEnd → end session + optionally extract + write a session summary memory
+// Stop -> end session + optionally extract + write a session summary memory
 
 const event = await readStdinJson();
 const client = await getClient();

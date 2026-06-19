@@ -5,7 +5,7 @@
 > `apps/hosted-dashboard/`, the package README, and the prototype discovery
 > report under `.thoughts/`.
 
-The OneMem dashboard. Same codebase serves the **local** install (`localhost:4040`, launched via `onemem dashboard`) and the **hosted** deploy (`app.onemem.ai`, Enoki-authenticated). Plus a **Walrus Sites mirror** for decentralized fallback.
+The OneMem dashboard. Same codebase serves the **local** install (`localhost:4040`, launched via `onemem dashboard`) and the **hosted** deploy (`app.onemem.xyz`, Enoki-authenticated). Plus a **Walrus Sites mirror** for decentralized fallback.
 
 This is the **headline visual surface** — judges + users see this first.
 
@@ -29,7 +29,7 @@ This is the **headline visual surface** — judges + users see this first.
 | `route-settings.md` | `/settings` delegate keys + providers + runtimes |
 | `route-verify-public.md` | **NEW v0.1 addition** — `/verify/[session_id]` public chain-integrity verifier; no login; hosted-only route (defined per `purpose-local-vs-hosted.md`) |
 | `local-deploy.md` | `localhost:4040` specifics (Next.js standalone via `onemem dashboard` CLI command) |
-| `hosted-deploy.md` | `app.onemem.ai` + Enoki/zkLogin + sponsored-tx |
+| `hosted-deploy.md` | `app.onemem.xyz` + Enoki/zkLogin + sponsored-tx |
 | `walrus-sites-mirror.md` | Decentralized fallback via Walrus Sites |
 
 ---
@@ -50,7 +50,7 @@ This is the **headline visual surface** — judges + users see this first.
 ## What the dashboard does NOT do
 
 - Render or store memory content unencrypted on the server side (everything decrypts client-side via Seal `/manual`)
-- Replace `app.onemem.ai`'s account-management surface with a different one (same codebase, same UX)
+- Replace `app.onemem.xyz`'s account-management surface with a different one (same codebase, same UX)
 - Compete with the MemWal credentials dashboard at `memwal.ai` (we're orthogonal — they manage keys, we render content + traces)
 
 ---
@@ -76,7 +76,7 @@ This is the **headline visual surface** — judges + users see this first.
 | `/verify/[session_id]` route (hosted only, PUBLIC) | Built as public chain verifier with Proven / Not proven boundary panels. |
 | Local deploy (`localhost:4040`) | Built as `@onemem/dashboard` with `build`, `start`, `dev`, and `browser:smoke` scripts. |
 | Hosted app shell | Built as `@onemem/hosted-dashboard` with hosted-only routes, API guardrails, production build, and browser smoke coverage. |
-| Hosted production deployment (`app.onemem.ai`) | External deploy step; current repo proves the app build/smoke, not live DNS deployment. |
+| Hosted production deployment (`app.onemem.xyz`) | External deploy step; current repo proves the app build/smoke, not live DNS deployment. |
 | Walrus Sites mirror | Static public verifier shell and deploy preflight built; live `site-builder` deploy URL and full dashboard mirror remain pending. |
 
 ---

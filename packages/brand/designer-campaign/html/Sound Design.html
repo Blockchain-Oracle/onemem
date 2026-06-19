@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneMem — Launch Video Sound Design</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#090d15; --bg2:#0d1422; --panel:#111a2b; --ink:#f8f6f0; --ink2:rgba(248,246,240,0.66); --ink3:rgba(248,246,240,0.42);
+    --line:rgba(248,246,240,0.10); --line2:rgba(248,246,240,0.20);
+    --lime:#d4ff5e; --violet:#8f7cff; --sui:#57aef0; --verify:#4ed98a;
+    --disp:"Bricolage Grotesque",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"JetBrains Mono",monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .grid{position:fixed;inset:0;background-image:linear-gradient(to right,rgba(248,246,240,0.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(248,246,240,0.04) 1px,transparent 1px);background-size:54px 54px;-webkit-mask-image:radial-gradient(120% 80% at 50% 0%,#000,transparent 70%);mask-image:radial-gradient(120% 80% at 50% 0%,#000,transparent 70%);pointer-events:none;}
+  .wrap{position:relative;max-width:920px;margin:0 auto;padding:80px 40px 120px;}
+  .eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink3);}
+  h1{font-family:var(--disp);font-weight:800;letter-spacing:-0.04em;font-size:56px;line-height:1.0;margin:18px 0 0;}
+  .lede{font-size:21px;color:var(--ink2);margin-top:20px;max-width:660px;}
+  .mark{display:flex;align-items:center;gap:14px;}
+  h2{font-family:var(--disp);font-weight:700;letter-spacing:-0.03em;font-size:30px;margin:64px 0 8px;}
+  .row{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;}
+  .spec{flex:1;min-width:240px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;}
+  .spec .k{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink3);}
+  .spec .v{font-family:var(--mono);font-size:20px;color:var(--lime);margin-top:8px;}
+  .spec .v small{color:var(--ink2);font-size:14px;}
+  .beat{display:grid;grid-template-columns:120px 1fr;gap:24px;padding:26px 0;border-top:1px solid var(--line);}
+  .beat:last-child{border-bottom:1px solid var(--line);}
+  .time{font-family:var(--mono);font-size:15px;color:var(--accent,var(--lime));}
+  .time .n{font-family:var(--disp);font-weight:800;font-size:34px;letter-spacing:-0.03em;color:var(--ink);display:block;margin-bottom:6px;}
+  .beat h3{font-family:var(--disp);font-weight:700;font-size:23px;letter-spacing:-0.02em;margin:0 0 4px;}
+  .onscreen{font-size:15px;color:var(--ink3);margin:0 0 16px;}
+  .onscreen b{color:var(--ink2);font-weight:500;}
+  ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;}
+  li{display:flex;gap:11px;font-size:16px;color:var(--ink2);}
+  li::before{content:"";flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:var(--accent,var(--lime));margin-top:9px;}
+  .tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:13px;color:var(--ink2);border:1px solid var(--line2);border-radius:999px;padding:4px 11px;}
+  .note{margin-top:54px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--sui);border-radius:14px;padding:24px 26px;}
+  .note h4{font-family:var(--disp);font-weight:700;font-size:18px;margin:0 0 10px;}
+  .note p{font-size:15px;color:var(--ink2);margin:0 0 8px;}
+  code{font-family:var(--mono);color:var(--lime);font-size:0.92em;}
+  .palette{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+  <div class="mark">
+    <svg width="50" height="50" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#141d2e" stroke="rgba(248,246,240,0.14)"/><path d="M18 22.5 32 15l14 7.5v18.8L32 49l-14-7.7z" fill="none" stroke="#d4ff5e" stroke-width="3.4" stroke-linejoin="round"/><path d="M18 22.5 32 30l14-7.5M32 30v19" fill="none" stroke="#8f7cff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span style="font-family:var(--disp);font-weight:800;font-size:26px;letter-spacing:-0.03em;">OneMem</span>
+  </div>
+  <div class="eyebrow" style="margin-top:34px;">Launch video · sound design</div>
+  <h1>Score the 30 seconds.</h1>
+  <p class="lede">A beat map for the launch-mode cut. Mechanical, rhythmic, infrastructure-grade — closer to the Triton / Sui references than the old ambient bed. Memory-first, never trailer-loud.</p>
+
+  <div class="row">
+    <div class="spec"><div class="k">Target loudness</div><div class="v">−14 → −10 dB <small>mean · peaks below clip</small></div></div>
+    <div class="spec"><div class="k">vs. old bed</div><div class="v">+11 dB <small>was ~−25 dB mean</small></div></div>
+    <div class="spec"><div class="k">Tempo feel</div><div class="v">~120 BPM <small>hard, even rhythm</small></div></div>
+  </div>
+
+  <div class="palette">
+    <span class="tag">low mechanical pulse</span>
+    <span class="tag">memory-write click</span>
+    <span class="tag">soft encrypted sweep</span>
+    <span class="tag">clean recall success tone</span>
+    <span class="tag">no trailer impacts</span>
+    <span class="tag">no voiceover (v1)</span>
+    <span class="tag">no reference-artist styling</span>
+  </div>
+
+  <h2>Beat map</h2>
+
+  <div class="beat" style="--accent:var(--lime);">
+    <div class="time"><span class="n">01</span>0.0–4.4s</div>
+    <div>
+      <h3>Agents remember. Runtimes forget.</h3>
+      <p class="onscreen">On screen: <b>kinetic type collapses; runtime labels drift apart; fragments scatter</b></p>
+      <ul>
+        <li>Open on a low mechanical pulse — establish tempo on a single sub note, no melody yet.</li>
+        <li>Scattered memory-fragment ticks, slightly detuned, panned to the four drifting runtimes.</li>
+        <li>As <code>forget</code> breaks apart, pitch-down + a short dropout — the bed momentarily destabilises.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="beat" style="--accent:var(--lime);">
+    <div class="time"><span class="n">02</span>4.4–9.4s</div>
+    <div>
+      <h3>One memory layer.</h3>
+      <p class="onscreen">On screen: <b>fragments collapse into the namespace core; capabilities orbit</b></p>
+      <ul>
+        <li>A clean rising tone as the core forms — the dropout resolves; pulse locks back to grid.</li>
+        <li>One confident downbeat lands exactly on the headline reveal.</li>
+        <li>Four soft pings as <code>read · write · share · revoke</code> appear — a rising 4-note figure.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="beat" style="--accent:var(--violet);">
+    <div class="time"><span class="n">03</span>9.4–14.8s</div>
+    <div>
+      <h3>Decentralized by default.</h3>
+      <p class="onscreen">On screen: <b>OneMem → Seal → Walrus/MemWal → Sui stack assembles</b></p>
+      <ul>
+        <li>A soft filtered-noise <b>encrypted sweep</b> rises as each plate snaps into the stack.</li>
+        <li>Three short stabs punctuate <code>encrypted</code> · <code>portable</code> · <code>owned</code>.</li>
+        <li>Add a quiet sub-thud as the bottom (Sui) plate settles — the stack feels grounded.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="beat" style="--accent:var(--sui);">
+    <div class="time"><span class="n">04</span>14.8–22.2s</div>
+    <div>
+      <h3>One namespace. Every runtime.</h3>
+      <p class="onscreen">On screen: <b>four proof cards — Claude writes, Codex recalls, agents coordinate, traces persist</b></p>
+      <ul>
+        <li>Busiest section: a tight memory-write <b>click</b> on every card entry, four-on-the-floor.</li>
+        <li>Distinct click timbres for write (lime), search (sui), coordinate (violet), trace (verify green).</li>
+        <li>A subtle hat/tick layer keeps forward momentum without rising in volume.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="beat" style="--accent:var(--lime);">
+    <div class="time"><span class="n">05</span>22.2–27.2s</div>
+    <div>
+      <h3>Use the same memory anywhere agents work.</h3>
+      <p class="onscreen">On screen: <b>supported-runtime logo rail lands in sequence</b></p>
+      <ul>
+        <li>Arpeggiated pings — one per chip as it pops in, ascending to build to the close.</li>
+        <li>Pulse opens up (filter sweep upward) so the section feels like lift, not noise.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="beat" style="--accent:var(--verify);">
+    <div class="time"><span class="n">06</span>27.2–30.0s</div>
+    <div>
+      <h3>OneMem — close.</h3>
+      <p class="onscreen">On screen: <b>mark + wordmark, links, “Live on Sui”</b></p>
+      <ul>
+        <li>One <b>clean success tone</b> on the logo lock-up — the recall resolve, the single brightest moment.</li>
+        <li>Everything else falls away to the low pulse + a soft tail; let it breathe for the last ~1s.</li>
+        <li>Optional: a single quiet on-chain “receipt” tick under <code>Live on Sui</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note">
+    <h4>Production / export note</h4>
+    <p>This HTML cut is the timed animatic and visual source of truth — every beat above is keyed to the on-screen timing in <code>Launch&nbsp;Video.html</code>. Audio is specified here, not embedded, since a synced music bed is mixed in the edit.</p>
+    <p>For the final master, render from this designer HTML/source package at 1920×1080/30fps, then lay the bed to the cue points above and bounce H.264 High / AAC-LC. Square (1080×1080) and vertical (1080×1920) reframes should reuse the same beat map from this campaign source.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -198,11 +198,11 @@ describe.skipIf(!RUN_INTEGRATION)("sdk-ts integration (live testnet)", () => {
     expect(onemem.seal).toBeDefined();
     const me = onemem.senderAddress();
 
-    // Namespace whose Seal policy package is our deployed onemem package.
+    // Seal identities are bound to the first package object even after Sui package upgrades.
     const ns = await onemem.namespaces.create({
       name: `seal-${Date.now().toString(36)}`,
       kind: NamespaceKind.User,
-      sealPackageId: onemem.addresses.packageId,
+      sealPackageId: onemem.addresses.originalPackageId || onemem.addresses.packageId,
     });
     await onemem.client.waitForTransaction({ digest: ns.txDigest });
     const rw = await onemem.namespaces.shareReadWrite({

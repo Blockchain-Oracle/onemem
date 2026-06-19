@@ -4,125 +4,162 @@ Date: 2026-06-18
 
 ## Verdict
 
-Conditional pass. Landing and hosted-dashboard are deployed publicly on Vercel
-from commit `3bc029b`, return HTTP 200 without deployment protection, and were
-visually verified in Chrome. Public trace verification works against a real
-testnet `TraceSession`.
+Conditional pass. `https://onemem.xyz` and `https://app.onemem.xyz` are live,
+public, Cloudflare-fronted Vercel deployments. Landing CTAs now route to
+`https://app.onemem.xyz`, not the Vercel project URL. The hosted dashboard hub
+no longer links to root-level local-dashboard routes that 404 in the hosted
+shell. The public verifier works against a real testnet `TraceSession`.
 
-The condition is explicit: custom DNS resolution, docs hosting, and hosted
-wallet sign-in are not claimed here.
+The condition is explicit: Enoki Google sign-in is not ready because the Enoki
+app has zero auth providers and zero allowed origins, and the production project
+does not have the public Enoki/Google client env configured. The UI now says
+that in user-friendly copy; `/api/enoki/status` keeps the detailed diagnostic.
+The latest hosted deployment also reuses saved namespace/Admin/ReadWrite
+provisioning state, so returning wallet users are not pushed into duplicate
+namespace creation by default.
 
 ## Artifacts Checked
 
-- `.thoughts/wiki/context-engineering-status.md`
-- `.thoughts/quality/2026-06-17-project-quality-profile.md`
 - `apps/landing/app/page.tsx`
-- `apps/hosted-dashboard`
-- `packages/dashboard/next.config.mjs`
-- `package.json`
-- `scripts/install-lefthook-if-git.mjs`
-- `turbo.json`
-- `.gitignore`
+- `apps/hosted-dashboard/app/dashboard/page.tsx`
+- `apps/hosted-dashboard/app/login/page.tsx`
+- `apps/hosted-dashboard/app/onboarding/page.tsx`
+- `apps/hosted-dashboard/app/share/HostedShareView.tsx`
+- `apps/hosted-dashboard/scripts/browser-smoke.mjs`
+- `packages/cli-ts/src/commands/login.ts`
+- `packages/cli-ts/src/index.ts`
+- `packages/dashboard/app/share/ShareView.tsx`
+- `tests/structure/plugins-apps.test.ts`
 - Vercel projects:
   - `blockchain-oracles-projects/onemem-landing`
   - `blockchain-oracles-projects/onemem-hosted-dashboard`
 
 ## Requirement Traceability
 
-- Deploy landing publicly on Vercel:
-  `https://onemem-landing.vercel.app`, deployment
-  `dpl_CCv7niRngx6i4bxMkNHdFnzs6gix`, target `production`, `READY`.
-- Deploy hosted-dashboard publicly on Vercel:
-  `https://onemem-hosted-dashboard.vercel.app`, deployment
-  `dpl_44mdoHzwajxmguvm5anTBCNZY4zy`, target `production`, `READY`.
-- Attach custom domains for DNS cutover:
-  Vercel accepted `onemem.xyz` on `onemem-landing` and `app.onemem.xyz` on
-  `onemem-hosted-dashboard`, but both require DNS changes before they resolve.
-- Landing CTAs must not route users to local development:
-  Chrome DOM check found `hostedLinks: 5` and `localhostLinks: 0`.
-- Hosted public verifier must work without login:
-  `https://onemem-hosted-dashboard.vercel.app/verify/0x6ceaab0fe2961043d490326960dfd192e43c25ed655772d42c04c265ad3ec080`
-  renders "This trace is verified.", `Root match: yes`, `Evidence rows: 1 / 1`,
-  and a Suiscan testnet link.
-- Vercel build should follow monorepo constraints:
-  root `prepare` now skips Lefthook when Vercel builds outside a git worktree;
-  `turbo.json` declares Vercel build env inputs; dashboard typed routes use the
-  stable Next.js `typedRoutes` key.
+- Landing deployed publicly:
+  `dpl_7QVMXfRcGiH4nTus31KWUBCYNbHK`, aliased to `https://onemem.xyz`.
+- Hosted dashboard deployed publicly:
+  `dpl_BtEdipDexSrxYPgYniqWiJ7ZGvU7`, aliased to `https://app.onemem.xyz`.
+- Landing app URL:
+  Vercel production env `NEXT_PUBLIC_ONEMEM_APP_URL` was overwritten to
+  `https://app.onemem.xyz`; live HTML only exposes that app URL.
+- Hosted app routes:
+  `/`, `/dashboard`, `/login`, `/onboarding`, `/share`,
+  `/cli-login?nonce=test-nonce&port=43210`, and the real `/verify/<session-id>`
+  route all returned HTTP 200.
+- Hosted dashboard hub:
+  Cards now link only to hosted-served routes: `/dashboard`, `/share`,
+  `/onboarding`, `/login`, and a real public verifier sample.
+- CLI login default:
+  `onemem login --no-open --timeout 1` opens
+  `https://app.onemem.xyz/cli-login?...`.
 
 ## Acceptance Criteria Coverage
 
-- Public HTTP:
-  `curl -I -L https://onemem-landing.vercel.app` returned HTTP 200.
-- Public hosted HTTP:
-  `curl -I -L https://onemem-hosted-dashboard.vercel.app` returned HTTP 200.
-- Landing content:
-  HTML title is "OneMem - Decentralized persistent memory for AI agents" and
-  CTAs point to `https://onemem-hosted-dashboard.vercel.app`.
-- Hosted verifier:
-  Curl and Chrome both show the real testnet session as verified with matching
-  expected and computed roots.
-- Chrome visual pass:
-  landing, hosted home, and verifier pages were opened through the Codex Chrome
-  plugin. Console error logs were empty for all three tabs.
-- Enoki status:
-  `/api/enoki/status` returned `ok: true` and `keyValid: true`, but
-  `signInReady: false` with `authProviders: 0` and `allowedOrigins: 0`.
+- `curl -I -L https://onemem.xyz` returned HTTP 200 with Cloudflare and Vercel
+  headers.
+- `curl -I -L https://app.onemem.xyz` returned HTTP 200 with Cloudflare and
+  Vercel headers.
+- `curl -sS -L https://onemem.xyz` found only `https://app.onemem.xyz` app
+  links, with no `onemem-hosted-dashboard.vercel.app` CTA target.
+- `curl` route checks returned HTTP 200 for the intended hosted routes listed
+  above.
+- Chrome visual check:
+  - Landing rendered correctly and CTAs pointed to `https://app.onemem.xyz`.
+  - Hosted `/dashboard` rendered with no broken root local-dashboard links.
+  - Hosted `/login` rendered friendly Google-unavailable copy without raw
+    `NEXT_PUBLIC_*` env names.
+  - Hosted public verifier rendered "This trace is verified.", root match yes,
+    and a Suiscan testnet link.
+- Clean Chrome console check:
+  Fresh `/dashboard` and public verifier loads produced no app warnings or
+  errors. Earlier dApp Kit modal interaction produced one non-blocking controlled
+  dialog warning.
+- Wallet fallback and Slush connection:
+  The Chrome profile now has Slush configured. Production `/dashboard` displayed
+  connected account `0x93b37bc1...d119d6`. Production `/onboarding` initially
+  showed disconnected, then auto-connected to the same Slush account and enabled
+  Continue. The sponsored onboarding prepare API returned a real testnet
+  namespace-create transaction, and Slush opened a `sign-transaction` prompt for
+  `app.onemem.xyz`. Browser automation cannot operate `chrome-extension://`
+  pages directly, so the wallet signature itself remains pending on manual
+  approval.
+- Sui upgrade parser fix:
+  After a live Slush-approved namespace-create transaction succeeded on testnet,
+  the hosted execute route rejected it because Sui object types used the original
+  package ID `0x64c14f...` while the parser expected current package ID
+  `0xc2e839...`. The manifest now carries `original_package_id`, generated SDK
+  address artifacts expose it, parser/event readers use it for type strings, and
+  production deployment `dpl_697kAYJWnJQteUYXURrcTYj3foSA` is aliased to
+  `https://app.onemem.xyz`. The deployed onboarding page now also disables
+  Continue until provisioning has real IDs and exposes an app-side cancel path
+  for stale wallet requests.
 
 ## Quality Gates
 
-- `mise exec -- pnpm --filter @onemem/landing lint`
-- `mise exec -- pnpm --filter @onemem/landing typecheck`
-- `mise exec -- pnpm --filter @onemem/landing build`
-- `mise exec -- pnpm --filter @onemem/dashboard lint`
-- `mise exec -- pnpm --filter @onemem/dashboard typecheck`
-- `mise exec -- pnpm --filter @onemem/dashboard build`
-- `mise exec -- pnpm test:structure` passed `427/427`.
-- Vercel hosted-dashboard build passed with 3 successful Turbo tasks.
-- Vercel landing build passed with 1 successful Turbo task.
+- `pnpm --filter @onemem/landing typecheck` passed.
+- `pnpm --filter @onemem/landing build` passed.
+- `pnpm --filter @onemem/hosted-dashboard typecheck` passed.
+- `pnpm --filter @onemem/hosted-dashboard build` passed after the final hosted
+  copy/link changes.
+- `pnpm --filter @onemem/cli typecheck` passed.
+- `pnpm --filter @onemem/cli test` passed: 8 files, 54 tests.
+- `pnpm test:structure` passed: 432 tests.
+- Vercel landing production build passed with 1 successful Turbo task.
+- Vercel hosted-dashboard production build passed with 3 successful Turbo tasks.
+- Parser-fix Vercel hosted-dashboard production build passed with 3 successful
+  Turbo tasks: deployment `dpl_6GTDf8iA2U9hQnAwzRtBLzGmenLU`.
+- Parser/UX hardening Vercel hosted-dashboard production build passed with 3
+  successful Turbo tasks: deployment `dpl_697kAYJWnJQteUYXURrcTYj3foSA`.
+- Parser semantic fallback Vercel hosted-dashboard production build passed with
+  3 successful Turbo tasks: deployment `dpl_EfEcJ5xcTVUEeQwGkKFEpV6x9nMg`,
+  aliased to `https://app.onemem.xyz`.
 
 ## Deviations From Plan
 
-- Production deploys are proven on Vercel project domains. Vercel custom domain
-  records are attached, but DNS for `onemem.xyz`, `app.onemem.xyz`, and
-  `docs.onemem.xyz` is still unverified.
-- `apps/docs` was not deployed to Vercel. The docs app is still treated as a
-  separate docs-hosting/Mintlify lane.
-- Hosted wallet sign-in was not claimed. The Enoki server key validates, but
-  Enoki auth providers and allowed origins are not configured yet.
+- Google sign-in was not completed. The repo has `ENOKI_PRIVATE_KEY`, but not
+  `NEXT_PUBLIC_ENOKI_API_KEY` or `NEXT_PUBLIC_ENOKI_GOOGLE_CLIENT_ID`, and the
+  Enoki app API reports empty `authenticationProviders`, `allowedOrigins`, and
+  `domains`.
+- Sui wallet account connection is now partially verified through Slush:
+  `/dashboard` and `/onboarding` can see the connected account. The live
+  sponsored provisioning UI no longer advances without namespace/RW-cap receipts
+  and no longer stays wedged after an app-side cancel. No namespace, delegate,
+  share mint, or revoke mutation is claimed until the extension prompt is
+  approved and the app reports transaction IDs.
+- `apps/docs` is still not deployed to `docs.onemem.xyz`.
 
 ## Gaps And Risks
 
-- Custom domain/DNS cutover remains pending. Vercel requested:
-  `A onemem.xyz 76.76.21.21` and `A app.onemem.xyz 76.76.21.21`.
-- Enoki portal configuration remains pending before hosted wallet popup flows
-  can be honestly claimed.
-- The Vercel build still emits pnpm's dependency approved-builds warning. The
-  builds pass, and this audit does not change the repo's dependency script
-  approval policy.
-- Live trusted Codex/Claude hook sessions emitting on-chain traces remain
-  separate proof work.
-
-## Follow-ups
-
-- Configure and verify custom domains for landing and hosted dashboard.
-- Configure Enoki auth provider/client ID and allowed origins, then repeat live
-  hosted wallet popup tests.
-- Decide docs hosting path and deploy docs separately.
-- Evaluate pnpm approved-builds policy deliberately instead of approving
-  dependency scripts opportunistically during deploy work.
+- Configure Enoki auth provider/client ID and allowed origins at the Enoki
+  portal, then set the production public env vars and redeploy hosted-dashboard.
+- Start a fresh Slush-backed hosted onboarding attempt, approve the
+  `namespace-create` transaction, then approve the expected second `rw-cap-mint`
+  prompt before claiming hosted onboarding end-to-end.
+- Vercel builds still emit pnpm approved-builds warnings for dependency scripts.
+  Builds pass; dependency script approval remains a separate policy decision.
+- Docs hosting and docs-domain cleanup remain separate follow-up work.
 
 ## Evidence Log
 
-- Hosted production deployment:
-  `https://vercel.com/blockchain-oracles-projects/onemem-hosted-dashboard/44mdoHzwajxmguvm5anTBCNZY4zy`
-- Landing production deployment:
-  `https://vercel.com/blockchain-oracles-projects/onemem-landing/CCv7niRngx6i4bxMkNHdFnzs6gix`
-- Public landing URL:
-  `https://onemem-landing.vercel.app`
-- Public hosted URL:
-  `https://onemem-hosted-dashboard.vercel.app`
-- Public verifier URL:
-  `https://onemem-hosted-dashboard.vercel.app/verify/0x6ceaab0fe2961043d490326960dfd192e43c25ed655772d42c04c265ad3ec080`
-- Vercel custom-domain setup output:
-  `onemem.xyz` and `app.onemem.xyz` were added, but both reported "not
-  configured properly" until DNS points at `76.76.21.21` or Vercel nameservers.
+- Landing deployment:
+  `https://vercel.com/blockchain-oracles-projects/onemem-landing/7QVMXfRcGiH4nTus31KWUBCYNbHK`
+- Hosted dashboard deployment:
+  `https://vercel.com/blockchain-oracles-projects/onemem-hosted-dashboard/BtEdipDexSrxYPgYniqWiJ7ZGvU7`
+- Hosted dashboard parser-fix deployment:
+  `https://vercel.com/blockchain-oracles-projects/onemem-hosted-dashboard/6GTDf8iA2U9hQnAwzRtBLzGmenLU`
+- Hosted dashboard parser/UX hardening deployment:
+  `https://vercel.com/blockchain-oracles-projects/onemem-hosted-dashboard/697kAYJWnJQteUYXURrcTYj3foSA`
+- Hosted dashboard parser semantic fallback deployment:
+  `https://vercel.com/blockchain-oracles-projects/onemem-hosted-dashboard/EfEcJ5xcTVUEeQwGkKFEpV6x9nMg`
+- Hosted dashboard onboarding saved-state deployment:
+  `https://vercel.com/blockchain-oracles-projects/onemem-hosted-dashboard/5ntGx66kHTKGdqXLeSnofvsutX98`
+- Public landing:
+  `https://onemem.xyz`
+- Public hosted dashboard:
+  `https://app.onemem.xyz`
+- Public verifier:
+  `https://app.onemem.xyz/verify/0x6ceaab0fe2961043d490326960dfd192e43c25ed655772d42c04c265ad3ec080`
+- Enoki status:
+  `/api/enoki/status` returned `ok: true`, `keyValid: true`,
+  `signInReady: false`, `authProviders: 0`, and `allowedOrigins: 0`.

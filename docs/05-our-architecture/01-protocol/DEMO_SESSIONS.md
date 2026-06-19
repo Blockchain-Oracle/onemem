@@ -14,7 +14,7 @@ Real OneMem trace sessions deployed + verified end-to-end on Sui testnet. Each i
 |---|---|
 | Network | `testnet` |
 | Session ID | `0x08f4ef5b53c768eb446a18659ecc0775ac1a58763890ae51d6658c301a3f33e8` |
-| Verify URL (when dashboard ships) | `app.onemem.ai/verify/0x08f4ef5b53c768eb446a18659ecc0775ac1a58763890ae51d6658c301a3f33e8` |
+| Verify URL (when dashboard ships) | `app.onemem.xyz/verify/0x08f4ef5b53c768eb446a18659ecc0775ac1a58763890ae51d6658c301a3f33e8` |
 | Suiscan | <https://suiscan.xyz/testnet/object/0x08f4ef5b53c768eb446a18659ecc0775ac1a58763890ae51d6658c301a3f33e8> |
 | Call count | 3 (linear parent chain: call[0] → call[1] → call[2]) |
 | Merkle root | `0x82fb3f4cd63059e4172938178d1a8b4dd59bf66a1575c1c4002727df5aae806e` |

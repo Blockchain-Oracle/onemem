@@ -17,7 +17,7 @@ The plugin implements these Claude Code hooks:
   trace configuration exists.
 - `PostToolUse` -> `scripts/observe.js`: buffers tool calls locally and exits
   quickly.
-- `SessionEnd` -> `scripts/summarize.js`: flushes buffered calls on-chain and
+- `Stop` -> `scripts/summarize.js`: flushes buffered calls on-chain and
   closes the trace session.
 
 ## Rules

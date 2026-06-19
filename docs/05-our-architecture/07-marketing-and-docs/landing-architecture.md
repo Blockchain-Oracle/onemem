@@ -1,4 +1,4 @@
-# `onemem.ai` Landing Page Architecture
+# `onemem.xyz` Landing Page Architecture
 
 The marketing surface. Visitors see this first; conversion target = `npm install @onemem/cli` (or equivalent).
 
@@ -211,7 +211,7 @@ Caption: "OneMem complements the existing memory layer products. Use OneMem when
 8 v0.2 framework providers (greyed out):
 - LangChain, LangGraph, AutoGen, LlamaIndex, Google ADK, Pipecat, Mastra, Agno
 
-Each clickable → docs.onemem.ai/integrations/<name>
+Each clickable → docs.onemem.xyz/integrations/<name>
 
 ---
 
@@ -242,8 +242,8 @@ where every action is provable and every memory is yours.
 <meta name="description" content="Every memory your AI agent writes is encrypted on Walrus. Every action is a Merkle-chained attestation on Sui. Cross-runtime portable. Built on MemWal.">
 <meta property="og:title" content="OneMem — Verifiable Agent Memory + Trace">
 <meta property="og:description" content="...">
-<meta property="og:image" content="https://onemem.ai/og-image.png">  // hero with brand
-<meta property="og:url" content="https://onemem.ai">
+<meta property="og:image" content="https://onemem.xyz/og-image.png">  // hero with brand
+<meta property="og:url" content="https://onemem.xyz">
 ```
 
 ---

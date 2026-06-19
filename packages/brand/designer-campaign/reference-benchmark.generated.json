@@ -1,0 +1,144 @@
+{
+  "generatedAt": "2026-06-19",
+  "sourceZip": "raw/one-mem-campaign-source.zip",
+  "sourceZipSha256": "9f024aac1d7da1ad36ff2fc291b6081ad400e8418c65727f7e5ba17fbe06274d",
+  "boundary": "Reference videos are third-party benchmark inputs retained only inside the raw zip. The current OneMem export is silent; any future audio must be no-beat original/generated or properly licensed audio.",
+  "references": [
+    {
+      "id": "sui-network",
+      "label": "Sui Network launch reference",
+      "zipEntry": "uploads/SuiNetwork_2065207200059109376_720.mp4",
+      "sourceUrl": "https://x.com/SuiNetwork/status/2065207200059109376",
+      "takeaways": [
+        "Loud, music-led protocol energy.",
+        "Fast center-stage reveal with sparse text.",
+        "Use as an energy ceiling, not as an audio source."
+      ],
+      "boundary": "Benchmark only; do not ship, sample, remix, or redistribute as OneMem media.",
+      "sha256": "af80fbeb7e184594eb2cb1408eb4c4860be4e83eb6295cc836b2af9d2ff07df9",
+      "durationSeconds": 45.077,
+      "sizeBytes": 1920672,
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 720,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "30/1"
+      },
+      "audio": {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      },
+      "volume": {
+        "meanDb": -8.4,
+        "maxDb": 0
+      }
+    },
+    {
+      "id": "agentcard",
+      "label": "AgentCard product-card reference",
+      "zipEntry": "uploads/agentcardai_2032521033929076741_1080.mp4",
+      "sourceUrl": "https://x.com/agentcardai/status/2032521033929076741",
+      "takeaways": [
+        "Clean product/card pacing with clear social copy.",
+        "Contains baked-in voiceover, so it is visual-pacing reference only.",
+        "Useful for readable cards and calm progression."
+      ],
+      "boundary": "Benchmark only; do not ship, sample, remix, or redistribute as OneMem media.",
+      "sha256": "51fb56e15ddf59212c26ab1eaab369544159bd5a8110d225ff6386c5082ec706",
+      "durationSeconds": 25.515,
+      "sizeBytes": 2490818,
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1080,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "30/1"
+      },
+      "audio": {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      },
+      "volume": {
+        "meanDb": -12.9,
+        "maxDb": 0
+      }
+    },
+    {
+      "id": "triton-seal",
+      "label": "Triton / Seal protocol reference",
+      "zipEntry": "uploads/triton_one_2067661855162777600_720.mp4",
+      "sourceUrl": "https://x.com/triton_one/status/2067664813514281095",
+      "takeaways": [
+        "Kinetic protocol-launch motion and dark technical contrast.",
+        "Lower average loudness than Sui but still peaks at social-upload ceiling.",
+        "Useful for stack/proof pacing, not for melody or samples."
+      ],
+      "boundary": "Benchmark only; do not ship, sample, remix, or redistribute as OneMem media.",
+      "sha256": "693358586228bef7b06fb8fb394917badd0e73fd9f8e865317cf3c4d529eb0de",
+      "durationSeconds": 39.445,
+      "sizeBytes": 2443631,
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 720,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "30/1"
+      },
+      "audio": {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      },
+      "volume": {
+        "meanDb": -16.2,
+        "maxDb": 0
+      }
+    }
+  ],
+  "currentLaunch": {
+    "id": "onemem-launch",
+    "label": "OneMem launch video",
+    "file": "designer-campaign/exports/video/onemem-launch-30s.mp4",
+    "boundary": "OneMem generated video render with intentionally silent placeholder audio pending a researched replacement.",
+    "sha256": "2c1e0859dba5a8f970c34dde35a200efb188477bbfc80646683c604693903ee0",
+    "durationSeconds": 30,
+    "sizeBytes": 1360615,
+    "video": {
+      "codec_name": "h264",
+      "codec_type": "video",
+      "width": 1920,
+      "height": 1080,
+      "pix_fmt": "yuv420p",
+      "r_frame_rate": "30/1",
+      "side_data_list": [{}]
+    },
+    "audio": {
+      "codec_name": "aac",
+      "codec_type": "audio",
+      "sample_rate": "48000",
+      "channels": 2,
+      "r_frame_rate": "0/0"
+    },
+    "volume": {
+      "meanDb": -91,
+      "maxDb": -91
+    },
+    "takeaways": [
+      "Matches the 30-second designer animatic duration.",
+      "Currently uses silent placeholder audio because the prior sound beds were rejected.",
+      "Keeps memory-first copy and generated export patches."
+    ]
+  }
+}

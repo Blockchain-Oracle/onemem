@@ -13,8 +13,12 @@ Engineering router in `AGENTS.md` and the artifacts under
 `.thoughts/`.
 
 Registry publication is current for the repo's npm and PyPI packages as of the
-2026-06-18 `pnpm registry:status --strict` verification. Re-run that command
-before making a fresh public install claim.
+2026-06-19 `pnpm registry:status --strict` and
+`pnpm release:preflight --strict --timeout 30` verification. The public Node CLI
+install path is proven at `@onemem/cli@0.6.2`:
+`npm exec --yes --package @onemem/cli@0.6.2 -- onemem --version` prints
+`0.6.2`. Re-run registry/preflight commands before making a fresh public install
+claim.
 
 ## Where to start
 
@@ -41,7 +45,7 @@ pnpm exec lefthook install   # git hooks
 ## Workspace at a glance
 
 - `packages/` — 16 libraries (TS + Python mixed; SDKs, CLI, MCP server, dashboard, brand assets, plugins, providers)
-- `apps/` — landing (`onemem.ai` historical placeholder; current social campaign uses `onemem.xyz`), docs (Mintlify), hosted-dashboard (`app.onemem.ai`)
+- `apps/` — landing (`onemem.ai` historical placeholder; current social campaign uses `onemem.xyz`), docs (Mintlify), hosted-dashboard (`app.onemem.xyz`)
 - `contracts/onemem/` — Sui Move package
 - `services/` — Rust services (Nautilus relayer, stretch)
 - `demos/` — 4 demo apps

@@ -216,7 +216,7 @@ The single source of truth for data types is `01-protocol/data-model.md` (Move s
 ```ts
 // OneMem.login() — browser-based wallet flow
 export async function login(opts?: LoginOptions): Promise<Credentials> {
-  // 1. Open browser to https://app.onemem.ai/cli-login?nonce=<nonce>
+  // 1. Open browser to https://app.onemem.xyz/cli-login?nonce=<nonce>
   // 2. User connects wallet (via dApp Kit) + signs nonce + creates MemWalAccount if needed
   // 3. Browser posts { delegateKey, accountId, signature } back to local CLI server (port :12340)
   // 4. CLI server validates signature + writes ~/.onemem/credentials.json

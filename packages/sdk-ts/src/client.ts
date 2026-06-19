@@ -137,8 +137,19 @@ export class OneMem {
       : undefined;
 
     const sealClient = createSealClient(client, network, config.seal ?? {});
+    const typePackageId = addresses.originalPackageId || addresses.packageId;
     const sealStore = sealClient
-      ? new SealStore(sealClient, client, config.signer, addresses.packageId, config.seal ?? {})
+      ? new SealStore(
+          sealClient,
+          client,
+          config.signer,
+          {
+            sealPackageId: typePackageId,
+            policyPackageId: addresses.packageId,
+            typePackageId,
+          },
+          config.seal ?? {},
+        )
       : undefined;
 
     // MemWal `/manual` needs a bech32 Sui key for Seal + Walrus signing;

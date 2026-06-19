@@ -1,0 +1,33 @@
+{
+  "name": "@onemem/worker",
+  "version": "0.1.0",
+  "description": "OneMem local worker — a 127.0.0.1 daemon that writes each tool call to a local SQLite store the instant it happens and streams it to the dashboard over SSE, while on-chain proof is reconciled asynchronously as a per-row proof_status (local → anchored → verified). This is what makes the local dashboard feel alive (claude-mem parity) without putting the chain on the hot path.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "onemem-worker": "./bin/onemem-worker"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@onemem/sdk-ts": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run --passWithNoTests",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

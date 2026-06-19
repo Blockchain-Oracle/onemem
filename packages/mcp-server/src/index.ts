@@ -25,8 +25,7 @@ import { memoryConfigFromCredentials } from "@onemem/sdk-ts/runtime";
 import { z } from "zod";
 
 import { resolveSigner } from "./signer.js";
-
-export const VERSION = "0.1.0";
+import { VERSION } from "./version.js";
 
 type ToolResult = {
   content: { type: "text"; text: string }[];
@@ -60,16 +59,47 @@ function hex(bytes: Uint8Array): string {
   return `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
 }
 
-export function buildServer(onemem: OneMem): McpServer {
+export function buildServer(onemem: OneMem, attest?: AttestConfig): McpServer {
   const server = new McpServer({ name: "onemem", version: VERSION });
   const me = onemem.senderAddress();
+
+  // Ambient attesting session for MCP memory writes. When ONEMEM_NAMESPACE_ID +
+  // ONEMEM_RW_CAP_ID are configured, the first attested write opens ONE
+  // TraceSession (environment="mcp") and every memory write appends a verifiable
+  // `memwal_write` ActionCall to it — so MCP memory writes are anchored on-chain,
+  // not just stored on Walrus (the BUG-3 fix). Without config, writes are
+  // stored-but-unattested and the response says so.
+  let ambientSessionId: string | null = null;
+  let ambientSessionPromise: Promise<string> | null = null;
+  async function ensureAttestingSession(cfg: AttestConfig): Promise<string> {
+    if (ambientSessionId) return ambientSessionId;
+    if (!ambientSessionPromise) {
+      ambientSessionPromise = onemem.traces
+        .startSession({
+          namespaceId: cfg.namespaceId,
+          rwCapId: cfg.rwCapId,
+          agentId: "mcp",
+          environment: "mcp",
+          sdkVersion: VERSION,
+        })
+        .then((s) => {
+          ambientSessionId = s.sessionId;
+          return s.sessionId;
+        })
+        .catch((error) => {
+          ambientSessionPromise = null; // allow a later call to retry
+          throw error;
+        });
+    }
+    return ambientSessionPromise;
+  }
 
   server.registerTool(
     "onemem_add_memory",
     {
       title: "Remember something (write a memory)",
       description:
-        "Store a memory: client-side encrypted (Seal) and saved to Walrus via MemWal — the relayer never sees plaintext. Returns the Walrus blob id + attestation.",
+        "Store a memory: client-side encrypted (Seal) and saved to Walrus via MemWal — the relayer never sees plaintext. When ONEMEM_NAMESPACE_ID + ONEMEM_RW_CAP_ID are configured, also emits a verifiable on-chain ActionCall (returns callId + suiTxDigest); otherwise the write is stored-but-unattested and says so.",
       inputSchema: {
         text: z.string().describe("The memory text to remember"),
         namespace: z
@@ -80,11 +110,32 @@ export function buildServer(onemem: OneMem): McpServer {
     },
     async ({ text, namespace }) => {
       try {
-        const r = await onemem.requireMemory().add(text, { namespace });
+        const addOpts: {
+          namespace?: string;
+          sessionId?: string;
+          onememNamespaceId?: string;
+          rwCapId?: string;
+        } = { namespace };
+        if (attest) {
+          addOpts.sessionId = await ensureAttestingSession(attest);
+          addOpts.onememNamespaceId = attest.namespaceId;
+          addOpts.rwCapId = attest.rwCapId;
+        }
+        const r = await onemem.requireMemory().add(text, addOpts);
+        const attested = Boolean(r.callId);
         return ok({
           memoryId: r.memoryId,
           walrusBlobId: r.walrusBlobId,
+          attested,
+          callId: r.callId ?? null,
+          suiTxDigest: r.suiTxDigest ?? null,
+          sessionId: attested ? ambientSessionId : null,
           attestation: r.attestation,
+          ...(attested
+            ? {}
+            : {
+                note: "Stored encrypted on Walrus but NOT anchored on-chain. Set ONEMEM_NAMESPACE_ID + ONEMEM_RW_CAP_ID so this MCP server emits a verifiable on-chain ActionCall per memory.",
+              }),
         });
       } catch (error) {
         return fail(errMessage(error));
@@ -257,7 +308,37 @@ export function buildServer(onemem: OneMem): McpServer {
     },
   );
 
+  server.registerTool(
+    "onemem_session_status",
+    {
+      title: "MCP attestation status",
+      description:
+        "Report whether this MCP server anchors memory writes on-chain, and the ambient TraceSession id (if one is open).",
+      inputSchema: {},
+    },
+    async () => {
+      return ok({
+        attestationConfigured: Boolean(attest),
+        namespaceId: attest?.namespaceId ?? null,
+        ambientSessionId,
+        address: me,
+        network: onemem.network,
+      });
+    },
+  );
+
   return server;
+}
+
+interface AttestConfig {
+  readonly namespaceId: string;
+  readonly rwCapId: string;
+}
+
+function attestConfigFromEnv(): AttestConfig | undefined {
+  const namespaceId = process.env.ONEMEM_NAMESPACE_ID;
+  const rwCapId = process.env.ONEMEM_RW_CAP_ID;
+  return namespaceId && rwCapId ? { namespaceId, rwCapId } : undefined;
 }
 
 function memoryConfigFromEnv(): MemoryConfig | undefined {
@@ -271,11 +352,14 @@ async function main(): Promise<void> {
     signer: resolveSigner(),
     memory: memoryConfigFromEnv(),
   });
-  const server = buildServer(onemem);
+  const server = buildServer(onemem, attestConfigFromEnv());
   await server.connect(new StdioServerTransport());
   const memoryStatus = onemem.memory ? "memory ON" : "memory OFF (set MemWal env)";
+  const attestStatus = attestConfigFromEnv()
+    ? "attest ON"
+    : "attest OFF (set ONEMEM_NAMESPACE_ID+ONEMEM_RW_CAP_ID)";
   process.stderr.write(
-    `onemem-mcp ${VERSION} ready on ${onemem.network} (${onemem.senderAddress()}) — ${memoryStatus}\n`,
+    `onemem-mcp ${VERSION} ready on ${onemem.network} (${onemem.senderAddress()}) — ${memoryStatus}, ${attestStatus}\n`,
   );
 }
 

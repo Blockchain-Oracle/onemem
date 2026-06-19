@@ -34,7 +34,7 @@ If everything else lands on schedule, attempt:
 2. **Wrap in Nautilus deploy template** (from Mysten's new template, per `DEEP_DIVE.md` §1)
 3. **Add `seal_approve_tee` policy** — Seal `seal_approve` function that requires the caller's PCR to match the registered OneMem relayer PCR
 4. **Deploy to AWS Nitro** (or Marlin) instance
-5. **Document the verification flow** at `docs.onemem.ai/concepts/tee-attestation`
+5. **Document the verification flow** at `docs.onemem.xyz/concepts/tee-attestation`
 6. **Demo segment in the official video** — 15 seconds: "and the relayer that handles this? It runs in a TEE. The Sui chain knows what code is running. We can prove it."
 
 Out of scope for v0.1 (even stretch):

@@ -75,7 +75,7 @@ name = "onemem"
 version = "0.1.0"
 description = "Verifiable memory + action trace on Walrus + Sui"
 license = "Apache-2.0"
-homepage = "https://onemem.ai"
+homepage = "https://onemem.xyz"
 repository = "https://github.com/onemem/hermes-onemem"
 
 [provider]

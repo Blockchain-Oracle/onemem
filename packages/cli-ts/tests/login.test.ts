@@ -9,6 +9,7 @@ import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { describe, expect, it } from "vitest";
 import {
   LoginCredentialValidationError,
+  pairingPromptLines,
   validateLoginCredentialPayload,
 } from "../src/commands/login.js";
 
@@ -341,5 +342,20 @@ describe("validateLoginCredentialPayload", () => {
     await expect(validateLoginCredentialPayload({ nonce: "abc123" }, "abc123")).rejects.toThrow(
       /delegateKey/,
     );
+  });
+});
+
+describe("pairingPromptLines", () => {
+  it("does not claim to open a browser when --no-open is set", () => {
+    const lines = pairingPromptLines("https://app.onemem.xyz/cli-login?nonce=x&port=1", false);
+
+    expect(lines[0]).toBe("Open this URL to approve this terminal:");
+    expect(lines.join("\n")).not.toMatch(/Opening your browser/);
+  });
+
+  it("uses opening copy when browser launch is enabled", () => {
+    const lines = pairingPromptLines("https://app.onemem.xyz/cli-login?nonce=x&port=1", true);
+
+    expect(lines[0]).toBe("Opening your browser to approve this terminal...");
   });
 });

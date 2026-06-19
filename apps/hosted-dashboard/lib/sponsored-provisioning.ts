@@ -58,18 +58,48 @@ function suiClient(network: EnokiProvisioningNetwork) {
   return { addresses, client: new SuiJsonRpcClient({ network, url: addresses.rpcUrl }) };
 }
 
+function namespaceObjectTypeMatches(actual: string, expected: string): boolean {
+  if (actual === expected) return true;
+  if (expected.endsWith("::namespace::MemoryNamespace")) {
+    return actual.endsWith("::namespace::MemoryNamespace");
+  }
+
+  const expectedCap = expected.match(
+    /::namespace::NamespaceCapability<.+::namespace::(Admin|ReadOnly|ReadWrite)>$/,
+  );
+  if (!expectedCap) return false;
+
+  const actualCap = actual.match(
+    /::namespace::NamespaceCapability<.+::namespace::(Admin|ReadOnly|ReadWrite)>$/,
+  );
+  return actualCap?.[1] === expectedCap[1];
+}
+
 function findCreatedObject(tx: SuiTransactionBlockResponse, objectType: string): string {
   const changes = (tx.objectChanges ?? []) as SuiObjectChange[];
   const created = changes.find(
     (change) =>
       change.type === "created" &&
       "objectType" in change &&
-      change.objectType === objectType &&
+      typeof change.objectType === "string" &&
+      namespaceObjectTypeMatches(change.objectType, objectType) &&
       "objectId" in change &&
       typeof change.objectId === "string",
   );
   if (!created || !("objectId" in created) || typeof created.objectId !== "string") {
-    throw new Error(`transaction did not create expected object type ${objectType}`);
+    const observed = changes
+      .filter(
+        (change) =>
+          change.type === "created" &&
+          "objectType" in change &&
+          typeof change.objectType === "string",
+      )
+      .map((change) => ("objectType" in change ? change.objectType : ""))
+      .join(", ");
+    throw new Error(
+      `transaction did not create expected object type ${objectType}. ` +
+        `created object types: ${observed || "none"}`,
+    );
   }
   return created.objectId;
 }
@@ -152,9 +182,10 @@ async function buildTransactionKindBytes(
     });
   } else {
     if (request.action === "cap-self-revoke") {
+      const typePackageId = addresses.originalPackageId || addresses.packageId;
       tx.moveCall({
         target: `${addresses.packageId}::namespace::revoke_capability`,
-        typeArguments: [`${addresses.packageId}::namespace::${request.capKind}`],
+        typeArguments: [`${typePackageId}::namespace::${request.capKind}`],
         arguments: [tx.object(request.capId ?? "")],
       });
       return {
@@ -243,10 +274,11 @@ export async function executeSponsoredProvisioning(
   assertTransactionSucceeded(tx);
 
   if (action === "namespace-create") {
-    const namespaceId = findCreatedObject(tx, `${addresses.packageId}::namespace::MemoryNamespace`);
+    const typePackageId = addresses.originalPackageId || addresses.packageId;
+    const namespaceId = findCreatedObject(tx, `${typePackageId}::namespace::MemoryNamespace`);
     const adminCapId = findCreatedObject(
       tx,
-      `${addresses.packageId}::namespace::NamespaceCapability<${addresses.packageId}::namespace::Admin>`,
+      `${typePackageId}::namespace::NamespaceCapability<${typePackageId}::namespace::Admin>`,
     );
     return { ok: true, action, network, txDigest, namespaceId, adminCapId };
   }
@@ -263,9 +295,10 @@ export async function executeSponsoredProvisioning(
   }
 
   const capKind = capabilityKindForAction(action);
+  const typePackageId = addresses.originalPackageId || addresses.packageId;
   const capId = findCreatedObject(
     tx,
-    `${addresses.packageId}::namespace::NamespaceCapability<${addresses.packageId}::namespace::${capKind}>`,
+    `${typePackageId}::namespace::NamespaceCapability<${typePackageId}::namespace::${capKind}>`,
   );
   if (action === "ro-cap-share") {
     return { ok: true, action, network, txDigest, roCapId: capId, sharedCapId: capId, capKind };

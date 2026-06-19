@@ -1,6 +1,6 @@
 {
   "name": "@onemem/oc-onemem",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "OneMem plugin for OpenClaw — adds verifiable on-chain action traces on top of oc-memwal",
   "license": "Apache-2.0",
   "type": "module",

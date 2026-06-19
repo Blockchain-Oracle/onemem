@@ -256,16 +256,22 @@ npx -y @onemem/mcp@latest login
 
 ## What runtimes can / can't do via MCP-only (vs native plugin)
 
-| Capability | Native plugin (Claude Code, OpenClaw, Hermes, Codex optional hooks) | MCP-only (Cursor, Windsurf, Cline, OpenCode, VS Code Copilot, Antigravity) |
+| Capability | Native plugin / trusted hooks (Claude Code, OpenClaw, Hermes, Codex optional hooks) | Explicit MCP fallback (Cursor/Windsurf until hook ports land; Cline, OpenCode, VS Code Copilot, Antigravity) |
 |---|---|---|
 | Auto-capture every tool call (hook into PostToolUse) | ✅ | ❌ — only captures calls routed through OneMem MCP tools |
 | Auto-recall memory on every session start | ✅ | ❌ — user / agent must explicitly call `onemem_search_memory` |
 | Cross-runtime trace composition | ✅ | Partial — only OneMem-routed calls compose |
 | Verify / replay / share via slash commands | ✅ (in-chat) | ✅ (via MCP tool call from agent) |
 
-Important: Codex is no longer MCP-only because `packages/plugin-codex` bundles
-MCP plus optional trusted hooks. The hook path still needs live `/hooks` proof
-before claiming complete automatic Codex trace parity.
+Important:
+- Codex is no longer MCP-only because `packages/plugin-codex` bundles MCP plus
+  optional trusted hooks. The interactive trusted hook path has 2026-06-19
+  testnet proof; `codex exec` remains unsuitable as the hook-proof path on Codex
+  CLI 0.140.0.
+- Cursor and Windsurf remain explicit-tool MCP integrations in OneMem today, but
+  they are not "MCP-only" as an architecture claim. ClaudeMem proves hook
+  installers exist; OneMem must port and prove them before claiming automatic
+  capture.
 
 ---
 
@@ -279,7 +285,7 @@ Every server startup runs the compatibility check from `02-sdks/compatibility-co
 
 - npm: `@onemem/mcp` (executable via `npx -y @onemem/mcp@latest`)
 - GitHub: `onemem/mcp-server`
-- Docs: per-runtime install snippets at `docs.onemem.ai/runtimes/<runtime>`
+- Docs: per-runtime install snippets at `docs.onemem.xyz/runtimes/<runtime>`
 
 ---
 

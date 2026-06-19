@@ -22,6 +22,7 @@ target/
 .next/
 .turbo/
 *.tsbuildinfo
+apps/docs/export.zip
 
 # Move build
 contracts/*/build/
@@ -34,6 +35,8 @@ Cargo.lock
 .env
 .env.local
 .env.*.local
+.npmrc
+.pypirc
 *.pem
 *.key
 credentials.json

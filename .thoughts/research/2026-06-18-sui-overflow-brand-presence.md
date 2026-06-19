@@ -55,9 +55,12 @@ Product-positioning correction: use `2026-06-18-onemem-product-code-audit.md` as
   - "Etherscan for AI agents."
   - "Every memory encrypted on Walrus, every action a Merkle-chained attestation on Sui."
 - The code audit corrects this framing: these phrases should not be treated as the primary product positioning. OneMem should lead with decentralized persistent agent memory; verification/provenance is supporting evidence.
-- Abu clarified the public domain is `onememe.xyz`.
+- An earlier mistyped domain was superseded. Abu corrected the public campaign
+  domain to `onemem.xyz`. Use `onemem.xyz`, `docs.onemem.xyz`, and
+  `x.com/OneMemAI` in current brand assets.
 - Abu selected the X handle `@OneMemAI`.
-- `onemem.ai` is used as the target landing domain in repo docs, but `curl -I https://www.onemem.ai/` currently returns `server: Parking/1.0` and HTTP 405. The apex `https://onemem.ai/` timed out in a 10s curl test.
+- Older `.ai` domain references appear in repo history and should not be used
+  for current campaign assets.
 - The user-provided `sui-pilot` repo is a Claude Code plugin for Sui/Move development. Its README says it bundles Sui, Move Book, TS SDK, Walrus, Sui Prover, and Seal documentation, plus Move LSP and Sui Prover MCP servers. This is useful as an external Sui development reference, not a OneMem runtime dependency.
 
 ## Inferences
@@ -67,11 +70,13 @@ Product-positioning correction: use `2026-06-18-onemem-product-code-audit.md` as
 - OneMem should keep its current technical identity instead of starting from a blank brand: dark technical base, violet/indigo memory layer, lime as a restrained persistence/provenance moment, and sea-blue chain links.
 - OneMem needs a real logo system and social kit. The repo currently has tokens and a small app icon, but not export-ready logo lockups, X/Discord banners, OG images, or animation keyframes.
 - The brand package gap is not just cosmetic. `packages/brand/package.json` exports `./logo/*` and `./og-images/*`, so empty directories make the published package promise misleading.
-- Repo/docs references to `onemem.ai` should be treated as stale or placeholder until intentionally changed. Public brand assets should point to `onememe.xyz` and `@OneMemAI`.
+- Repo/docs references to the old `.ai` domain should be treated as stale or
+  placeholder until intentionally changed. Public brand assets should point to
+  `onemem.xyz`, `docs.onemem.xyz`, and `x.com/OneMemAI`.
 
 ## Unknowns And Questions
 
-- Whether `onememe.xyz` is already deployed or still needs DNS/hosting setup.
+- Whether the current docs domain is deployed or still needs DNS/hosting setup.
 - Whether the final submission platform will require a fixed-length demo video, specific aspect ratio, GitHub link, live demo URL, or pitch deck. The local handbook should be checked again before final production.
 
 ## Not Included

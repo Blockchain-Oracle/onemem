@@ -14,11 +14,14 @@ claude plugin marketplace add Blockchain-Oracle/onemem
 claude plugin install onemem@onemem
 ```
 
-Hooks `SessionStart`, `PostToolUse`, and `SessionEnd` record a Merkle-chained
+Hooks `SessionStart`, `PostToolUse`, and `Stop` record a Merkle-chained
 TraceSession per session when the plugin is installed, configured, and hooks run.
 The GitHub repository marketplace path is current, and
-`@onemem/claude-code-plugin@0.1.0` is current on npm. Trusted live Claude Code
-hook proof remains a separate on-chain verification boundary.
+`@onemem/claude-code-plugin@0.1.1` is current on npm. The plugin also bundles
+the OneMem MCP server for memory/search/replay/share/verify. Trusted live Claude
+Code hook proof is complete on testnet:
+`0x9c88993b6197a8460f4fbd4a886c6353505d36383bf35035e5305088b64825e7` verifies
+with `ok: true` and `callCount: 1`.
 
 ## Codex
 
@@ -30,12 +33,13 @@ codex plugin marketplace add Blockchain-Oracle/onemem --json
 codex plugin add onemem-codex@onemem --json
 ```
 
-Optional Codex hook scripts are included and flush through the published
-`@onemem/sdk-ts@0.6.0` trace CLI, but full automatic Codex tool-call trace
-coverage is only claimed after a trusted `/hooks` session emits a verifiable
-on-chain OneMem `TraceSession`. Local Codex CLI 0.140 `codex exec` testing did
-not run hooks, so it is not treated as that proof path. MCP tools work without
-hook trust.
+Optional Codex hook scripts are included and flush through the published trace
+CLI path. Trusted live Codex hook proof is complete for the patched v0.1.2
+marketplace install:
+`0x0c88317632dcd386b6f81b94ee510003ba107d3c4bfa035ba8072fca8304e330` verifies
+with `ok: true` and `callCount: 1`. Local Codex CLI 0.140 `codex exec` testing
+did not run hooks, so interactive `/hooks` trust remains the proof path. MCP
+tools work without hook trust.
 
 ## OpenClaw
 
@@ -56,10 +60,11 @@ pip install hermes-onemem
 Subclasses Hermes's `MemoryProvider` ABC; buffers turns + tool calls + delegations and flushes one verifiable trace per run via the `onemem-trace` bridge.
 
 <Note>
-Registry note, 2026-06-18: runtime npm/PyPI packages in this repo are current
-after `pnpm registry:status --strict`. MCP works without hook trust; automatic
-Claude/Codex hook tracing still requires trusted live client sessions and
-on-chain TraceSession verification before claiming full coverage.
+Registry note, 2026-06-19: runtime npm/PyPI packages in this repo are current
+after `pnpm registry:status --strict`, and
+`pnpm release:preflight --strict --timeout 30` verifies shipped artifact markers.
+MCP works without hook trust; Claude/Codex lifecycle hook tracing has live
+testnet proof when the optional hooks are installed, configured, and trusted.
 </Note>
 
 <Note>

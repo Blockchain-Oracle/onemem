@@ -8,7 +8,7 @@ This doc owns the "why each exists" question. The `ui-architecture.md`, `local-d
 
 ## TL;DR
 
-| | **LOCAL** (`localhost:4040`) | **HOSTED** (`app.onemem.ai`) |
+| | **LOCAL** (`localhost:4040`) | **HOSTED** (`app.onemem.xyz`) |
 |---|---|---|
 | **Primary user** | Developer / user running AI agents on their own machine | Anyone interacting with OneMem WITHOUT installing the CLI |
 | **Primary jobs** | Inspect your own memory + traces. Verify, replay, manage. | Onboarding, CLI-login callback, cross-device view, shared-namespace access, public verification |
@@ -16,7 +16,7 @@ This doc owns the "why each exists" question. The `ui-architecture.md`, `local-d
 | **Daily-driver?** | YES — opened every coding session | NO — occasional (onboard, share, verify) |
 | **Equivalent in Mem0** | OpenMemory `localhost:3000` (Mem0's OSS local dashboard, sunsetting) | `app.mem0.ai` (Mem0's cloud platform, closed source SaaS) |
 | **Inversion vs Mem0** | OSS Apache-2.0 (Mem0's sunsetting this tier) | OSS Apache-2.0 (Mem0's tier is closed-source SaaS) |
-| **Codebase** | `packages/dashboard/` (Next.js 15) | `apps/hosted-dashboard/` (wraps `packages/dashboard/`) |
+| **Codebase** | `packages/dashboard/` (Next.js 15) | `apps/hosted-dashboard/` shell plus selected shared dashboard package code |
 
 ---
 
@@ -77,7 +77,7 @@ THREE distinct user groups (with different routes per group):
 | `/login` | public | Sign in via Enoki (Google) OR existing wallet (dApp Kit) |
 | `/cli-login?nonce=X&port=Y` | public + post-auth | Browser callback target for `onemem login` from the CLI. Mints delegate key, registers it on chain, POSTs creds back to `localhost:<port>`. |
 | `/onboarding` | post-auth | First-time-user flow: mint MemWalAccount (gasless via Enoki sponsored-tx) → mint first namespace → show CLI install commands per-runtime |
-| `/dashboard/*` | post-auth | Same inspection surfaces as local (`/memories`, `/apps`, `/trace/[id]`, `/sessions/[id]`, `/settings`) where hosted account context exists. |
+| `/dashboard` | account-aware | Hosted hub and route index. It links public verify, share, onboarding, and sign-in surfaces; it is not a wrapper for every local dashboard route. |
 | `/share` | post-auth | Owner-initiated sponsored ReadOnly/ReadWrite capability minting to a recipient Sui address plus event-backed owner history. |
 | `/share/[capability_id]` | public + optional wallet comparison | Recipient capability object view. Reads the Sui `NamespaceCapability`, derives owner/kind/namespace metadata, and states that there is no claim transaction in v0.1. |
 | **`/verify/[session_id]`** | **public, no auth** | **The PUBLIC verification page.** Anyone in the world can paste a session ID + see "✓ Verified" badge for the Merkle chain integrity. Demonstrates verifiability to non-users. |
@@ -129,24 +129,24 @@ packages/dashboard/                    # Next.js 15 — the SHARED CODE
 │       ├── lib/
 │       └── ...
 
-apps/hosted-dashboard/                 # Next.js shell that adds hosted-only routes + auth
+apps/hosted-dashboard/                 # Next.js shell that adds hosted-only routes + account state
 ├── app/
 │   ├── page.tsx                       # / (different from local; landing-shell with sign-in CTA)
-│   ├── login/page.tsx                 # NEW: /login (Enoki sign-in)
-│   ├── cli-login/page.tsx             # NEW: /cli-login (CLI callback target)
-│   ├── onboarding/page.tsx            # NEW: /onboarding (first-time flow)
-│   ├── verify/[session_id]/page.tsx   # NEW: /verify/[id] (PUBLIC verifier)
-│   └── dashboard/                     # Authenticated wrapper around packages/dashboard routes
-│       ├── memories/page.tsx          # imports from @onemem/dashboard
-│       ├── apps/page.tsx
-│       ├── trace/[session_id]/page.tsx
-│       └── ...
-└── (Enoki + dApp Kit auth middleware applied to /dashboard/*)
+│   ├── login/page.tsx                 # /login (Enoki/dApp Kit connection)
+│   ├── cli-login/page.tsx             # /cli-login (CLI callback target)
+│   ├── onboarding/page.tsx            # /onboarding (first-time flow)
+│   ├── share/page.tsx                 # /share (sponsored capability mint + history)
+│   ├── share/[capability_id]/page.tsx # public capability object view
+│   ├── verify/[session_id]/page.tsx   # /verify/[id] (PUBLIC verifier)
+│   └── dashboard/page.tsx             # hosted hub
+└── (Enoki + dApp Kit client providers)
 ```
 
-**How the shared code works:** the `packages/dashboard/` package exports route-level React components + data-fetching hooks. `apps/hosted-dashboard/` imports them, wraps them with Enoki/zkLogin auth, and adds hosted-only routes (`/login`, `/cli-login`, `/onboarding`, `/verify/[id]`).
-
-The route handlers that fetch data (e.g., `useMemories(namespaceId)`) abstract over the auth model — they read from local creds file OR from authenticated session, based on which environment they're in.
+**How the shared code works today:** `packages/dashboard/` owns the local daily
+driver routes and reusable dashboard UI/data code. `apps/hosted-dashboard/`
+owns hosted-only routes (`/login`, `/cli-login`, `/onboarding`, `/share`,
+`/share/[capability_id]`, `/verify/[id]`, `/dashboard`). The older plan to wrap
+every local route under `/dashboard/*` is not current implementation reality.
 
 ---
 
@@ -156,7 +156,7 @@ This is the surface I'm proposing we add to v0.1 hosted. Not in the original arc
 
 ### What it does
 
-Anyone in the world visits `app.onemem.ai/verify/<session_id>`. No login. Page shows:
+Anyone in the world visits `app.onemem.xyz/verify/<session_id>`. No login. Page shows:
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
@@ -266,9 +266,9 @@ The expected flow for a new user:
 ```
 1. User hears about OneMem (e.g., from a friend, Twitter, a Walrus demo)
    ↓
-2. Visits onemem.ai (marketing landing) → clicks "Get Started"
+2. Visits onemem.xyz (marketing landing) → clicks "Get Started"
    ↓
-3. Lands on app.onemem.ai/onboarding (hosted dashboard)
+3. Lands on app.onemem.xyz/onboarding (hosted dashboard)
    - Signs in with Google (Enoki, gasless)
    - Mints MemWalAccount (Sui tx, sponsored)
    - Creates first MemoryNamespace ("personal")
@@ -279,15 +279,16 @@ The expected flow for a new user:
    $ onemem install --runtime claude-code
    $ onemem login
    ↓
-5. `onemem login` opens browser → app.onemem.ai/cli-login?nonce=...&port=12340
-   - Already signed in (cookie from step 3)
-   - Generates delegate key, registers on chain
+5. `onemem login` opens browser → app.onemem.xyz/cli-login?nonce=...&port=12340
+   - Browser account connection is available through Enoki/dApp Kit state
+   - Generates delegate key, registers it on chain
    - POSTs creds back to localhost:12340
    - Browser shows "Login complete. Close this tab."
    ↓
 6. CLI saves ~/.onemem/credentials.json
    ↓
-7. User opens Claude Code → OneMem plugin captures everything in background
+7. User opens Claude Code → OneMem plugin records traces after install,
+   configuration, and trusted hook execution
    ↓
 8. User runs: $ onemem dashboard
    - Launches local dashboard at localhost:4040
@@ -334,7 +335,7 @@ public trace, they hit hosted's public `/verify/[id]`.
 - `route-trace.md` — `/trace/[id]` headline route (Verify drawer used in both local AND public `/verify/[id]`)
 - `route-share.md` — local `/share`, hosted `/share`, recipient capability view, and no-claim boundary
 - `local-deploy.md` — local-specific deploy detail (`localhost:4040`, CLI-launched)
-- `hosted-deploy.md` — hosted-specific deploy detail (`app.onemem.ai`, Enoki/zkLogin)
+- `hosted-deploy.md` — hosted-specific deploy detail (`app.onemem.xyz`, Enoki/zkLogin)
 - `walrus-sites-mirror.md` — decentralized fallback for hosted
 - Inspiration: `02-inspirations/mem0/MEM0_DOCS_DESIGN.md` (Mem0 cloud dashboard pattern; what we adopt + reject)
 - Inspiration: `02-inspirations/claude-mem/HOOKS_AND_VIEWER_REFERENCE.md` (claude-mem's local-server pattern; what local mirrors)

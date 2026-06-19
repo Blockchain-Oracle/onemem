@@ -1,6 +1,6 @@
 {
   "name": "@onemem/sdk-ts",
-  "version": "0.6.0",
+  "version": "0.6.3",
   "description": "OneMem TypeScript SDK — verifiable memory + trace SDK for AI agents on Sui + Walrus + Seal + MemWal",
   "license": "Apache-2.0",
   "type": "module",

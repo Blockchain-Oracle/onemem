@@ -3,7 +3,7 @@ const NETWORKS = {
     label: "Testnet",
     rpcUrl: "https://fullnode.testnet.sui.io:443",
     suiscanBase: "https://suiscan.xyz/testnet",
-    packageId: "0xc2e839c719e1c61222440f5661199e68de5413d8cfb49dd8bae3223e92fcf138",
+    packageId: "0x64c14fc069fe3d3584b8474b4e9b58beb55373767edecedf6e4c53732d4ceafc",
     enabled: true,
   },
   mainnet: {

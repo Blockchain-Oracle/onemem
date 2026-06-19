@@ -72,9 +72,9 @@ export function traceEvents(sessionId: string, _o: unknown, command: Cmd) {
 export function traceList(_o: unknown, command: Cmd) {
   const g = command.optsWithGlobals();
   return runCommand(g, async () => {
-    const { client, packageId } = readContext(g.network);
+    const { client, eventPackageId } = readContext(g.network);
     const page = await client.queryEvents({
-      query: { MoveEventType: `${packageId}::events::TraceSessionOpenedEvent` },
+      query: { MoveEventType: `${eventPackageId}::events::TraceSessionOpenedEvent` },
       limit: 25,
       order: "descending",
     });

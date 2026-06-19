@@ -15,7 +15,7 @@ dependencies = []
 hermes-onemem = "hermes_onemem.install:main"
 
 [project.urls]
-Homepage = "https://onemem.ai"
+Homepage = "https://onemem.xyz"
 
 [build-system]
 requires = ["hatchling"]

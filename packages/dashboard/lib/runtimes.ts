@@ -11,24 +11,63 @@ import { fetchRecentSessions } from "@/lib/trace";
 const ONLINE_MS = 15 * 60 * 1000;
 const IDLE_MS = 24 * 60 * 60 * 1000;
 
-export type RuntimeControlCoverage = "enforced" | "stored";
+// Capability tier — what OneMem can HONESTLY do for an integration, driven by
+// WHERE its code runs (execution location). Only location-A runtimes that read
+// ~/.onemem/runtime-controls.json on this machine are controllable from this
+// (local) dashboard. Framework adapters (Vercel AI, ElevenLabs, …) run on a
+// deployed server — they are NOT local apps, get NO pause/trace toggles here,
+// and are managed from the hosted dashboard. Showing them a toggle was theater.
+export type RuntimeTier =
+  | "native-hooks" // location A: hooks auto-capture this machine's tool calls
+  | "trusted-hooks-required" // location A: same, after a one-time host trust step
+  | "runtime-provider" // location A: native runtime/plugin
+  | "hook-port-pending" // location A: ClaudeMem proves hooks exist; OneMem port not shipped yet
+  | "mcp-tools-only" // location C: explicit OneMem tool calls only, no auto-capture
+  | "deployed-adapter"; // location B: runs off-machine; read-only here
+
+export type RuntimeSection = "local-runtimes" | "mcp-clients" | "environments";
+
+const TIER_LABEL: Record<RuntimeTier, string> = {
+  "native-hooks": "Native hooks",
+  "trusted-hooks-required": "Trusted hooks required",
+  "runtime-provider": "Runtime provider",
+  "hook-port-pending": "Hook port pending",
+  "mcp-tools-only": "MCP tools only",
+  "deployed-adapter": "Deployed adapter",
+};
+
+function sectionFor(tier: RuntimeTier): RuntimeSection {
+  if (tier === "mcp-tools-only") return "mcp-clients";
+  if (tier === "deployed-adapter") return "environments";
+  return "local-runtimes";
+}
+
+// Only location-A runtimes that actually read the local runtime-controls file can
+// be paused / trace-toggled from the local dashboard. MCP clients and deployed
+// adapters cannot — a toggle here would write a file their code never reads.
+function isControllable(tier: RuntimeTier): boolean {
+  return (
+    tier === "native-hooks" || tier === "trusted-hooks-required" || tier === "runtime-provider"
+  );
+}
 
 interface RuntimeMetadata {
   readonly id: string;
   readonly name: string;
   readonly icon: string;
   readonly installCommand: string;
-  readonly coverage: RuntimeControlCoverage;
+  readonly tier: RuntimeTier;
 }
 
 const KNOWN_RUNTIMES: readonly RuntimeMetadata[] = [
+  // Location A — laptop runtimes (real local controls)
   {
     id: "claude-code",
     name: "Claude Code",
     icon: "bolt",
     installCommand:
       "claude plugin marketplace add Blockchain-Oracle/onemem && claude plugin install onemem@onemem",
-    coverage: "enforced",
+    tier: "native-hooks",
   },
   {
     id: "codex",
@@ -36,60 +75,60 @@ const KNOWN_RUNTIMES: readonly RuntimeMetadata[] = [
     icon: "bolt",
     installCommand:
       "codex plugin marketplace add Blockchain-Oracle/onemem --json && codex plugin add onemem-codex@onemem --json",
-    coverage: "enforced",
+    tier: "trusted-hooks-required",
   },
   {
     id: "openclaw",
     name: "OpenClaw",
     icon: "branch",
     installCommand: "openclaw plugins install @onemem/oc-onemem && npx @onemem/oc-onemem init",
-    coverage: "enforced",
+    tier: "runtime-provider",
   },
   {
     id: "hermes",
     name: "Hermes",
     icon: "cube",
     installCommand: "pip install hermes-onemem",
-    coverage: "enforced",
+    tier: "runtime-provider",
   },
+  // Location A hook-capable hosts proven by ClaudeMem. OneMem must port the
+  // installers before showing controls/tracing as live, so these are local but
+  // non-controllable until the hook bridge lands.
   {
-    id: "crewai",
-    name: "CrewAI",
-    icon: "branch",
-    installCommand: "pip install onemem-crewai",
-    coverage: "enforced",
-  },
-  {
-    id: "livekit",
-    name: "LiveKit",
+    id: "cursor",
+    name: "Cursor",
     icon: "apps",
-    installCommand: "pip install onemem-livekit",
-    coverage: "enforced",
+    installCommand: "Port ClaudeMem cursor-hooks/ into OneMem before enabling capture",
+    tier: "hook-port-pending",
   },
   {
-    id: "elevenlabs",
-    name: "ElevenLabs",
+    id: "windsurf",
+    name: "Windsurf",
     icon: "apps",
-    installCommand: "pip install onemem-elevenlabs",
-    coverage: "enforced",
+    installCommand: "Port ClaudeMem WindsurfHooksInstaller.ts into OneMem before enabling capture",
+    tier: "hook-port-pending",
   },
-  {
-    id: "vercel-ai",
-    name: "Vercel AI",
-    icon: "bolt",
-    installCommand: "npm i @onemem/vercel-ai-provider",
-    coverage: "enforced",
-  },
-  {
-    id: "openai-agents",
-    name: "OpenAI Agents",
-    icon: "bolt",
-    installCommand: "npm i @onemem/openai-agents",
-    coverage: "enforced",
-  },
+  // Location C — MCP-only clients until equivalent native hooks are proven.
+  { id: "cline", name: "Cline", icon: "apps", installCommand: "", tier: "mcp-tools-only" },
+  { id: "opencode", name: "OpenCode", icon: "apps", installCommand: "", tier: "mcp-tools-only" },
+  // Location B framework adapters (Vercel AI, OpenAI Agents, CrewAI, LiveKit,
+  // ElevenLabs) are intentionally NOT listed here — they run on a deployed server,
+  // not this machine. Their traces still appear (by environment) in Sessions and
+  // are managed from the hosted dashboard. If one has written to a namespace it
+  // surfaces below as a read-only "environment", never as a controllable app.
 ];
 
 const METADATA = new Map(KNOWN_RUNTIMES.map((runtime) => [runtime.id, runtime]));
+
+/**
+ * True only for location-A runtimes that read the local runtime-controls file.
+ * MCP clients, deployed adapters, and unknown on-chain environments return false
+ * so no surface (UI or API) can pretend to pause/trace-toggle them locally.
+ */
+export function isRuntimeControllable(id: string): boolean {
+  const meta = METADATA.get(id);
+  return meta ? isControllable(meta.tier) : false;
+}
 
 export interface RuntimeRow {
   readonly id: string;
@@ -102,7 +141,10 @@ export interface RuntimeRow {
   readonly statusLabel: string;
   readonly paused: boolean;
   readonly traceCapture: boolean;
-  readonly coverage: RuntimeControlCoverage;
+  readonly tier: RuntimeTier;
+  readonly tierLabel: string;
+  readonly section: RuntimeSection;
+  readonly controllable: boolean;
 }
 
 export interface RuntimeInventory {
@@ -120,14 +162,10 @@ function statusOf(lastMs: number, now: number): { cls: string; label: string } {
   return { cls: "sdot-offline", label: `${days}d ago` };
 }
 
+// Environments seen on-chain that we don't recognize are deployed/other adapters:
+// read-only here, never controllable.
 function unknownMetadata(id: string): RuntimeMetadata {
-  return {
-    id,
-    name: id,
-    icon: "cube",
-    installCommand: "",
-    coverage: "stored",
-  };
+  return { id, name: id, icon: "cube", installCommand: "", tier: "deployed-adapter" };
 }
 
 function rowFor(
@@ -137,11 +175,14 @@ function rowFor(
   now: number,
 ): RuntimeRow {
   const meta = METADATA.get(id) ?? unknownMetadata(id);
-  const status = control.paused
-    ? { cls: "sdot-offline", label: "paused" }
-    : control.permissions.traceCapture
-      ? statusOf(stats?.lastMs ?? 0, now)
-      : { cls: "sdot-offline", label: "trace off" };
+  const controllable = isControllable(meta.tier);
+  const status = !controllable
+    ? statusOf(stats?.lastMs ?? 0, now)
+    : control.paused
+      ? { cls: "sdot-offline", label: "paused" }
+      : control.permissions.traceCapture
+        ? statusOf(stats?.lastMs ?? 0, now)
+        : { cls: "sdot-offline", label: "trace off" };
   return {
     id,
     name: meta.name,
@@ -151,9 +192,12 @@ function rowFor(
     lastMs: stats?.lastMs ?? 0,
     statusClass: status.cls,
     statusLabel: status.label,
-    paused: control.paused,
-    traceCapture: control.permissions.traceCapture,
-    coverage: meta.coverage,
+    paused: controllable ? control.paused : false,
+    traceCapture: controllable ? control.permissions.traceCapture : false,
+    tier: meta.tier,
+    tierLabel: TIER_LABEL[meta.tier],
+    section: sectionFor(meta.tier),
+    controllable,
   };
 }
 

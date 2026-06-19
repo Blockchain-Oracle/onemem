@@ -14,7 +14,7 @@ dependencies = [
 onemem-py = "onemem_cli.main:cli"
 
 [project.urls]
-Homepage = "https://onemem.ai"
+Homepage = "https://onemem.xyz"
 
 [build-system]
 requires = ["hatchling"]

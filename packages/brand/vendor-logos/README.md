@@ -19,8 +19,8 @@ local files, source URLs, aliases, and usage notes.
   or the brand guidelines allow it.
 - Do not imply endorsement, partnership, or sponsorship.
 - Third-party trademarks remain property of their owners.
-- `OpenClaude` was not found as an implemented OneMem runtime in this repo; the
-  implemented native runtime package is OpenClaw (`@onemem/oc-onemem`).
+- The implemented OneMem native runtime package is OpenClaw
+  (`@onemem/oc-onemem`).
 - No standalone MemWal logo was located in this pass. Use the Walrus Memory /
   Walrus Docs mark for MemWal/Walrus Memory visuals unless an official MemWal
   asset is later provided.

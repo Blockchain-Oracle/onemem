@@ -63,6 +63,7 @@ export class NamespacesAPI {
    */
   async create(args: CreateNamespaceArgs): Promise<CreateNamespaceResult> {
     const { packageId, registryId } = this.client.addresses;
+    const typePackageId = this.client.addresses.originalPackageId || packageId;
     const tx = new Transaction();
     tx.moveCall({
       target: `${packageId}::namespace::create`,
@@ -82,8 +83,8 @@ export class NamespacesAPI {
 
     // biome-ignore lint/suspicious/noExplicitAny: SuiObjectChange union type varies across SDK versions
     const created: any[] = (result.objectChanges as any[] | undefined) ?? [];
-    const namespaceType = `${packageId}::namespace::MemoryNamespace`;
-    const adminCapType = `${packageId}::namespace::NamespaceCapability<${packageId}::namespace::Admin>`;
+    const namespaceType = `${typePackageId}::namespace::MemoryNamespace`;
+    const adminCapType = `${typePackageId}::namespace::NamespaceCapability<${typePackageId}::namespace::Admin>`;
 
     // biome-ignore lint/suspicious/noExplicitAny: same as above
     const ns = created.find((c: any) => c.type === "created" && c.objectType === namespaceType);
@@ -155,6 +156,7 @@ export class NamespacesAPI {
     args: { namespaceId: string; adminCapId: string; recipient: string },
   ): Promise<{ capId: string; txDigest: string }> {
     const { packageId } = this.client.addresses;
+    const typePackageId = this.client.addresses.originalPackageId || packageId;
     const fn = kind === "readonly" ? "mint_capability_readonly" : "mint_capability_readwrite";
     const phantomKind = kind === "readonly" ? "ReadOnly" : "ReadWrite";
 
@@ -173,7 +175,7 @@ export class NamespacesAPI {
       options: { showObjectChanges: true },
     });
 
-    const capType = `${packageId}::namespace::NamespaceCapability<${packageId}::namespace::${phantomKind}>`;
+    const capType = `${typePackageId}::namespace::NamespaceCapability<${typePackageId}::namespace::${phantomKind}>`;
     const cap = (
       result.objectChanges as
         | Array<{
@@ -239,11 +241,12 @@ export class NamespacesAPI {
     kind?: NamespaceCapabilityKind;
   }): Promise<{ txDigest: string; kind: NamespaceCapabilityKind }> {
     const { packageId } = this.client.addresses;
+    const typePackageId = this.client.addresses.originalPackageId || packageId;
     const kind = args.kind ?? (await this.getCapabilityKind(args.capId));
     const tx = new Transaction();
     tx.moveCall({
       target: `${packageId}::namespace::revoke_capability`,
-      typeArguments: [`${packageId}::namespace::${kind}`],
+      typeArguments: [`${typePackageId}::namespace::${kind}`],
       arguments: [tx.object(args.capId)],
     });
     const result = await this.client.execute({
@@ -280,12 +283,13 @@ export class NamespacesAPI {
     owner: string,
   ): Promise<Array<{ namespaceId: string; name: string; kind: number; createdAt: number }>> {
     const { packageId } = this.client.addresses;
+    const typePackageId = this.client.addresses.originalPackageId || packageId;
     const out: Array<{ namespaceId: string; name: string; kind: number; createdAt: number }> = [];
     // biome-ignore lint/suspicious/noExplicitAny: opaque cursor type across @mysten/sui versions
     let cursor: any = null;
     while (true) {
       const page = await this.client.client.queryEvents({
-        query: { MoveEventType: `${packageId}::namespace::NamespaceCreatedEvent` },
+        query: { MoveEventType: `${typePackageId}::namespace::NamespaceCreatedEvent` },
         cursor,
         order: "descending",
         limit: 50,
@@ -319,7 +323,8 @@ export class NamespacesAPI {
   /** Capability mint/revoke history for a namespace, derived from Sui events. */
   async getCapabilityHistory(namespaceId: string): Promise<NamespaceCapabilityHistoryRow[]> {
     const { packageId } = this.client.addresses;
-    return fetchNamespaceCapabilityHistory(this.client.client, packageId, namespaceId);
+    const typePackageId = this.client.addresses.originalPackageId || packageId;
+    return fetchNamespaceCapabilityHistory(this.client.client, typePackageId, namespaceId);
   }
 
   /** Read a MemoryNamespace's on-chain fields (no signer needed). */

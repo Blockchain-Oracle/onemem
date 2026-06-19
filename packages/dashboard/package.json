@@ -1,6 +1,6 @@
 {
   "name": "@onemem/dashboard",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "OneMem dashboard — verifiable memory + trace viewer for AI agents (Next.js 15 standalone; serves both localhost:4040 and the hosted-dashboard shell)",
   "license": "Apache-2.0",
   "type": "module",
@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build": "next build",
-    "start": "next start -p ${PORT:-4040}",
+    "start": "node ./bin/onemem-dashboard",
     "dev": "next dev -p 4040",
     "test": "vitest run --passWithNoTests",
     "browser:smoke": "node scripts/browser-smoke.mjs",

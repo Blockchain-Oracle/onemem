@@ -4,32 +4,39 @@
 // actions are gated on the real wallet/Enoki account exposed by dApp Kit.
 
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
+import { useEffect, useState } from "react";
 import { useHostedAuthConfig } from "@/components/HostedProviders";
 import { Icon } from "@/components/Icon";
+import { type HostedProvisioningState, loadHostedProvisioningState } from "@/lib/hosted-state";
 
-const DASH = (process.env.NEXT_PUBLIC_DASHBOARD_URL ?? "").replace(/\/$/, "");
+const SAMPLE_TRACE_SESSION_ID =
+  "0x6ceaab0fe2961043d490326960dfd192e43c25ed655772d42c04c265ad3ec080";
 
 const SURFACES: { href: string; icon: string; title: string; blurb: string }[] = [
   {
-    href: "/",
+    href: "/dashboard",
     icon: "overview",
     title: "Overview",
-    blurb: "Memories, sessions, capabilities, verify rate",
+    blurb: "Hosted account hub and route index",
   },
   {
-    href: "/memories",
-    icon: "memory",
-    title: "Memories",
-    blurb: "Browse + semantic-search your memory",
+    href: `/verify/${SAMPLE_TRACE_SESSION_ID}`,
+    icon: "shield",
+    title: "Public verifier",
+    blurb: "No-login Merkle proof for a real testnet trace",
   },
-  { href: "/sessions", icon: "sessions", title: "Sessions", blurb: "Cross-runtime trace sessions" },
-  { href: "/apps", icon: "apps", title: "Apps", blurb: "Connected runtimes + coverage" },
   { href: "/share", icon: "share", title: "Share", blurb: "Capabilities + share links" },
   {
-    href: "/settings",
-    icon: "settings",
-    title: "Settings",
-    blurb: "Account, delegate keys, providers",
+    href: "/onboarding",
+    icon: "key",
+    title: "Onboarding",
+    blurb: "Provision hosted account state",
+  },
+  {
+    href: "/login",
+    icon: "lock",
+    title: "Sign in",
+    blurb: "Connect wallet or Enoki when configured",
   },
 ];
 
@@ -40,6 +47,16 @@ function shortAddress(address: string): string {
 export default function HostedDashboardRoot() {
   const account = useCurrentAccount();
   const authConfig = useHostedAuthConfig();
+  const [provisioningState, setProvisioningState] = useState<HostedProvisioningState | null>(null);
+
+  useEffect(() => {
+    if (!account?.address) {
+      setProvisioningState(null);
+      return;
+    }
+    setProvisioningState(loadHostedProvisioningState(account.address, authConfig.defaultNetwork));
+  }, [account?.address, authConfig.defaultNetwork]);
+
   return (
     <main className="container" style={{ maxWidth: 920, padding: "56px 24px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
@@ -77,8 +94,10 @@ export default function HostedDashboardRoot() {
             <Icon name="check" size={16} />
           </span>
           <span>
-            Connected account <span className="mono">{shortAddress(account.address)}</span>. Hosted
-            provisioning is still pending; local dashboard remains the daily driver.
+            Connected account <span className="mono">{shortAddress(account.address)}</span>.{" "}
+            {provisioningState
+              ? `Hosted namespace ${shortAddress(provisioningState.namespaceId)} is provisioned on ${provisioningState.network}.`
+              : "Hosted provisioning is still pending; finish onboarding before minting capabilities."}
           </span>
         </div>
       )}
@@ -89,8 +108,8 @@ export default function HostedDashboardRoot() {
             <Icon name="info" size={16} />
           </span>
           <span>
-            Enoki Google sign-in is not configured in this build. Missing{" "}
-            <span className="mono">{authConfig.enokiMissing.join(", ")}</span>.
+            Google sign-in is not enabled yet. Wallet connect and public verification remain
+            available.
           </span>
         </div>
       ) : null}
@@ -106,7 +125,7 @@ export default function HostedDashboardRoot() {
           <a
             key={s.href}
             className="card"
-            href={`${DASH}${s.href}`}
+            href={s.href}
             style={{ padding: 18, textDecoration: "none", display: "block" }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>

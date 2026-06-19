@@ -7,8 +7,9 @@
 // testnet key servers).
 //
 // Model (verified by spike):
-//   - encrypt: SealClient.encrypt({ packageId=<onemem pkg>, id=<namespace id>,
-//     data }) — no signature, no gas.
+//   - encrypt: SealClient.encrypt({ packageId=<first onemem pkg>, id=<namespace id>,
+//     data }) — no signature, no gas. Seal requires the package ID to be the
+//     original package object (version 1), even after Sui package upgrades.
 //   - decrypt: a SessionKey (signed personal message, no gas) + a PTB that
 //     calls seal_approve for the cap → SealClient.decrypt.
 //
@@ -55,6 +56,15 @@ export interface SealConfig {
 }
 
 const strip0x = (hex: string): string => (hex.startsWith("0x") ? hex.slice(2) : hex);
+
+export interface SealPackageIds {
+  /** First-version package ID used by Seal identities and SessionKeys. */
+  readonly sealPackageId: string;
+  /** Current package ID containing the latest `seal_policy::seal_approve` implementation. */
+  readonly policyPackageId?: string;
+  /** Package ID that defines `namespace::NamespaceCapability<KIND>` type identity. */
+  readonly typePackageId?: string;
+}
 
 /** Thrown when Seal is used on a client where it wasn't configured. */
 export class SealNotConfiguredError extends Error {
@@ -112,6 +122,9 @@ export function createSealClient(
 export class SealStore {
   private readonly threshold: number;
   private readonly ttlMin: number;
+  private readonly sealPackageId: string;
+  private readonly policyPackageId: string;
+  private readonly typePackageId: string;
   /**
    * In-flight/resolved signed-SessionKey promise, reused across decrypts until
    * the key expires. Holding the promise (not the resolved key) collapses
@@ -125,11 +138,15 @@ export class SealStore {
     private readonly seal: SealClient,
     private readonly suiClient: SuiJsonRpcClient,
     private readonly signer: Signer,
-    private readonly packageId: string,
+    packageIds: string | SealPackageIds,
     config: SealConfig = {},
   ) {
     this.threshold = config.threshold ?? DEFAULT_SEAL_THRESHOLD;
     this.ttlMin = config.sessionTtlMin ?? DEFAULT_SESSION_TTL_MIN;
+    const ids = typeof packageIds === "string" ? { sealPackageId: packageIds } : packageIds;
+    this.sealPackageId = ids.sealPackageId;
+    this.policyPackageId = ids.policyPackageId ?? ids.sealPackageId;
+    this.typePackageId = ids.typePackageId ?? ids.sealPackageId;
   }
 
   /** The Seal identity for a namespace — all its blobs share it. */
@@ -157,7 +174,7 @@ export class SealStore {
   private async mintSessionKey(): Promise<SessionKey> {
     const sessionKey = await SessionKey.create({
       address: this.signer.toSuiAddress(),
-      packageId: this.packageId,
+      packageId: this.sealPackageId,
       ttlMin: this.ttlMin,
       suiClient: this.suiClient as never,
     });
@@ -171,7 +188,7 @@ export class SealStore {
     try {
       const { encryptedObject } = await this.seal.encrypt({
         threshold: this.threshold,
-        packageId: this.packageId,
+        packageId: this.sealPackageId,
         id: this.identityFor(namespaceId),
         data: plaintext,
       });
@@ -197,8 +214,8 @@ export class SealStore {
 
       const tx = new Transaction();
       tx.moveCall({
-        target: `${this.packageId}::seal_policy::seal_approve`,
-        typeArguments: [`${this.packageId}::namespace::${args.capKind}`],
+        target: `${this.policyPackageId}::seal_policy::seal_approve`,
+        typeArguments: [`${this.typePackageId}::namespace::${args.capKind}`],
         arguments: [
           tx.pure.vector("u8", fromHex(id)),
           tx.object(args.namespaceId),

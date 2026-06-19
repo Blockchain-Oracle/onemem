@@ -172,20 +172,20 @@ Each app is deployed independently. Not npm-published.
 
 ```
 apps/
-├── landing/                               # onemem.ai                 (Next.js 15 — SEO needs SSR)
+├── landing/                               # onemem.xyz                 (Next.js 15 — SEO needs SSR)
 │   ├── package.json
 │   ├── next.config.mjs
 │   ├── app/                               # App Router
 │   └── public/
 │
-├── docs/                                  # docs.onemem.ai            (Mintlify)
+├── docs/                                  # docs.onemem.xyz            (Mintlify)
 │   ├── docs.json                          # Mintlify config
 │   ├── introduction.mdx
 │   ├── quickstart.mdx
 │   ├── concepts.mdx
 │   └── (one .mdx per docs page)
 │
-└── hosted-dashboard/                      # app.onemem.ai             (deploy shell wrapping packages/dashboard + Enoki/zkLogin)
+└── hosted-dashboard/                      # app.onemem.xyz             (deploy shell wrapping packages/dashboard + Enoki/zkLogin)
     ├── package.json                       # depends on @onemem/dashboard + @onemem/brand (workspace:*)
     ├── next.config.mjs                    # standalone for Vercel; next export for Walrus Sites mirror
     ├── app/                               # Next.js shell with hosted-only routes

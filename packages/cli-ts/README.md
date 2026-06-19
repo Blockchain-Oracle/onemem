@@ -11,10 +11,11 @@ npm install -g @onemem/dashboard
 npx @onemem/cli verify <session-id>
 ```
 
-**Publication note, 2026-06-18:** `@onemem/cli@0.1.0` and
-`@onemem/dashboard@0.1.2` are current on npm after
-`pnpm registry:status --strict`. Re-run that command before making a fresh
-public install claim.
+**Publication note, 2026-06-19:** `@onemem/cli@0.6.3` is current on npm and the
+public install path is proven: `npm exec --yes --package @onemem/cli@0.6.3 --
+onemem --version` prints `0.6.3`. `pnpm registry:status --strict` and
+`pnpm release:preflight --strict --timeout 30` both pass. `@onemem/dashboard`
+is current on npm at `0.1.4`.
 
 ## Commands
 

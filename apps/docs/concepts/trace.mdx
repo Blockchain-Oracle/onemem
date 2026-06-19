@@ -19,7 +19,8 @@ Tampering with any call's content, order, or commitment breaks the fold — the 
 
 ## Recording
 
-Recording is automatic via a plugin/provider, or explicit via the SDK:
+Recording is automatic only after the runtime plugin/provider is installed,
+configured, and trusted by that runtime. It can also be explicit via the SDK:
 
 ```ts
 const s = await onemem.traces.startSession({ namespaceId, rwCapId, agentId, environment });
@@ -32,7 +33,7 @@ Inputs/outputs are stored as Seal-encrypted Walrus blobs; only the hashes go on-
 
 ## Reading & replaying
 
-The dashboard's `/trace/[id]` view renders the Gantt timeline, the call tree, and per-call detail — all read from on-chain events. **Replay** reconstructs the run from chain + Walrus, independent of the original runtime.
+The dashboard's `/trace/[id]` view renders the Gantt timeline, the call tree, and per-call detail from on-chain events. **Replay** reconstructs proof metadata from chain + Walrus independent of the original runtime; plaintext inputs/outputs still require the right capability and Seal decryption.
 
 <Card title="Verify a chain" icon="shield-check" href="/concepts/verify">
   Walk the chain and confirm the root yourself.

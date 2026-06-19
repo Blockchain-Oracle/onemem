@@ -61,7 +61,7 @@ onemem-oc-plugin/
   "name": "OneMem (Walrus + Trace + Verify)",
   "description": "Extends MemWal with verifiable cross-runtime action trace, replay, and namespace sharing",
   "license": "Apache-2.0",
-  "homepage": "https://onemem.ai",
+  "homepage": "https://onemem.xyz",
   "configSchema": {
     "type": "object",
     "required": ["privateKey", "accountId", "serverUrl"],

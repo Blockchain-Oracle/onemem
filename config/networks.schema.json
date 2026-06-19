@@ -29,6 +29,7 @@
         "rpc_url",
         "suiscan_base",
         "package_id",
+        "original_package_id",
         "registry_id",
         "registry_admin_cap_id",
         "upgrade_cap_id",
@@ -50,7 +51,12 @@
         "package_id": {
           "type": "string",
           "pattern": "^(|0x[0-9a-fA-F]{1,64})$",
-          "description": "Deployed onemem package ID. Empty if not yet deployed on this network."
+          "description": "Current deployed onemem package ID used for Move call targets. Empty if not yet deployed on this network."
+        },
+        "original_package_id": {
+          "type": "string",
+          "pattern": "^(|0x[0-9a-fA-F]{1,64})$",
+          "description": "Original package ID used in Move object types, event types, and type tags. Equal to package_id before the first upgrade."
         },
         "registry_id": {
           "type": "string",

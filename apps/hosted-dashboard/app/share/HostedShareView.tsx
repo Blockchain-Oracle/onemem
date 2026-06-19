@@ -106,9 +106,9 @@ export function HostedShareView({ network }: { readonly network: string }) {
 
   const running = status === "preparing" || status === "signing" || status === "executing";
   const verifyLink = sessionId.trim()
-    ? `https://app.onemem.ai/verify/${sessionId.trim()}`
-    : "https://app.onemem.ai/verify/<session-id>";
-  const recipientShareLink = sharedCapId ? `https://app.onemem.ai/share/${sharedCapId}` : null;
+    ? `https://app.onemem.xyz/verify/${sessionId.trim()}`
+    : "https://app.onemem.xyz/verify/<session-id>";
+  const recipientShareLink = sharedCapId ? `https://app.onemem.xyz/share/${sharedCapId}` : null;
 
   async function share() {
     if (!account?.address) return;

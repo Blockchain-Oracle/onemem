@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { ReplayModal } from "./ReplayModal";
 import { rtClass, type TraceViewProps, type ViewCall } from "./types";
@@ -188,6 +188,97 @@ export function TraceView({ meta, verify, totalMs, calls, suiscanHref }: TraceVi
   );
 }
 
+type RevealState = { state: "idle" | "loading" | "done" | "error" | "empty"; text: string };
+
+async function decryptBlob(
+  blobId: string,
+  namespaceId: string,
+): Promise<{ ok: boolean; text: string }> {
+  try {
+    const res = await fetch("/api/decrypt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ walrusBlobId: blobId, namespaceId }),
+    });
+    const j = (await res.json()) as { ok: boolean; plaintext?: string; error?: string };
+    if (j.ok && j.plaintext !== undefined) return { ok: true, text: j.plaintext };
+    return { ok: false, text: j.error ?? "decrypt failed" };
+  } catch (e) {
+    return { ok: false, text: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+function ContentBlock({
+  title,
+  reveal,
+  blob,
+  onReveal,
+}: {
+  title: string;
+  reveal: RevealState;
+  blob: string | null;
+  onReveal: () => void;
+}) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div
+        className="eyebrow"
+        style={{ marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}
+      >
+        {title}
+        {reveal.state === "done" ? (
+          <span style={{ color: "var(--verify)" }}>✓ Seal-decrypted on your machine</span>
+        ) : null}
+      </div>
+      {reveal.state === "done" ? (
+        <pre
+          className="mono"
+          style={{
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            fontSize: ".82rem",
+            margin: 0,
+            background: "var(--paper-2)",
+            border: "1px solid var(--line)",
+            borderRadius: 8,
+            padding: 10,
+            maxHeight: 280,
+            overflow: "auto",
+          }}
+        >
+          {reveal.text || "(empty)"}
+        </pre>
+      ) : reveal.state === "loading" ? (
+        <div className="muted" style={{ fontSize: ".85rem" }}>
+          <Icon name="spinner" size={14} /> Decrypting…
+        </div>
+      ) : reveal.state === "empty" ? (
+        <div className="muted" style={{ fontSize: ".82rem" }}>
+          No {title.toLowerCase()} recorded for this call.
+        </div>
+      ) : (
+        <div className="cv-locked">
+          <div className="lk">
+            <Icon name="lock" size={18} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className="muted" style={{ fontSize: ".82rem", marginBottom: 8 }}>
+              Seal-encrypted{blob ? ` (${blob.slice(0, 12)}…)` : ""} — decrypts with your namespace
+              capability on your machine.
+              {reveal.state === "error" && reveal.text ? ` (${reveal.text})` : ""}
+            </div>
+            {blob ? (
+              <button type="button" className="btn btn-ghost" onClick={onReveal}>
+                <Icon name="unlock" size={14} /> Reveal
+              </button>
+            ) : null}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Detail({
   call,
   suiscanHref,
@@ -197,28 +288,39 @@ function Detail({
   suiscanHref: string;
   namespaceId: string;
 }) {
-  const [tab, setTab] = useState<"metadata" | "verify" | "content">("metadata");
-  const [reveal, setReveal] = useState<{
-    state: "idle" | "loading" | "done" | "error";
-    text: string;
-  }>({ state: "idle", text: "" });
+  // Content first — opening a call shows what the agent actually did, in plain
+  // text, auto-decrypted on the local dashboard (you hold the keys). Proof/verify
+  // are secondary tabs. This is the legible "trace + replay" the product is for.
+  const [tab, setTab] = useState<"content" | "metadata" | "verify">("content");
+  const [input, setInput] = useState<RevealState>({ state: "idle", text: "" });
+  const [output, setOutput] = useState<RevealState>({ state: "idle", text: "" });
 
-  async function decrypt() {
-    if (!call.walrusInputBlob) return;
-    setReveal({ state: "loading", text: "" });
-    try {
-      const res = await fetch("/api/decrypt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walrusBlobId: call.walrusInputBlob, namespaceId }),
-      });
-      const j = (await res.json()) as { ok: boolean; plaintext?: string; error?: string };
-      if (j.ok && j.plaintext !== undefined) setReveal({ state: "done", text: j.plaintext });
-      else setReveal({ state: "error", text: j.error ?? "decrypt failed" });
-    } catch (e) {
-      setReveal({ state: "error", text: e instanceof Error ? e.message : String(e) });
-    }
-  }
+  const reveal = useCallback(
+    async (blobId: string | null, set: (s: RevealState) => void) => {
+      if (!blobId) {
+        set({ state: "empty", text: "" });
+        return;
+      }
+      set({ state: "loading", text: "" });
+      const r = await decryptBlob(blobId, namespaceId);
+      set(r.ok ? { state: "done", text: r.text } : { state: "error", text: r.text });
+    },
+    [namespaceId],
+  );
+
+  // Auto-reveal input + output whenever the selected call changes.
+  useEffect(() => {
+    let cancelled = false;
+    const guard = (set: (s: RevealState) => void) => (s: RevealState) => {
+      if (!cancelled) set(s);
+    };
+    reveal(call.walrusInputBlob, guard(setInput));
+    reveal(call.walrusOutputBlob, guard(setOutput));
+    return () => {
+      cancelled = true;
+    };
+  }, [call.walrusInputBlob, call.walrusOutputBlob, reveal]);
+
   return (
     <>
       <div className="detail-head">
@@ -249,7 +351,7 @@ function Detail({
         </div>
       </div>
       <div className="dtabs">
-        {(["metadata", "verify", "content"] as const).map((t) => (
+        {(["content", "metadata", "verify"] as const).map((t) => (
           <button
             key={t}
             type="button"
@@ -263,54 +365,18 @@ function Detail({
       <div className="dpanes">
         {tab === "content" ? (
           <div className="cv">
-            {reveal.state === "done" ? (
-              <div>
-                <div className="eyebrow" style={{ marginBottom: 6 }}>
-                  Decrypted input <span style={{ color: "var(--verify)" }}>✓ Seal</span>
-                </div>
-                <pre
-                  className="mono"
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    fontSize: ".82rem",
-                    margin: 0,
-                  }}
-                >
-                  {reveal.text || "(empty)"}
-                </pre>
-              </div>
-            ) : (
-              <div className="cv-locked">
-                <div className="lk">
-                  <Icon name="lock" size={20} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 3 }}>Content is Seal-encrypted</div>
-                  <div className="muted" style={{ fontSize: ".85rem", marginBottom: 10 }}>
-                    Threshold-encrypted on Walrus (
-                    {call.walrusInputBlob ? `${call.walrusInputBlob.slice(0, 14)}…` : "no blob"}).
-                    Decrypts with your namespace capability (local: on your machine).
-                  </div>
-                  {call.walrusInputBlob ? (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={decrypt}
-                      disabled={reveal.state === "loading"}
-                    >
-                      <Icon name={reveal.state === "loading" ? "spinner" : "unlock"} size={16} />
-                      {reveal.state === "loading" ? "Decrypting…" : "Reveal plaintext"}
-                    </button>
-                  ) : null}
-                  {reveal.state === "error" ? (
-                    <div style={{ color: "var(--danger)", fontSize: ".8rem", marginTop: 8 }}>
-                      {reveal.text}
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            )}
+            <ContentBlock
+              title="Input"
+              reveal={input}
+              blob={call.walrusInputBlob}
+              onReveal={() => reveal(call.walrusInputBlob, setInput)}
+            />
+            <ContentBlock
+              title="Output"
+              reveal={output}
+              blob={call.walrusOutputBlob}
+              onReveal={() => reveal(call.walrusOutputBlob, setOutput)}
+            />
           </div>
         ) : (
           <div className="receipt">

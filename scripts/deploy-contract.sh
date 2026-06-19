@@ -159,6 +159,7 @@ jq \
   --arg digest "$TX_DIGEST" \
   --arg ts "$DEPLOYED_AT" \
   '.networks[$net].package_id = $pkg
+   | .networks[$net].original_package_id = $pkg
    | .networks[$net].registry_id = $reg
    | .networks[$net].registry_admin_cap_id = $admin
    | .networks[$net].upgrade_cap_id = $upgrade

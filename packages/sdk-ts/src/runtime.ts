@@ -1,5 +1,4 @@
-// Runtime helpers for plugin/CLI authors: signer resolution, namespace
-// provisioning, runtime policy, and verifiable TraceSession recording.
+// Runtime helpers for signer resolution, namespace provisioning, policy, and trace recording.
 
 import { randomBytes } from "node:crypto";
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -11,6 +10,7 @@ import { OneMem } from "./client.js";
 import type { SuiNetwork } from "./generated/addresses.js";
 import { shouldTraceRuntime } from "./runtime-controls.js";
 import { CallStatus, NamespaceKind, SessionStatus } from "./types/move.js";
+import { VERSION } from "./version.js";
 
 export {
   CredentialsParseError,
@@ -188,7 +188,7 @@ export async function ensureNamespace(
   const ns = await onemem.namespaces.create({
     name: `${opts.label}-${address.slice(ADDR_TAG_START, ADDR_TAG_END)}-${suffix}`,
     kind: NamespaceKind.Shared,
-    sealPackageId: onemem.addresses.packageId,
+    sealPackageId: onemem.addresses.originalPackageId || onemem.addresses.packageId,
   });
   const cap = await onemem.namespaces.shareReadWrite({
     namespaceId: ns.namespaceId,
@@ -236,7 +236,7 @@ export async function recordSession(
     rwCapId: target.rwCapId,
     agentId: args.agentId,
     environment: args.environment,
-    sdkVersion: args.sdkVersion ?? "0.1.0",
+    sdkVersion: args.sdkVersion ?? VERSION,
   });
   const enc = (v: unknown) =>
     new TextEncoder().encode(typeof v === "string" ? v : JSON.stringify(v ?? ""));

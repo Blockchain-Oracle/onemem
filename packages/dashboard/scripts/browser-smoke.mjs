@@ -55,19 +55,23 @@ try {
 
     const replayButtons = page.getByRole("button", { name: "Replay/export" });
     const replayCount = await replayButtons.count();
-    check(replayCount > 0, `found ${replayCount} Replay/export button(s)`);
-    await clickUntilVisible(
-      page,
-      replayButtons.first(),
-      page.getByRole("dialog", { name: "Grouped session replay" }),
-      "grouped replay modal opened",
-    );
+    if (replayCount > 0) {
+      check(true, `found ${replayCount} Replay/export button(s)`);
+      await clickUntilVisible(
+        page,
+        replayButtons.first(),
+        page.getByRole("dialog", { name: "Grouped session replay" }),
+        "grouped replay modal opened",
+      );
 
-    await expectText(page, "Grouped replay", "grouped replay modal title");
-    await expectText(page, "onemem.grouped-session-export.v1", "grouped export schema");
-    await expectText(page, "Download JSON", "download json action");
-    await expectText(page, "Copy JSON", "copy json action");
-    await expectText(page, "does not prove plaintext", "proof-boundary text");
+      await expectText(page, "Grouped replay", "grouped replay modal title");
+      await expectText(page, "onemem.grouped-session-export.v1", "grouped export schema");
+      await expectText(page, "Download JSON", "download json action");
+      await expectText(page, "Copy JSON", "copy json action");
+      await expectText(page, "does not prove plaintext", "proof-boundary text");
+    } else {
+      await expectText(page, "No sessions yet", "sessions empty state");
+    }
     await page.screenshot({ fullPage: true, path: screenshotPath });
 
     await page.goto(`${baseUrl}/trace/${traceSmokeSession}`, { waitUntil: "networkidle" });

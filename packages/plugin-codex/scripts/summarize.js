@@ -5,6 +5,7 @@ import {
   clearBufferedToolCalls,
   clearSessionState,
   loadTraceConfig,
+  postWorker,
   readBufferedToolCalls,
   readHookInput,
   readSessionState,
@@ -23,7 +24,7 @@ function runTraceCli(payloadPath, env) {
       timeout: 115_000,
     });
   }
-  return spawnSync("npx", ["-y", "-p", "@onemem/sdk-ts@0.6.0", "onemem-trace", payloadPath], {
+  return spawnSync("npx", ["-y", "-p", "@onemem/sdk-ts@latest", "onemem-trace", payloadPath], {
     encoding: "utf8",
     env,
     timeout: 115_000,
@@ -33,6 +34,9 @@ function runTraceCli(payloadPath, env) {
 async function main() {
   const input = await readHookInput();
   const sessionId = sessionIdFromInput(input);
+  if (sessionId) {
+    await postWorker("/api/sessions/end", { id: sessionId, endedAt: Date.now() });
+  }
   const config = loadTraceConfig();
   if (!config || !sessionId) return;
 

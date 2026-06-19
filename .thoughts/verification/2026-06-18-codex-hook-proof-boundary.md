@@ -2,11 +2,13 @@
 
 ## Verdict
 
-Conditional pass.
+Passed; superseded by the 2026-06-19 trusted runtime hook proof.
 
-The package matcher, docs, and guards now match the observed proof boundary.
-Full automatic Codex hook tracing remains unclaimed until a trusted interactive
-`/hooks` session emits a verifiable on-chain OneMem `TraceSession`.
+The package matcher, docs, and guards match the observed proof boundary, and the
+formerly pending interactive `/hooks` proof is now complete. A trusted Codex
+session emitted testnet TraceSession
+`0x0c88317632dcd386b6f81b94ee510003ba107d3c4bfa035ba8072fca8304e330`, and
+verification returned `ok: true`, `callCount: 1`, and matching Merkle roots.
 
 ## Artifacts Checked
 
@@ -39,7 +41,7 @@ Full automatic Codex hook tracing remains unclaimed until a trusted interactive
 | R2: SessionStart arms local state | README and runtime docs no longer say `SessionStart` opens the final trace. |
 | R3: `codex exec` v0.140 boundary | Runtime docs and docs app record that local exec-mode tests did not run hooks. |
 | R4: Structure tests guard boundary | `plugins-apps.test.ts` checks matcher, manifest field, and README wording. |
-| R5: Manifest remains validator-compatible | `plugin.json` still omits unsupported `hooks` field. |
+| R5: Manifest declares supported hooks path | `plugin.json` now declares `"hooks": "./hooks/hooks.json"`. |
 
 ## Acceptance Criteria Coverage
 
@@ -82,13 +84,16 @@ Results:
 ## Gaps And Risks
 
 - `codex exec` on Codex CLI 0.140 did not execute hooks in local proof attempts.
-- Interactive trusted `/hooks` proof remains the required runtime proof.
+  The interactive trusted Codex session is the proven hook path.
+- The trusted proof used the patched local repository marketplace snapshot.
+  Public Git marketplace installs need the same manifest/hook fixes committed
+  and pushed before repeating the proof from the public path.
 - Codex CLI 0.141 behavior is not yet checked.
 
 ## Follow-ups
 
-- Run an interactive `/hooks` session and verify the emitted session with the
-  OneMem verifier.
+- Commit/push the patched Codex marketplace files and repeat a fresh public
+  marketplace install proof.
 - Retest `codex exec` hook behavior after a controlled Codex CLI upgrade.
 
 ## Evidence Log
@@ -96,3 +101,5 @@ Results:
 - Public Codex plugin install succeeded earlier in this slice.
 - Sui bootstrap trace verified earlier:
   `0xcf956e819ba0fcfd772c0be1519adefe4e05bd10bb598d6586f01a702fe1c9b1`.
+- Trusted Codex hook proof verified on 2026-06-19:
+  `0x0c88317632dcd386b6f81b94ee510003ba107d3c4bfa035ba8072fca8304e330`.

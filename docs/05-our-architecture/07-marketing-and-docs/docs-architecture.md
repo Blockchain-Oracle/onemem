@@ -1,16 +1,27 @@
-# `docs.onemem.ai` Docs Site Architecture
+# `docs.onemem.xyz` Docs Site Architecture
 
-Mintlify. Same stack as Mem0 + claude-mem (confirmed via shared Vercel project ID per `02-inspirations/mem0/MEM0_DOCS_DESIGN.md`). Cream surface (`#FAF8F5`) aligned with Walrus/Sui ecosystem vs Mem0's white surface.
+Current docs source lives under `apps/docs` as a Mintlify project. As of
+2026-06-19, `docs.onemem.xyz` is live through the Vercel `onemem-docs` project
+using a static Mintlify export, not a native Mintlify dashboard deployment.
+Deployment `dpl_BUr1DSvGZHRJKLS1DBAS4ReUfTAu` is aliased to the custom domain;
+`/`, `/quickstart`, `/reference/cli`, and `/integrations/runtimes` return HTTP
+200. Native Mintlify account/Git deployment remains optional future automation.
+
+The intended stack follows Mem0 + claude-mem's Mintlify-style docs pattern.
+Cream surface (`#FAF8F5`) stays aligned with Walrus/Sui ecosystem visuals vs
+Mem0's white surface.
 
 ---
 
-## Tech stack pick: Mintlify
+## Tech stack pick: Mintlify source + Vercel static export
 
 Why:
 - Mem0 + claude-mem both use it (proven for memory-layer docs)
 - Mintlify default chrome + brand color override = professional docs in days, not weeks
 - Built-in search, dark mode, API reference renderer, code-tab persistence
 - One `docs.json` controls everything
+- Static export can be deployed through Vercel while native Mintlify auth is
+  unavailable
 
 Alternative considered + rejected:
 - Fumadocs / Nextra — more customizable but slower to ship; brand-customization isn't load-bearing for v0.1
@@ -39,7 +50,7 @@ Alternative considered + rejected:
     }
   },
   "topbarLinks": [
-    { "name": "Dashboard", "url": "https://app.onemem.ai" },
+    { "name": "Dashboard", "url": "https://app.onemem.xyz" },
     { "name": "GitHub", "url": "https://github.com/onemem" }
   ],
   "topbarCtaButton": {

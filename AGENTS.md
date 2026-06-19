@@ -12,7 +12,8 @@ The repo is a mixed monorepo:
 - `packages/cli-ts/` and `packages/cli-python/` — CLI surfaces.
 - `packages/mcp-server/` — stdio MCP server.
 - `packages/dashboard/` — local Next.js dashboard.
-- `apps/hosted-dashboard/`, `apps/landing/`, `apps/docs/` — deployed surfaces.
+- `apps/hosted-dashboard/` and `apps/landing/` — deployed surfaces;
+  `apps/docs/` — docs source, pending hosted-domain proof.
 - `packages/plugin-*` and `packages/provider-*` — runtime and framework integrations.
 
 Before deciding what is next, read the Context Engineering wiki at
@@ -67,7 +68,8 @@ sui move test
 - TS packages typecheck with `tsc --noEmit` and build with `tsup` or Next.js.
 - Python uses Ruff, Pyright, and Pytest.
 - Move uses `sui move build` and `sui move test`.
-- Source files have a current hard cap of 400 lines in `tests/structure.test.ts`.
+- Source files have a current hard cap of 400 lines in
+  `tests/structure/protocol.test.ts`.
   Prefer refactoring before 300 lines when touching a file that is already large.
 - Product trust-path work needs real-system verification against the relevant
   runtime, Sui testnet, Walrus, Seal, or MCP protocol, not only unit tests.
@@ -132,3 +134,21 @@ Read the closest specialized context before editing:
   the target package architecture.
 - Do not fake chain, Walrus, Seal, MCP, or runtime verification.
 - Do not hardcode dependency versions from memory.
+
+
+<claude-mem-context>
+# Memory Context
+
+# claude-mem status
+
+This project has no memory yet. The current session will seed it; subsequent sessions will receive auto-injected context for relevant past work.
+
+Memory injection starts on your second session in a project.
+
+`/learn-codebase` is available if the user wants to front-load the entire repo into memory in a single pass (~5 minutes on a typical repo, optional). Otherwise memory builds passively as work happens.
+
+Live activity: http://localhost:37701
+How it works: `/how-it-works`
+
+This message disappears once the first observation lands.
+</claude-mem-context>

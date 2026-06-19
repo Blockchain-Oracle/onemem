@@ -10,6 +10,7 @@ import { parseNetwork } from "./validate.js";
 export interface ReadContext {
   client: SuiJsonRpcClient;
   packageId: string;
+  eventPackageId: string;
   network: SuiNetwork;
 }
 
@@ -19,6 +20,7 @@ export function readContext(networkOpt?: string): ReadContext {
   return {
     client: new SuiJsonRpcClient({ network, url: addresses.rpcUrl }),
     packageId: addresses.packageId,
+    eventPackageId: addresses.originalPackageId || addresses.packageId,
     network,
   };
 }

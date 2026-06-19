@@ -223,14 +223,15 @@ export function SettingsView({
 
         {tab === "Advanced" && (
           <div>
-            <Row k="Auto-capture" v="on (plugins record automatically)" />
-            <Row k="Auto-trace" v="on" />
+            <Row k="Trace capture" v="per-runtime — native-hook runtimes only" />
+            <Row k="MCP clients" v="explicit tools only · no auto-capture" />
             <Row k="Decrypt" v="client-side (Seal SessionKey)" />
             <p className="muted" style={{ fontSize: ".85rem", marginTop: 14 }}>
-              <Icon name="info" size={14} /> These reflect the SDK defaults; per-runtime trace
-              policy is managed on the{" "}
+              <Icon name="info" size={14} /> Capture is not global: it runs only for a trace-capable
+              runtime that is installed and (for Codex) trusted. MCP-only clients record nothing
+              automatically. Manage per-runtime policy on the{" "}
               <a className="xlink" href="/apps">
-                Apps
+                Integrations
               </a>{" "}
               page.
             </p>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneMem — Launch Video (30s)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --lime:#d4ff5e; --violet:#8f7cff; --sui:#57aef0; --verify:#4ed98a;
+    --ink:#f8f6f0; --ink2:rgba(248,246,240,0.66); --ink3:rgba(248,246,240,0.42);
+  }
+  html, body { margin: 0; background: #05080e; height: 100%; }
+  #root { height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="kit/parts.jsx"></script>
+<script type="text/babel" src="video/scenes.jsx"></script>
+
+<script type="text/babel">
+const { Stage, Sprite } = window;
+
+function Backdrop() {
+  return (
+    <React.Fragment>
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(to right, rgba(248,246,240,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(248,246,240,0.04) 1px, transparent 1px)', backgroundSize: '54px 54px', WebkitMaskImage: 'radial-gradient(120% 120% at 50% 42%, #000 0%, #000 46%, transparent 82%)', maskImage: 'radial-gradient(120% 120% at 50% 42%, #000 0%, #000 46%, transparent 82%)' }} />
+      <div style={{ position: 'absolute', inset: 0, boxShadow: 'inset 0 0 240px 80px rgba(5,8,14,0.9)', pointerEvents: 'none' }} />
+    </React.Fragment>
+  );
+}
+
+function Video() {
+  return (
+    <Stage width={1920} height={1080} duration={30} background="#090d15" persistKey="onemem-launch">
+      <Backdrop />
+      <Sprite start={0}    end={4.4}><Scene1 /></Sprite>
+      <Sprite start={4.4}  end={9.4}><Scene2 /></Sprite>
+      <Sprite start={9.4}  end={14.8}><Scene3 /></Sprite>
+      <Sprite start={14.8} end={22.2}><Scene4 /></Sprite>
+      <Sprite start={22.2} end={27.2}><Scene5 /></Sprite>
+      <Sprite start={27.2} end={30}><Scene6 /></Sprite>
+    </Stage>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Video />);
+</script>
+</body>
+</html>

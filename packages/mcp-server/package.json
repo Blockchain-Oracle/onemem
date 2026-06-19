@@ -1,6 +1,6 @@
 {
   "name": "@onemem/mcp",
-  "version": "0.1.0",
+  "version": "0.6.3",
   "description": "OneMem MCP server — exposes memory + trace primitives to any MCP-compatible runtime (Cursor, Codex, Antigravity, Windsurf, OpenCode, Cline, VS Code Copilot)",
   "license": "Apache-2.0",
   "type": "module",

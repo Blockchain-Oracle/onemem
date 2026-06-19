@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from onemem import ZERO_HASH, chain_hash, verify_session
+from onemem import ZERO_HASH, OneMemAddresses, chain_hash, verify_session
+from onemem.client import OneMem
 
 SESSION_ID = "0xsession"
 PACKAGE_ID = "0xpkg"
@@ -80,3 +81,35 @@ def test_verify_fails_on_root_mismatch() -> None:
 
     assert result.ok is False
     assert result.broken_at is None  # chain links fine; only the root differs
+
+
+def test_client_verifier_uses_original_package_id_after_upgrades(monkeypatch: Any) -> None:
+    calls: list[tuple[object, str, str]] = []
+
+    def fake_verify_session(rpc: object, package_id: str, session_id: str) -> object:
+        calls.append((rpc, package_id, session_id))
+        return object()
+
+    import onemem.client as client_module
+
+    monkeypatch.setattr(client_module, "verify_session", fake_verify_session)
+    addresses = OneMemAddresses(
+        network="testnet",
+        rpc_url="http://unused.invalid",
+        suiscan_base="",
+        package_id="0xcurrent",
+        original_package_id="0xoriginal",
+        registry_id="0xregistry",
+        registry_admin_cap_id="0xadmin",
+        upgrade_cap_id="0xupgrade",
+        deployer_address="0xdeployer",
+        tx_digest="digest",
+        deployed_at="now",
+    )
+    client = OneMem(addresses=addresses)
+    try:
+        client.verify_session(SESSION_ID)
+    finally:
+        client.close()
+
+    assert calls[0][1:] == ("0xoriginal", SESSION_ID)

@@ -224,7 +224,7 @@ describe("OneMem monorepo structure", () => {
       const manifest = readJson<{ scripts?: Record<string, string> }>("package.json");
       assert.equal(
         manifest.scripts?.["registry:status"],
-        "python scripts/check-registry-status.py",
+        "uv run python scripts/check-registry-status.py",
       );
 
       const script = readFileSync(join(ROOT, "scripts/check-registry-status.py"), "utf8");
@@ -243,7 +243,7 @@ describe("OneMem monorepo structure", () => {
       const manifest = readJson<{ scripts?: Record<string, string> }>("package.json");
       assert.equal(
         manifest.scripts?.["release:preflight"],
-        "python scripts/check-release-preflight.py",
+        "uv run python scripts/check-release-preflight.py",
       );
 
       const script = readFileSync(join(ROOT, "scripts/check-release-preflight.py"), "utf8");

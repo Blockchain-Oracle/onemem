@@ -1,9 +1,12 @@
+import { spawn } from "node:child_process";
 import { appendFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
 const DEFAULT_DATA_DIR = join(homedir(), ".onemem", "codex-plugin");
 const DEFAULT_RUNTIME_CONTROLS_FILE = join(homedir(), ".onemem", "runtime-controls.json");
+const DEFAULT_WORKER_URL = "http://127.0.0.1:4041";
+const PREVIEW_LIMIT = 2_000;
 
 export async function readHookInput(stdin = process.stdin) {
   const chunks = [];
@@ -121,6 +124,70 @@ export function loadTraceConfig() {
     network: process.env.SUI_NETWORK ?? "testnet",
     privateKey: process.env.ONEMEM_PRIVATE_KEY,
   };
+}
+
+export function workerUrl() {
+  return (process.env.ONEMEM_WORKER_URL || DEFAULT_WORKER_URL).replace(/\/+$/, "");
+}
+
+export async function postWorker(path, body) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 800);
+  try {
+    const res = await fetch(`${workerUrl()}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function workerHealthy() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 300);
+  try {
+    const res = await fetch(`${workerUrl()}/health`, { signal: controller.signal });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function ensureWorker() {
+  if (await workerHealthy()) return true;
+  if (process.env.ONEMEM_WORKER_AUTOSTART === "0") return false;
+  try {
+    const command = process.env.ONEMEM_WORKER_COMMAND || "onemem-worker";
+    const child = spawn(command, [], {
+      detached: true,
+      shell: true,
+      stdio: "ignore",
+      env: process.env,
+    });
+    child.unref();
+  } catch {
+    return false;
+  }
+  const deadline = Date.now() + 2_500;
+  while (Date.now() < deadline) {
+    if (await workerHealthy()) return true;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  return false;
+}
+
+export function preview(value) {
+  if (value == null) return null;
+  const text = typeof value === "string" ? value : JSON.stringify(value);
+  return text.length > PREVIEW_LIMIT ? `${text.slice(0, PREVIEW_LIMIT)}…` : text;
 }
 
 export function runtimeControlsPath() {

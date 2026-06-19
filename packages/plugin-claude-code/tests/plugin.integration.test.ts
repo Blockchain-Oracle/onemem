@@ -1,7 +1,7 @@
 // Real-system test for the Claude Code plugin hooks.
 //
 // Simulates EXACTLY what Claude Code does: pipes real hook-event JSON to each
-// hook script over stdin (SessionStart → PostToolUse×2 → SessionEnd), then
+// hook script over stdin (SessionStart -> PostToolUse×2 -> Stop), then
 // verifies the resulting OneMem TraceSession is real + tamper-evident on-chain.
 //
 // Gated behind ONEMEM_INTEGRATION=1 + a funded testnet keystore. Run:
@@ -42,7 +42,7 @@ function runHook(script: string, event: unknown, env: NodeJS.ProcessEnv): Promis
 }
 
 describe.skipIf(!RUN)("claude-code plugin hooks (live testnet)", () => {
-  it("SessionStart→PostToolUse×2→SessionEnd produces a verifiable on-chain trace", async () => {
+  it("SessionStart->PostToolUse×2->Stop produces a verifiable on-chain trace", async () => {
     const signer = deployer();
     const onemem = await OneMem.create({ network: "testnet", signer });
 
@@ -90,9 +90,13 @@ describe.skipIf(!RUN)("claude-code plugin hooks (live testnet)", () => {
       ).toBe(0);
     }
 
-    // 3. SessionEnd → flush buffered calls on-chain + close.
+    // 3. Stop -> flush buffered calls on-chain + close.
     expect(
-      await runHook("summarize.js", { session_id: claudeSessionId, reason: "exit" }, env),
+      await runHook(
+        "summarize.js",
+        { session_id: claudeSessionId, hook_event_name: "Stop", reason: "stop" },
+        env,
+      ),
     ).toBe(0);
 
     // The state file holds the OneMem session id the hooks created.

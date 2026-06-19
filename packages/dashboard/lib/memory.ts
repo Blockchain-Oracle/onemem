@@ -56,12 +56,16 @@ function eventTxDigest(eventId: unknown): string {
  */
 export async function fetchMemories(namespaceId?: string, limit = 100): Promise<MemoryRef[]> {
   const addr = addressesFor(NETWORK);
+  // Event types retain the ORIGINAL package id after an upgrade (see lib/trace.ts
+  // client()); query memwal_write ActionCalls under originalPackageId or the list
+  // comes back empty post-upgrade. Mirrors cli-ts/src/util/sui.ts:23.
+  const eventPackageId = addr.originalPackageId || addr.packageId;
   const rpc = new SuiJsonRpcClient({ network: NETWORK, url: addr.rpcUrl });
   const out: MemoryRef[] = [];
   let cursor: Parameters<SuiJsonRpcClient["queryEvents"]>[0]["cursor"] = null;
   for (;;) {
     const page = await rpc.queryEvents({
-      query: { MoveEventType: `${addr.packageId}::${ACTION_CALL_EMITTED}` },
+      query: { MoveEventType: `${eventPackageId}::${ACTION_CALL_EMITTED}` },
       cursor,
       limit: 50,
       order: "descending",

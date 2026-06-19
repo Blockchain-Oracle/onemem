@@ -12,10 +12,11 @@ pipx install onemem-cli          # onemem-py (read-only mirror)
 ```
 
 <Note>
-Registry note, 2026-06-18: `@onemem/cli`, `@onemem/dashboard`, and
-`onemem-cli` are current on public registries after
-`pnpm registry:status --strict`. Re-run that command before making a fresh
-install claim.
+Publication note, 2026-06-19: the published `@onemem/cli@0.6.3` install path is
+verified. `npm exec --yes --package @onemem/cli@0.6.3 -- onemem --version`
+prints `0.6.3`. `@onemem/dashboard@0.1.4` and `onemem-cli@0.1.0` are current
+on public registries after `pnpm registry:status --strict`, and
+`pnpm release:preflight --strict --timeout 30` passes.
 </Note>
 
 Global flags: `--json` (machine output), `--network <testnet|mainnet|devnet|local>`.

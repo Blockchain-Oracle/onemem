@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneMem — Asset Handoff Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#090d15; --bg2:#0d1422; --panel:#111a2b; --ink:#f8f6f0; --ink2:rgba(248,246,240,0.68); --ink3:rgba(248,246,240,0.44);
+    --line:rgba(248,246,240,0.10); --line2:rgba(248,246,240,0.20);
+    --lime:#d4ff5e; --violet:#8f7cff; --sui:#57aef0; --verify:#4ed98a;
+    --disp:"Bricolage Grotesque",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"JetBrains Mono",monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .grid{position:fixed;inset:0;background-image:linear-gradient(to right,rgba(248,246,240,0.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(248,246,240,0.04) 1px,transparent 1px);background-size:54px 54px;-webkit-mask-image:radial-gradient(120% 70% at 50% 0%,#000,transparent 70%);mask-image:radial-gradient(120% 70% at 50% 0%,#000,transparent 70%);pointer-events:none;}
+  .wrap{position:relative;max-width:940px;margin:0 auto;padding:76px 44px 130px;}
+  .mark{display:flex;align-items:center;gap:14px;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:var(--ink3);}
+  h1{font-family:var(--disp);font-weight:800;letter-spacing:-0.04em;font-size:58px;line-height:1.0;margin:18px 0 0;}
+  .lede{font-size:21px;color:var(--ink2);margin-top:20px;max-width:680px;}
+  h2{font-family:var(--disp);font-weight:700;letter-spacing:-0.03em;font-size:30px;margin:72px 0 6px;padding-top:26px;border-top:1px solid var(--line);}
+  h2 .num{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--lime);letter-spacing:0.1em;display:block;margin-bottom:12px;}
+  h3{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:-0.02em;margin:30px 0 8px;}
+  p{margin:10px 0;}
+  a{color:var(--lime);text-decoration:none;border-bottom:1px solid rgba(212,255,94,0.3);}
+  code{font-family:var(--mono);font-size:0.88em;color:var(--lime);background:rgba(212,255,94,0.08);border:1px solid var(--line);border-radius:5px;padding:1px 6px;overflow-wrap:anywhere;}
+  .file{font-family:var(--mono);font-size:0.9em;color:var(--ink);}
+  ul{margin:12px 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:9px;}
+  ul li{display:block;position:relative;padding-left:20px;color:var(--ink2);}
+  ul li::before{content:"";position:absolute;left:0;top:9px;width:7px;height:7px;border-radius:50%;background:var(--accent,var(--lime));}
+  ol{color:var(--ink2);padding-left:22px;display:flex;flex-direction:column;gap:8px;margin:14px 0;}
+  ol li::marker{color:var(--lime);font-family:var(--mono);font-weight:700;}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px;}
+  th{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink3);font-weight:500;padding:0 14px 10px;border-bottom:1px solid var(--line2);}
+  td{padding:14px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top;}
+  td .file{display:block;color:var(--ink);margin-bottom:3px;}
+  .dim{font-family:var(--mono);font-size:13px;color:var(--sui);white-space:nowrap;}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin:20px 0;}
+  .card.warn{border-left:3px solid var(--lime);}
+  .card.note{border-left:3px solid var(--sui);}
+  .tree{font-family:var(--mono);font-size:13.5px;line-height:1.9;color:var(--ink2);background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin:20px 0;white-space:pre;overflow-x:auto;}
+  .tree .d{color:var(--violet);}
+  .tree .f{color:var(--ink);}
+  .tree .c{color:var(--ink3);}
+  .swatchrow{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0;}
+  .sw{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;color:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:9px 14px;background:var(--bg2);}
+  .sw i{width:18px;height:18px;border-radius:5px;display:block;}
+  .kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line2);border-radius:5px;padding:2px 7px;color:var(--ink);background:rgba(248,246,240,0.04);}
+  .tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:var(--ink2);border:1px solid var(--line2);border-radius:999px;padding:4px 11px;margin:2px 4px 2px 0;}
+  strong{color:var(--ink);font-weight:600;}
+  @media print{ body{background:#fff;color:#111;} .grid{display:none;} .wrap{max-width:none;padding:0 12px;} h2{border-color:#ddd;} a{color:#2a6fdb;} code{color:#2a6fdb;background:#f2f4f8;border-color:#e2e6ee;} }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <div class="mark">
+    <svg width="52" height="52" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#141d2e" stroke="rgba(248,246,240,0.14)"/><path d="M18 22.5 32 15l14 7.5v18.8L32 49l-14-7.7z" fill="none" stroke="#d4ff5e" stroke-width="3.4" stroke-linejoin="round"/><path d="M18 22.5 32 30l14-7.5M32 30v19" fill="none" stroke="#8f7cff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span style="font-family:var(--disp);font-weight:800;font-size:26px;letter-spacing:-0.03em;">OneMem</span>
+  </div>
+  <div class="eyebrow" style="margin-top:34px;">Asset handoff · for the next agent</div>
+  <h1>Where everything is.</h1>
+  <p class="lede">A complete map of the OneMem campaign assets in this project — what each file is, how to open it, how to edit it, and what's left to do (the audio). Built to be downloaded with the project and handed to a local agent.</p>
+
+  <div class="card note">
+    <p style="margin:0;"><strong>One-line summary.</strong> Three deliverables: a <strong>Brand Kit</strong> (5 static graphics on a canvas), a <strong>30-second Launch Video</strong> (silent — needs scoring), and a <strong>Sound Design beat-map</strong> spec. Everything is plain HTML/JS that runs in a browser; no build step.</p>
+  </div>
+
+  <!-- ───────────────────────── 01 ───────────────────────── -->
+  <h2><span class="num">01 — START HERE</span>The three deliverables</h2>
+  <table>
+    <thead><tr><th>File</th><th>What it is</th><th>Sizes</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="file">Brand Kit.html</span></td>
+        <td>A pan/zoom canvas holding all 5 static campaign graphics. Drag to pan, scroll to zoom, click the expand icon on any board to view it fullscreen.</td>
+        <td class="dim">see §02</td>
+      </tr>
+      <tr>
+        <td><span class="file">Launch Video.html</span></td>
+        <td>The 30-second animated launch video, 6 scenes. Plays automatically; scrub/pause with the on-screen controls. <strong>Currently silent.</strong></td>
+        <td class="dim">1920×1080<br>30 s · 6 beats</td>
+      </tr>
+      <tr>
+        <td><span class="file">Sound Design.html</span></td>
+        <td>The per-beat audio direction (timing, loudness targets, sonic palette) for whoever scores the video. Read-only reference.</td>
+        <td class="dim">printable</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>There is also a markdown copy of the audio direction at <span class="file">video/OneMem Launch Video - Audio Spec.md</span> if your agent prefers plain text.</p>
+
+  <!-- ───────────────────────── 02 ───────────────────────── -->
+  <h2><span class="num">02 — BRAND KIT</span>The 5 static graphics</h2>
+  <p>All five live inside <span class="file">Brand Kit.html</span>. Each is sized to its real export dimension, so a screenshot of a fullscreen board is a ready-to-post asset.</p>
+  <table>
+    <thead><tr><th>Asset</th><th>Purpose</th><th>Export size</th></tr></thead>
+    <tbody>
+      <tr><td><span class="file">README hero</span></td><td>GitHub README banner — shallow, central memory layer with runtime chips feeding a namespace.</td><td class="dim">1280×420</td></tr>
+      <tr><td><span class="file">X header</span></td><td>Profile banner for <code>@OneMemAI</code>. Mark + line kept clear of the lower-left avatar zone.</td><td class="dim">1500×500</td></tr>
+      <tr><td><span class="file">Link card</span></td><td>“Start here” card: site, GitHub, docs, npm, PyPI, X.</td><td class="dim">1200×630</td></tr>
+      <tr><td><span class="file">Tools poster</span></td><td>Ecosystem graphic — native plugins, MCP clients, framework providers, core protocol stack around the namespace core.</td><td class="dim">1600×900</td></tr>
+      <tr><td><span class="file">Architecture</span></td><td>3-plane diagram: runtime → memory → proof. Designed, not Mermaid.</td><td class="dim">1920×1080</td></tr>
+    </tbody>
+  </table>
+  <h3>To export them as PNG</h3>
+  <ol>
+    <li>Open <span class="file">Brand Kit.html</span> in a browser.</li>
+    <li>Click the <strong>expand / fullscreen</strong> icon on a board so it fills the frame at 1:1.</li>
+    <li>Screenshot it, or use the project's “Save as PNG / screenshot” flow. Each board already matches its target pixel size.</li>
+  </ol>
+  <p>Source for these boards: <span class="file">kit/parts.jsx</span> (shared mark, vendor-logo renderer, tokens), <span class="file">kit/assets-a.jsx</span> (hero, X header, link card), <span class="file">kit/assets-b.jsx</span> (tools poster, architecture).</p>
+
+  <!-- ───────────────────────── 03 ───────────────────────── -->
+  <h2><span class="num">03 — THE VIDEO</span>Structure &amp; how to edit</h2>
+  <p>The video is React + an inline timeline engine. The 6 scenes are the editable content; the engine handles scaling, the scrubber, and play/pause.</p>
+  <table>
+    <thead><tr><th>Beat</th><th>Time</th><th>Line</th></tr></thead>
+    <tbody>
+      <tr><td>1 · Agents forget</td><td class="dim">0.0–4.4s</td><td>“Agents remember. Runtimes forget.”</td></tr>
+      <tr><td>2 · One namespace</td><td class="dim">4.4–9.4s</td><td>“One memory layer.”</td></tr>
+      <tr><td>3 · Decentralized stack</td><td class="dim">9.4–14.8s</td><td>OneMem → Seal → Walrus/MemWal → Sui</td></tr>
+      <tr><td>4 · Runtime proof</td><td class="dim">14.8–22.2s</td><td>Claude writes · Codex recalls · coordinate · traces</td></tr>
+      <tr><td>5 · Runtime surface</td><td class="dim">22.2–27.2s</td><td>“Use the same memory anywhere agents work.”</td></tr>
+      <tr><td>6 · Close</td><td class="dim">27.2–30s</td><td>Mark + links + “Live on Sui”</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>Edit scenes / copy / timing:</strong> <span class="file">video/scenes.jsx</span> — each beat is a <code>Scene#</code> function; the timeline mapping is in <span class="file">Launch Video.html</span> (the <code>&lt;Sprite start=… end=…&gt;</code> tags).</li>
+    <li><strong>Engine:</strong> <span class="file">animations.jsx</span> (Stage, Sprite, easing, scrubber) — generally don't touch.</li>
+    <li><strong>Shared mark + vendor logos:</strong> <span class="file">kit/parts.jsx</span>.</li>
+  </ul>
+  <h3>To render it to an actual MP4</h3>
+  <p>This HTML cut is the timed animatic / source of truth. Two ways to get a file:</p>
+  <ol>
+    <li><strong>Screen-record</strong> the page at 1920×1080 / 30fps while it plays (quickest), or</li>
+    <li>Render from this designer HTML/source package for the master cut, then reuse the same campaign source and beat map for square and vertical reframes.</li>
+  </ol>
+
+  <!-- ───────────────────────── 04 ───────────────────────── -->
+  <h2><span class="num">04 — AUDIO</span>What's left for your agent</h2>
+  <div class="card warn">
+    <p style="margin-top:0;"><strong>The video ships silent on purpose.</strong> All sound code was removed so you have a clean slate to score it locally. There is no audio playing in <span class="file">Launch Video.html</span> right now.</p>
+    <p style="margin-bottom:0;">Everything the audio agent needs:</p>
+  </div>
+  <ul>
+    <li><strong>The brief / beat map:</strong> <span class="file">Sound Design.html</span> (or <span class="file">video/OneMem Launch Video - Audio Spec.md</span>) — cue timings, loudness targets (−14→−10 dB mean), and the sonic palette, beat by beat.</li>
+    <li><strong>Reference tracks</strong> (the “bar” for energy/feel) are in <span class="file">uploads/</span>: <span class="file">triton_one_…720.mp4</span>, <span class="file">SuiNetwork_…720.mp4</span>, <span class="file">agentcardai_…1080.mp4</span>. Note <span class="file">agentcardai</span> has a spoken voiceover baked in; triton/Sui are music-led.</li>
+    <li><strong>Optional starting point:</strong> <span class="file">video/audio.jsx</span> still contains a Web-Audio score engine (rhythmic synth + a real-file bed) — it is <em>not loaded</em> by the video. Re-add <code>&lt;script src="video/audio.jsx"&gt;</code> and an <code>&lt;AudioBed src=…&gt;</code> tag if you want it back, but the intent is for you to lay a proper licensed track.</li>
+  </ul>
+  <p class="card" style="margin-top:18px;"><strong>Copyright note:</strong> the three reference MP4s are other companies' launch videos. Use them to match tempo/energy only — don't ship their audio in the public OneMem cut. Bring a licensed or original track.</p>
+
+  <!-- ───────────────────────── 05 ───────────────────────── -->
+  <h2><span class="num">05 — RUNNING LOCALLY</span>How to open these</h2>
+  <ul>
+    <li>These are <strong>static HTML files with no build step</strong> — but they load React, Babel, and Google Fonts from a CDN, so keep an <strong>internet connection</strong> the first time.</li>
+    <li>They reference assets by <strong>relative path</strong> (e.g. <code>kit/parts.jsx</code>, <code>packages/brand/vendor-logos/svg/…</code>, <code>_ds/…</code>), so <strong>serve from the project root</strong>, don't move the HTML files out on their own. A one-liner like <code>npx serve</code> or <code>python3 -m http.server</code> in the project root works; then open the file in a browser.</li>
+    <li>Opening via <code>file://</code> may block the <code>.jsx</code> fetches in some browsers — prefer the local server.</li>
+  </ul>
+
+  <!-- ───────────────────────── 06 ───────────────────────── -->
+  <h2><span class="num">06 — FILE MAP</span>Project tree (campaign assets only)</h2>
+  <div class="tree"><span class="f">Brand Kit.html</span>            <span class="c"># 5 static graphics on a canvas</span>
+<span class="f">Launch Video.html</span>         <span class="c"># 30s video (silent)</span>
+<span class="f">Sound Design.html</span>         <span class="c"># audio beat-map spec</span>
+<span class="f">OneMem Handoff Guide.html</span> <span class="c"># ← you are here</span>
+<span class="f">animations.jsx</span>            <span class="c"># timeline engine (shared)</span>
+<span class="f">design-canvas.jsx</span>         <span class="c"># pan/zoom canvas (Brand Kit)</span>
+<span class="d">kit/</span>
+  <span class="f">parts.jsx</span>               <span class="c"># OneMem mark, vendor-logo renderer, tokens</span>
+  <span class="f">assets-a.jsx</span>            <span class="c"># hero · X header · link card</span>
+  <span class="f">assets-b.jsx</span>            <span class="c"># tools poster · architecture</span>
+<span class="d">video/</span>
+  <span class="f">scenes.jsx</span>              <span class="c"># the 6 video beats (edit here)</span>
+  <span class="f">audio.jsx</span>               <span class="c"># optional sound engine (NOT loaded)</span>
+  <span class="f">OneMem Launch Video - Audio Spec.md</span>
+<span class="d">uploads/</span>                   <span class="c"># reference videos (audio bar)</span>
+  <span class="f">triton_one_…720.mp4</span>
+  <span class="f">SuiNetwork_…720.mp4</span>
+  <span class="f">agentcardai_…1080.mp4</span>
+<span class="d">packages/brand/</span>
+  <span class="d">logo/</span>                   <span class="c"># OneMem mark + lockups (SVG)</span>
+  <span class="d">vendor-logos/svg/</span>       <span class="c"># Sui, Walrus, Seal, Claude Code, MCP, … (real marks)</span>
+<span class="d">_ds/cdr-kit-design-system-…/</span> <span class="c"># bound design system (tokens, type)</span></div>
+
+  <!-- ───────────────────────── 07 ───────────────────────── -->
+  <h2><span class="num">07 — BRAND</span>Tokens, type, logos</h2>
+  <h3>Launch-mode palette</h3>
+  <div class="swatchrow">
+    <span class="sw"><i style="background:#090d15;border:1px solid var(--line2);"></i>#090d15 · bg</span>
+    <span class="sw"><i style="background:#f8f6f0;"></i>#f8f6f0 · ink (off-white)</span>
+    <span class="sw"><i style="background:#d4ff5e;"></i>#d4ff5e · lime (memory)</span>
+    <span class="sw"><i style="background:#8f7cff;"></i>#8f7cff · violet (trace)</span>
+    <span class="sw"><i style="background:#57aef0;"></i>#57aef0 · Sui blue</span>
+    <span class="sw"><i style="background:#4ed98a;"></i>#4ed98a · verify green</span>
+  </div>
+  <p>The product surface (dashboard/docs) is <strong>light-first / indigo</strong> per the cdr-kit design system; this <strong>launch-mode dark</strong> palette is the campaign/video skin only. Both share the same fonts.</p>
+  <h3>Type</h3>
+  <p><strong>Bricolage Grotesque</strong> (display/headlines, 700–800, tight tracking) · <strong>Hanken Grotesk</strong> (body/UI) · <strong>JetBrains Mono</strong> (code, addresses, eyebrows). All from Google Fonts.</p>
+  <h3>Logo &amp; vendor marks</h3>
+  <ul>
+    <li><strong>OneMem mark + lockups:</strong> <span class="file">packages/brand/logo/</span> (<span class="file">onemem-mark.svg</span>, <span class="file">onemem-lockup-dark.svg</span>, <span class="file">onemem-wordmark.svg</span>, mono). The mark = lime memory-cube hull + violet trace spine on a dark tile. <strong>Do not redesign it.</strong></li>
+    <li><strong>Vendor logos</strong> (real marks, tinted to one color in-design): <span class="file">packages/brand/vendor-logos/svg/</span> — Sui, Walrus, Seal, Claude Code, Codex, OpenClaw, Hermes, MCP, Cursor, Windsurf, Vercel AI, CrewAI, LiveKit, ElevenLabs, npm, PyPI, GitHub, X, and more.</li>
+  </ul>
+
+  <!-- ───────────────────────── 08 ───────────────────────── -->
+  <h2><span class="num">08 — COPY RULES</span>Keep these honest</h2>
+  <div class="swatchrow">
+    <span class="tag">✓ One memory layer for every agent.</span>
+    <span class="tag">✓ Decentralized persistent memory for AI agents.</span>
+    <span class="tag">✓ Agents remember. Runtimes forget.</span>
+    <span class="tag">✓ OpenClaw</span>
+    <span class="tag" style="color:#ff9b9b;border-color:rgba(255,120,120,0.4);">✗ Incorrect OpenClaw spelling</span>
+    <span class="tag" style="color:#ff9b9b;border-color:rgba(255,120,120,0.4);">✗ Etherscan for AI agents</span>
+    <span class="tag" style="color:#ff9b9b;border-color:rgba(255,120,120,0.4);">✗ Stop trusting your agent</span>
+  </div>
+  <ul>
+    <li>Real links only: <code>onemem.xyz</code> · <code>docs.onemem.xyz</code> · <code>x.com/OneMemAI</code> · <code>github.com/Blockchain-Oracle/onemem</code>.</li>
+    <li>Memory is the headline; verification/trace is the <strong>confidence layer</strong>, not the pitch.</li>
+    <li>Don't claim shipped WASI / Nautilus / TEE behavior without proof.</li>
+  </ul>
+
+  <p style="margin-top:60px;color:var(--ink3);font-family:var(--mono);font-size:13px;">OneMem · campaign asset handoff · download this project and open the files above in a browser to begin.</p>
+
+</div>
+</body>
+</html>

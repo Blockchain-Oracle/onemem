@@ -116,6 +116,7 @@ export class TracesAPI {
 
   async startSession(args: StartSessionArgs): Promise<{ sessionId: string; txDigest: string }> {
     const { packageId } = this.client.addresses;
+    const typePackageId = this.client.addresses.originalPackageId || packageId;
     const tx = new Transaction();
     tx.moveCall({
       target: `${packageId}::trace::open_session`,
@@ -134,7 +135,7 @@ export class TracesAPI {
       options: { showObjectChanges: true },
     });
 
-    const sessionType = `${packageId}::trace::TraceSession`;
+    const sessionType = `${typePackageId}::trace::TraceSession`;
     const session = (
       result.objectChanges as
         | Array<{ type: string; objectType?: string; objectId?: string }>
@@ -157,6 +158,7 @@ export class TracesAPI {
 
   async appendCall(args: AppendCallArgs): Promise<{ callId: string; txDigest: string }> {
     const { packageId } = this.client.addresses;
+    const typePackageId = this.client.addresses.originalPackageId || packageId;
     const wantsEncrypt = "content" in args.input && args.input.encrypt === true;
     if (wantsEncrypt && !args.namespaceId) {
       throw new TracePayloadError("appendCall with input.encrypt=true requires namespaceId");
@@ -189,7 +191,7 @@ export class TracesAPI {
 
     // emit_call returns the new call_id, but the simplest way to get it is to
     // look for the ActionCallEmittedEvent payload.
-    const emittedType = `${packageId}::events::ActionCallEmittedEvent`;
+    const emittedType = `${typePackageId}::events::ActionCallEmittedEvent`;
     // biome-ignore lint/suspicious/noExplicitAny: SuiEvent typing
     const event = (result.events as any[] | undefined)?.find((e: any) => e.type === emittedType);
     if (!event) {
@@ -280,7 +282,11 @@ export class TracesAPI {
   /** List recent TraceSessions (from opened events), newest first. Optionally scope by namespace/agent. */
   async listSessions(opts: { namespaceId?: string; agentId?: string; limit?: number } = {}) {
     const { fetchOpenedSessions } = await import("./fetchers/trace.js");
-    return fetchOpenedSessions(this.client.client, this.client.addresses.packageId, opts);
+    return fetchOpenedSessions(
+      this.client.client,
+      this.client.addresses.originalPackageId || this.client.addresses.packageId,
+      opts,
+    );
   }
 
   /**

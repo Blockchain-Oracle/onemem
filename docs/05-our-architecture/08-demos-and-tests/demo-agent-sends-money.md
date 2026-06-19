@@ -67,7 +67,7 @@ Narrator: "If a compliance officer or a teammate or even me-3-months-from-now
            From the chain. Independently. Without trusting OneMem."
 
 [1:25 — Demo card]
-"OneMem · onemem.ai"
+"OneMem · onemem.xyz"
 [End]
 ```
 

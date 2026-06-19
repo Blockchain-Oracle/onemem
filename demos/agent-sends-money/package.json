@@ -1,6 +1,6 @@
 {
   "name": "@onemem/demo-agent-sends-money",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "description": "Executable OneMem demo: mocked agent payment flow recorded as a real verifiable testnet trace",
   "license": "Apache-2.0",

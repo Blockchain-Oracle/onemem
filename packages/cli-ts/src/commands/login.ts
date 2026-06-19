@@ -29,7 +29,7 @@ export {
   validateLoginCredentialPayload,
 } from "./login-validation.js";
 
-const DEFAULT_DASHBOARD_URL = "https://app.onemem.ai";
+const DEFAULT_DASHBOARD_URL = "https://app.onemem.xyz";
 const ONEMEM_DIR = join(homedir(), ".onemem");
 const CREDENTIALS_FILE = join(ONEMEM_DIR, "credentials.json");
 const SECRET_FILE_MODE = 0o600;
@@ -39,7 +39,22 @@ const DEFAULT_TIMEOUT_MS = 180_000;
 interface LoginOpts {
   url?: string;
   timeout?: string;
+  open?: boolean;
   noOpen?: boolean;
+}
+
+function shouldOpenBrowser(opts: LoginOpts): boolean {
+  return opts.open !== false && opts.noOpen !== true;
+}
+
+export function pairingPromptLines(pairingUrl: string, openBrowser: boolean): string[] {
+  return [
+    openBrowser
+      ? "Opening your browser to approve this terminal..."
+      : "Open this URL to approve this terminal:",
+    `  ${pairingUrl}`,
+    "Waiting for approval...",
+  ];
 }
 
 /** Best-effort: open a URL in the user's default browser (platform-specific). */
@@ -143,12 +158,11 @@ export function loginCommand(opts: LoginOpts, command: { optsWithGlobals(): Glob
         const addr = server.address();
         boundPort = typeof addr === "object" && addr ? addr.port : 0;
         const pairingUrl = `${dashboardUrl}/cli-login?nonce=${nonce}&port=${boundPort}`;
+        const shouldOpen = shouldOpenBrowser(opts);
         if (!g.json) {
-          printLine("Opening your browser to approve this terminal…");
-          printLine(`  ${pairingUrl}`);
-          printLine("Waiting for approval…");
+          for (const line of pairingPromptLines(pairingUrl, shouldOpen)) printLine(line);
         }
-        if (!opts.noOpen) openBrowser(pairingUrl);
+        if (shouldOpen) openBrowser(pairingUrl);
       });
     });
 

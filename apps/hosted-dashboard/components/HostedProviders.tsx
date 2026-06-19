@@ -28,10 +28,19 @@ const enokiApiKey = process.env.NEXT_PUBLIC_ENOKI_API_KEY ?? "";
 const googleClientId =
   process.env.NEXT_PUBLIC_ENOKI_GOOGLE_CLIENT_ID ?? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
 
+// Wallet-only by default for the hackathon. Google / Enoki zkLogin login is an
+// explicit opt-in (NEXT_PUBLIC_ONEMEM_ENABLE_GOOGLE=true) so a deploy can't
+// accidentally surface a half-configured Google flow (the redirect_uri_mismatch
+// failure mode). Sponsored onboarding still uses the server-side Enoki key and is
+// unaffected by this flag.
+const googleLoginOptIn = process.env.NEXT_PUBLIC_ONEMEM_ENABLE_GOOGLE === "true";
+
 export interface HostedAuthConfig {
   readonly defaultNetwork: "testnet" | "mainnet" | "devnet";
   readonly enokiConfigured: boolean;
   readonly enokiMissing: readonly string[];
+  /** Google zkLogin is registered only when Enoki is configured AND opted in. */
+  readonly googleLoginEnabled: boolean;
 }
 
 const HostedAuthConfigContext = createContext<HostedAuthConfig | null>(null);
@@ -54,6 +63,7 @@ export function HostedProviders({ children }: { children: ReactNode }) {
       defaultNetwork,
       enokiConfigured: missing.length === 0,
       enokiMissing: missing,
+      googleLoginEnabled: missing.length === 0 && googleLoginOptIn,
     };
   }, []);
 
@@ -73,7 +83,7 @@ function RegisterEnokiWallets({ config }: { config: HostedAuthConfig }) {
   const { client, network } = useSuiClientContext();
 
   useEffect(() => {
-    if (!config.enokiConfigured || !isEnokiNetwork(network)) return;
+    if (!config.googleLoginEnabled || !isEnokiNetwork(network)) return;
 
     const { unregister } = registerEnokiWallets({
       apiKey: enokiApiKey,
@@ -87,7 +97,7 @@ function RegisterEnokiWallets({ config }: { config: HostedAuthConfig }) {
     });
 
     return unregister;
-  }, [client, config.enokiConfigured, network]);
+  }, [client, config.googleLoginEnabled, network]);
 
   return null;
 }

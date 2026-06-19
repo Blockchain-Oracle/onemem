@@ -8,7 +8,10 @@ description: "Verifiable, cross-runtime memory + action traces for AI agents on 
 OneMem is **decentralized persistent memory for AI agents**. It gives any agent two things its runtime can't keep reliably across tools:
 
 1. **Portable memory** - every memory is a Seal-encrypted blob on Walrus, access-controlled by an on-chain namespace. Portable across runtimes, decryptable only by delegate-key holders.
-2. **Verifiable action history** - every tool / skill / MCP call can be recorded as a Merkle-chained `ActionCall` anchored on Sui. Anyone can replay it, and anyone can **verify** it - no login, no trust in us.
+2. **Verifiable action history** - tool / skill / MCP calls can be recorded as
+   Merkle-chained `ActionCall`s anchored on Sui. Anyone can verify the public
+   chain integrity; plaintext replay still requires the right capability and
+   decrypted Walrus content.
 
 Built on the Walrus-track stack: **Sui** (anchoring) · **Walrus** (blob storage) · **Seal** (threshold encryption) · **MemWal** (memory relayer).
 
@@ -19,7 +22,8 @@ Built on the Walrus-track stack: **Sui** (anchoring) · **Walrus** (blob storage
     One namespace works across Claude Code, Hermes, Cursor, CrewAI and more — switch tools without losing context.
   </Card>
   <Card title="Actions are auditable" icon="list-check">
-    Every call is captured with its inputs, outputs, and a content hash — reconstructable from chain alone.
+    Every recorded call commits hashes, ordering, and metadata on chain; private
+    input/output content stays encrypted unless the viewer has access.
   </Card>
   <Card title="Everything is provable" icon="shield-check">
     Share a public verification link. The recipient walks the Merkle chain and confirms the root themselves.

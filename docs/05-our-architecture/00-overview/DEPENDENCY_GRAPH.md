@@ -69,14 +69,14 @@ How the 12 pillars depend on each other. Read this to know what blocks what duri
                                               ▼
                               ┌──────────────────────────────────┐
                               │ Pillar 8 — Hosted Dashboard      │
-                              │ app.onemem.ai + Enoki/zkLogin    │
+                              │ app.onemem.xyz + Enoki/zkLogin    │
                               │ + sponsored-tx                   │
                               │ + Walrus Sites mirror            │
                               └──────────────────────────────────┘
 
                   ┌───────────────────────────────────────────────────────────┐
-                  │ Pillar 9 — Marketing (onemem.ai)                          │
-                  │ Pillar 10 — Docs (docs.onemem.ai Mintlify)                │
+                  │ Pillar 9 — Marketing (onemem.xyz)                          │
+                  │ Pillar 10 — Docs (docs.onemem.xyz Mintlify)                │
                   │   — Document + market every other pillar                  │
                   └───────────────────────────────────────────────────────────┘
 
@@ -171,7 +171,7 @@ All five groups can be designed and implemented concurrently after Pillar 2 ship
 | 5 CLI | `onemem` binary — referenced in docs (install instructions) + Pillar 7 (CLI launches dashboard) |
 | 6 MCP | `@onemem/mcp` stdio binary — referenced in docs + per-runtime install instructions |
 | 7 Local Dashboard | Web app served on `localhost:4040`, REST API + SSE — same code reused by Pillar 8 |
-| 8 Hosted Dashboard | Deployed at `app.onemem.ai` — referenced in docs + landing |
+| 8 Hosted Dashboard | Deployed at `app.onemem.xyz` — referenced in docs + landing |
 | 9 Landing | The marketing surface — referenced in pitch deck + GitHub READMEs |
 | 10 Docs | The doc surface — referenced from every package README |
 | 11 Demos | Demo videos + demo apps — referenced in pitch deck + landing |

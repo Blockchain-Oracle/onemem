@@ -20,10 +20,11 @@ ACTION_CALL_EMITTED = "events::ActionCallEmittedEvent"
 SESSION_OPENED = "events::TraceSessionOpenedEvent"
 
 
-def _ctx(network_opt: str | None) -> tuple[SuiRpc, str]:
+def _ctx(network_opt: str | None) -> tuple[SuiRpc, str, str]:
     network = resolve_network(network_opt)
     addrs = addresses_for(network)
-    return SuiRpc(addrs.rpc_url), addrs.package_id
+    event_package_id = addrs.original_package_id or addrs.package_id
+    return SuiRpc(addrs.rpc_url), addrs.package_id, event_package_id
 
 
 def _run(fn: Callable[[], None]) -> None:
@@ -59,12 +60,12 @@ def verify(ctx: click.Context, session_id: str) -> None:
     """Independently verify a TraceSession's Merkle chain."""
 
     def body() -> None:
-        rpc, package_id = _ctx(ctx.obj["network"])
+        rpc, _package_id, event_package_id = _ctx(ctx.obj["network"])
         with rpc:
             # Prove the session exists first — an absent session has a vacuously
             # valid (empty) chain, so this guard stops a false ✓ on a bad id.
             meta = fetch_trace_session(rpc, session_id)
-            result = verify_session(rpc, package_id, session_id)
+            result = verify_session(rpc, event_package_id, session_id)
         agent_id = str(meta.get("agent_id", ""))
         if ctx.obj["json"]:
             print_json(
@@ -109,7 +110,7 @@ def trace_get(ctx: click.Context, session_id: str) -> None:
     """Show session metadata."""
 
     def body() -> None:
-        rpc, _ = _ctx(ctx.obj["network"])
+        rpc, _package_id, _event_package_id = _ctx(ctx.obj["network"])
         with rpc:
             f = fetch_trace_session(rpc, session_id)
         status = int(f.get("status", 0))
@@ -141,12 +142,12 @@ def trace_events(ctx: click.Context, session_id: str) -> None:
     """Show the decoded ActionCall chain."""
 
     def body() -> None:
-        rpc, package_id = _ctx(ctx.obj["network"])
+        rpc, _package_id, event_package_id = _ctx(ctx.obj["network"])
         with rpc:
             # Prove the session exists so an empty result means "no calls", not
             # "bad id" (mirrors verify's guard).
             fetch_trace_session(rpc, session_id)
-            raw = rpc.query_events_by_type(f"{package_id}::{ACTION_CALL_EMITTED}")
+            raw = rpc.query_events_by_type(f"{event_package_id}::{ACTION_CALL_EMITTED}")
         # Sort by the event envelope timestamp (timestampMs), matching the SDK
         # verifier's ordering so CLI output stays consistent with verification.
         matching = [e for e in raw if e.get("parsedJson", {}).get("session_id") == session_id]
@@ -192,9 +193,9 @@ def trace_list(ctx: click.Context) -> None:
     """List the most recent sessions opened on this package (newest first)."""
 
     def body() -> None:
-        rpc, package_id = _ctx(ctx.obj["network"])
+        rpc, _package_id, event_package_id = _ctx(ctx.obj["network"])
         with rpc:
-            raw = rpc.query_events_by_type(f"{package_id}::{SESSION_OPENED}")
+            raw = rpc.query_events_by_type(f"{event_package_id}::{SESSION_OPENED}")
         raw.sort(key=lambda e: int(e.get("timestampMs", 0)), reverse=True)
         rows = [
             {

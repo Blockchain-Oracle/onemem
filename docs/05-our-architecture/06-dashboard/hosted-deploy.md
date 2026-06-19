@@ -1,6 +1,11 @@
-# Hosted Deploy — `app.onemem.ai`
+# Hosted Deploy — `app.onemem.xyz`
 
-The OneMem dashboard hosted at `app.onemem.ai`. Same Next.js 15 codebase as the local deploy (via `packages/dashboard/`) wrapped by `apps/hosted-dashboard/` with Enoki/zkLogin auth, sponsored-tx, and hosted-owned routes: `/login`, `/cli-login`, `/onboarding`, `/share`, `/share/[capability_id]`, and the **public** `/verify/[session_id]` chain verifier.
+The OneMem dashboard hosted at `app.onemem.xyz`. `apps/hosted-dashboard/`
+reuses shared packages where appropriate, but it is not a blanket wrapper around
+every local dashboard route. Current hosted-owned routes are `/`, `/login`,
+`/cli-login`, `/onboarding`, `/dashboard`, `/share`,
+`/share/[capability_id]`, and the **public** `/verify/[session_id]` chain
+verifier.
 
 > **Audit context 2026-05-26.** Hosted serves five specific jobs, NOT "for judges" — onboarding, CLI-login callback, cross-device view, shared-namespace access, and public chain verification. Authoritative purpose split + what hosted DOES NOT do (no billing, no usage quotas, no API keys, no Intercom) is in `purpose-local-vs-hosted.md`. The public `/verify/[session_id]` page is a NEW v0.1 surface specced in `route-verify-public.md`.
 
@@ -8,10 +13,10 @@ The OneMem dashboard hosted at `app.onemem.ai`. Same Next.js 15 codebase as the 
 
 ## Differences vs local deploy
 
-| Concern | Local (`localhost:4040`) | Hosted (`app.onemem.ai`) |
+| Concern | Local (`localhost:4040`) | Hosted (`app.onemem.xyz`) |
 |---|---|---|
-| Auth | Reads `~/.onemem/credentials.json` directly | Enoki zkLogin (Google OAuth → Sui address) |
-| Wallet | dApp Kit (existing wallet) | Enoki ephemeral keys (no wallet needed) |
+| Auth | Reads `~/.onemem/credentials.json` directly | Client-side Enoki/dApp Kit account state |
+| Wallet | N/A for local inspection | Enoki Google wallet or existing wallet via dApp Kit |
 | Gas payment | User's wallet | Sponsored by Enoki (gasless UX) |
 | Login UI | None | `/login` page with Google sign-in |
 | `/cli-login` route | N/A | Present (CLI login callback) |
@@ -20,10 +25,10 @@ The OneMem dashboard hosted at `app.onemem.ai`. Same Next.js 15 codebase as the 
 | `/share/[capability_id]` route | N/A | Public read-only capability object view; no hosted claim tx |
 | `/verify/[session_id]` route | N/A | Present and **public — no login required** (per `route-verify-public.md`) |
 | Hosting | Spawned by `onemem dashboard` | Vercel (or Cloudflare Workers) |
-| Domain | `localhost:4040` | `app.onemem.ai` |
-| Walrus Sites mirror | N/A | Mirror deploy at `<hash>.wal.app` (per `walrus-sites-mirror.md`) — includes the `/verify` page for fully decentralized verification |
-| Cookies / sessions | N/A | HTTP-only session cookie keyed to Enoki session (verify page never sets cookies) |
-| Plugin heartbeats | localhost only | Authenticated via delegate key over HTTPS |
+| Domain | `localhost:4040` | `app.onemem.xyz` |
+| Walrus Sites mirror | N/A | Static public-verifier artifact + deploy preflight exist; live Walrus URL/full mirror remain pending |
+| Cookies / sessions | N/A | No current server session-cookie layer; account state is client-side through wallet/dApp Kit providers |
+| Plugin heartbeats | Local dashboard endpoint | Hosted heartbeat endpoint is not currently implemented |
 
 ---
 
@@ -32,13 +37,14 @@ The OneMem dashboard hosted at `app.onemem.ai`. Same Next.js 15 codebase as the 
 Per `01-sui-ecosystem/enoki-zklogin.md`:
 
 ```
-1. User visits app.onemem.ai → redirected to /login if not authenticated
+1. User visits app.onemem.xyz → redirected to /login if not authenticated
 2. /login shows [Sign in with Google] button (Enoki)
 3. User clicks → Google OAuth → returns JWT
 4. Frontend: EnokiClient processes JWT → ephemeral Sui address (zkLogin)
 5. First-time user: prompted to mint MemWalAccount + first namespace (sponsored by Enoki)
-6. Session cookie set: HTTP-only, signed, contains { suiAddress, accountId, delegate_key_ref }
-7. Subsequent visits: cookie present → render dashboard directly
+6. Pages render account-aware controls from dApp Kit account state.
+7. Side-effect flows use wallet approval and hosted server routes for sponsored
+   transaction preparation/execution.
 ```
 
 Optional: connect existing wallet (Slush, Suiet, etc) via dApp Kit instead of Enoki — both supported.
@@ -47,7 +53,7 @@ Optional: connect existing wallet (Slush, Suiet, etc) via dApp Kit instead of En
 
 ## `/cli-login` page (special for hosted)
 
-The CLI's `onemem login` opens browser to `app.onemem.ai/cli-login?nonce=X&port=12340`. This page:
+The CLI's `onemem login` opens browser to `app.onemem.xyz/cli-login?nonce=X&port=12340`. This page:
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -78,9 +84,10 @@ The CLI's `onemem login` opens browser to `app.onemem.ai/cli-login?nonce=X&port=
 ```
 
 On submit:
-1. User signs (Enoki Google flow or wallet)
-2. If first time: build PTB to mint `MemWalAccount` + register first delegate key + create initial `MemoryNamespace` — all in one sponsored tx
-3. Generate Ed25519 delegate key (browser-side)
+1. User connects through Enoki Google flow or an existing wallet.
+2. If no MemWal account is found, the page can create one with wallet approval.
+3. Generate an Ed25519 delegate key browser-side and register its public key
+   on-chain with the connected account.
 4. POST back to `http://localhost:12340/callback` with credentials:
    ```json
    {
@@ -106,11 +113,33 @@ Vercel (default):
 vercel --prod
 # Set env:
 # NEXT_PUBLIC_ENOKI_API_KEY=...
-# NEXT_PUBLIC_RELAYER_URL=https://relayer.memwal.ai
-# NEXT_PUBLIC_SUI_NETWORK=mainnet
-# ENOKI_SERVER_API_KEY=...  (for sponsored-tx server-side)
-# SESSION_SECRET=...
+# NEXT_PUBLIC_ENOKI_GOOGLE_CLIENT_ID=...
+# NEXT_PUBLIC_SUI_NETWORK=testnet
+# ENOKI_PRIVATE_KEY=...  (server-side Enoki key for sponsored transactions)
+# MEMWAL_RELAYER_URL=https://relayer.memwal.ai
+# MEMWAL_PACKAGE_ID=...
+# MEMWAL_REGISTRY_ID=...
+# SUI_NETWORK=testnet
 ```
+
+The Enoki public API key and the Google client ID are different values.
+`NEXT_PUBLIC_ENOKI_API_KEY` is the public Enoki API key from the Enoki project.
+`NEXT_PUBLIC_ENOKI_GOOGLE_CLIENT_ID` is the Google OAuth **Web application**
+client ID from Google Cloud. Configure that Google client with
+`https://app.onemem.xyz` as an Authorized JavaScript origin, then paste the same
+client ID into the Enoki Portal Google auth provider and Vercel production env.
+
+Verify Enoki Google sign-in readiness before claiming the hosted auth flow:
+
+```bash
+pnpm --filter @onemem/hosted-dashboard run enoki:readiness --json \
+  --deployed-status-url https://app.onemem.xyz/api/enoki/status
+```
+
+Use `--strict` when release automation should fail if Google sign-in is not
+fully configured. The check is intentionally broader than "server key exists":
+it requires the public Enoki key, Google client ID, Google auth provider, and
+`https://app.onemem.xyz` allowed origin.
 
 Alternative: Cloudflare Workers (with Next.js on Edge runtime — partial support; verify deps work).
 
@@ -118,15 +147,17 @@ Alternative: Cloudflare Workers (with Next.js on Edge runtime — partial suppor
 
 ## Walrus Sites mirror
 
-Per `walrus-sites-mirror.md`, the hosted deploy ALSO ships to Walrus Sites as a decentralized fallback. Same build artifacts, deployed via `site-builder deploy`. Domain: `onemem.wal.app` or similar.
-
-If `app.onemem.ai` is down: users fall back to the Walrus Sites URL. Same UX, decentralized infrastructure.
+Per `walrus-sites-mirror.md`, the repo currently contains a static public
+verifier shell and deploy preflight for Walrus Sites. A live `site-builder`
+deployment URL and full hosted-dashboard mirror are not yet claimed.
 
 ---
 
 ## Plugin heartbeats (hosted)
 
-Plugins running on user machines post heartbeats to `app.onemem.ai/api/runtimes/heartbeat` with:
+The local dashboard exposes runtime heartbeat APIs. A hosted
+`app.onemem.xyz/api/runtimes/heartbeat` endpoint is not implemented yet; the
+shape below is future hosted work:
 
 ```
 POST /api/runtimes/heartbeat
@@ -137,7 +168,9 @@ Body:
   { runtime: "claude-code", version: "1.2.3", agent_id: "...", namespace_id: "..." }
 ```
 
-Server validates signature against the delegate key. If valid, updates heartbeat timestamp. Dashboard's `/apps` page reads via SWR.
+Future hosted server code would validate the signature against the delegate key
+and update heartbeat timestamp. The current hosted app should not be described
+as already accepting these posts.
 
 For local dashboard: same endpoint at `localhost:4040/api/runtimes/heartbeat`. Plugins detect both and post to whichever is reachable (preferring local if both available).
 
@@ -145,9 +178,10 @@ For local dashboard: same endpoint at `localhost:4040/api/runtimes/heartbeat`. P
 
 ## Session security
 
-- Session cookie HTTP-only + SameSite=Strict + Secure
-- 7-day lifetime; refresh on activity
-- Logout: clear cookie + (optional) revoke delegate key on chain
+- No current server-managed session cookie is implemented.
+- Browser account state comes from Enoki/dApp Kit providers.
+- Capability and delegate-key mutations require wallet approval or hosted
+  sponsored-transaction routes.
 - No password / no Mem0-style API keys at v0.1
 
 ---

@@ -26,7 +26,8 @@ Source-of-truth files:
 - a Codex skill at `skills/onemem-codex/SKILL.md`;
 - optional `SessionStart`, `PostToolUse`, and `Stop` hooks under
   `hooks/hooks.json`;
-- local hook tests that simulate Codex-shaped JSON payloads.
+- local hook tests that simulate Codex-shaped JSON payloads;
+- live trusted hook proof from an interactive Codex session on testnet.
 
 The MCP server gives Codex these OneMem tools:
 
@@ -152,8 +153,8 @@ user must review/trust them with `/hooks` before Codex runs them.
 | Optional plugin hooks | Codex lifecycle and tool-call trace buffering | `/hooks` trust required |
 | Manual MCP config only | Same as MCP tools, without plugin skill/hooks | No plugin install |
 
-Do not claim full Codex trace coverage unless a live Codex session has trusted
-the hooks and verified `SessionStart`, `PostToolUse`, and `Stop` execution.
+Claim full Codex hook trace coverage only for sessions where the optional hooks
+were reviewed/trusted and the resulting OneMem `TraceSession` verifies on-chain.
 
 ---
 
@@ -166,6 +167,21 @@ pnpm --filter @onemem/codex-plugin test
 pnpm --filter @onemem/codex-plugin lint
 pnpm test:structure
 ```
+
+Live trusted hook proof, 2026-06-19:
+
+- Codex CLI: 0.140.0.
+- Installed plugin: `onemem-codex@onemem` v0.1.2 from the local marketplace
+  snapshot for this checkout.
+- Trusted hooks: OneMem `SessionStart`, `PostToolUse`, and `Stop`.
+- Testnet TraceSession:
+  `0x0c88317632dcd386b6f81b94ee510003ba107d3c4bfa035ba8072fca8304e330`.
+- Verification: `onemem --network testnet --json verify
+  0x0c88317632dcd386b6f81b94ee510003ba107d3c4bfa035ba8072fca8304e330`
+  returned `ok: true`, `callCount: 1`, `sessionStatus: 1`,
+  `rootMatches: true`, `countMatches: true`, and agent id `codex`.
+- MCP verification through published `@onemem/mcp@0.6.3` returned `ok: true`
+  with the same computed root.
 
 The unit tests prove:
 
@@ -182,11 +198,10 @@ with `hooks = true`, trusted projects, and `--dangerously-bypass-hook-trust`.
 That makes `codex exec` unsuitable as the live automatic hook proof path for
 this version.
 
-Remaining proof needed before claiming Claude Code parity:
-
-- install through an actual Codex plugin marketplace/local marketplace entry;
-- trust hooks through `/hooks`;
-- run a live Codex session and verify an on-chain OneMem `TraceSession`.
+The former `/hooks` proof gap is closed for the interactive trusted path above.
+The public Git marketplace still needs the patched manifest/hook files committed
+and pushed before the same proof can be repeated from the public repository
+install path.
 
 ---
 

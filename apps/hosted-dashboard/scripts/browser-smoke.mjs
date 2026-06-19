@@ -32,6 +32,7 @@ try {
     await expectMissingSponsorshipConfig(baseUrl);
     await expectMissingShareSponsorshipConfig(baseUrl);
   }
+  const authUi = await readAuthUiConfig(baseUrl);
 
   const browser = await launchBrowser();
   try {
@@ -46,9 +47,9 @@ try {
 
     await page.goto(`${baseUrl}/login`, { waitUntil: "networkidle" });
     await expectText(page, "Sign in", "login title");
-    await expectText(page, "Connect wallet or Google", "login connect button");
+    await expectText(page, authUi.connectText, "login connect button");
     await expectText(page, "No account connected yet", "login disconnected state");
-    await expectText(page, "Enoki Google sign-in is not configured", "login enoki config state");
+    await expectText(page, authUi.statusText, "login enoki config state");
 
     await page.goto(`${baseUrl}/onboarding`, { waitUntil: "networkidle" });
     await expectText(page, "Connect an account", "onboarding account step");
@@ -60,7 +61,7 @@ try {
       waitUntil: "networkidle",
     });
     await expectText(page, "Pair your terminal", "cli-login title");
-    await expectText(page, "Connect wallet or Google", "cli-login connect button");
+    await expectText(page, authUi.connectText, "cli-login connect button");
     await expectText(page, "Device nonce", "cli-login nonce row");
     await expectText(page, "smoke-nonce", "cli-login nonce value");
     await expectText(page, "localhost:12345", "cli-login callback port");
@@ -71,7 +72,9 @@ try {
     await expectText(page, "OneMem Dashboard", "dashboard title");
     await expectText(page, "Connect an account", "dashboard account gate");
     await expectText(page, "public verification work without an account", "dashboard public verify copy");
-    await expectText(page, "Enoki Google sign-in is not configured", "dashboard enoki config state");
+    if (!authUi.publicEnvConfigured) {
+      await expectText(page, "Google sign-in is not enabled", "dashboard enoki config state");
+    }
 
     await page.goto(`${baseUrl}/share`, { waitUntil: "networkidle" });
     await expectText(page, "Share", "share title");
@@ -200,6 +203,23 @@ async function findBrowserExecutable() {
 async function expectText(page, text, label) {
   await page.getByText(text, { exact: false }).first().waitFor({ timeout: 30_000 });
   check(true, label);
+}
+
+async function readAuthUiConfig(url) {
+  const res = await fetch(`${url}/api/enoki/status`);
+  const body = await res.json();
+  check(res.status === 200, "enoki status endpoint reachable");
+  const serialized = JSON.stringify(body);
+  check(!serialized.includes("ENOKI_PRIVATE_KEY="), "enoki status does not leak private key");
+  check(!serialized.includes("ENOKI_SECRET_KEY="), "enoki status does not leak legacy secret key");
+  const publicEnvConfigured = Boolean(body?.publicEnv?.configured);
+  return {
+    publicEnvConfigured,
+    connectText: publicEnvConfigured ? "Connect wallet or Google" : "Connect Sui wallet",
+    statusText: publicEnvConfigured
+      ? "Enoki Google wallets are registered"
+      : "Google sign-in is not enabled",
+  };
 }
 
 async function expectMissingSponsorshipConfig(url) {

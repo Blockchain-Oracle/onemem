@@ -18,7 +18,7 @@ OneMem ships a plugin or MCP integration for every coding-agent runtime users ac
 | `hermes-plugin.md` | `hermes-onemem` PyPI standalone implementing `MemoryProvider` ABC |
 | `codex-cli-integration.md` | `@onemem/codex-plugin` — bundled MCP memory tools plus optional trusted Codex hooks |
 | `mcp-server.md` | `@onemem/mcp` — the universal MCP server (Pillar 6) consumed by Cursor / Windsurf / Cline / OpenCode / VS Code Copilot / Antigravity / Codex |
-| `deferred-runtimes.md` | Per-runtime native plugins still deferred to v0.2+ (currently Antigravity native) |
+| `deferred-runtimes.md` | Native hook ports still deferred until proved (currently Cursor/Windsurf hook ports and Antigravity native) |
 
 ---
 
@@ -29,9 +29,9 @@ OneMem ships a plugin or MCP integration for every coding-agent runtime users ac
 | **Claude Code** | Native plugin + MCP | More slash commands | `../../02-inspirations/claude-mem/` + `../../03-target-runtimes/README.md` |
 | **OpenClaw** | Native plugin (uses `oc-memwal` underneath) | Feature-parity expansion | `../../02-inspirations/memwal-incubation/README.md` |
 | **Hermes Agent** | Standalone PyPI provider | Multi-provider composition | `../../03-target-runtimes/README.md` + `../../../TRACE_AND_PROVIDERS.md` §2 |
-| **Codex CLI** | Native Codex plugin with bundled `@onemem/mcp`; optional trusted hooks | Trusted live hook proof | `../../03-target-runtimes/codex-cli-deep.md` |
-| **Cursor** | Via `@onemem/mcp` | (No native plugin SDK exists) | `../../03-target-runtimes/cursor-mcp-deep.md` |
-| **Windsurf** | Via `@onemem/mcp` | (No native plugin SDK) | (similar to Cursor) |
+| **Codex CLI** | Native Codex plugin with bundled `@onemem/mcp`; optional trusted hooks | Public marketplace push parity for patched hook manifest | `../../03-target-runtimes/codex-cli-deep.md` |
+| **Cursor** | Via `@onemem/mcp`; OneMem hook port pending | Port ClaudeMem `cursor-hooks/` + `CursorHooksInstaller.ts` before claiming auto-capture | `../../03-target-runtimes/cursor-mcp-deep.md` + ClaudeMem source |
+| **Windsurf** | Via `@onemem/mcp`; OneMem hook port pending | Port ClaudeMem `WindsurfHooksInstaller.ts` before claiming auto-capture | ClaudeMem source |
 | **OpenCode** | Via `@onemem/mcp` | TBD | (MCP-capable only) |
 | **Cline** | Via `@onemem/mcp` | TBD | (MCP-capable only) |
 | **VS Code Copilot** | Via `@onemem/mcp` | TBD | (MCP-capable only) |
@@ -52,8 +52,9 @@ Codex's MCP-first plugin + MCP server coverage for the rest).
 6. **Install command must be 1-line.** Repository marketplace install is current
    for Claude/Codex plugin packages, `openclaw plugins install
    @onemem/oc-onemem` is current, and runtime npm/PyPI packages are current
-   after `pnpm registry:status --strict`. Hook automation still needs separate
-   trusted-client on-chain proof.
+   after `pnpm registry:status --strict`. Trusted Claude/Codex hook automation
+   now has 2026-06-19 testnet proof; fresh public marketplace installs need the
+   patched plugin files pushed.
 7. **License: Apache-2.0** (matches claude-mem now that we verified — see `02-inspirations/claude-mem/CLAUDE_MEM_DOCS_TECH.md`).
 
 ---
@@ -64,7 +65,7 @@ The trace pillar (Pillar 1) defines `ActionCall` with PENDING → SUCCESS/FAILUR
 
 | Action | Claude Code | OpenClaw | Hermes | Codex | Cursor/etc (MCP) |
 |---|---|---|---|---|---|
-| Session begins | `SessionStart` → `trace.startSession()` | (no explicit session start; first `agent.turn` triggers it) | `initialize` → `trace.startSession()` | `SessionStart` → `trace.startSession()` | first `add_memory` MCP call lazily creates a session |
+| Session begins | `SessionStart` → `trace.startSession()` | (no explicit session start; first `agent.turn` triggers it) | `initialize` → `trace.startSession()` | `SessionStart` arms local trace state | first `add_memory` MCP call lazily creates a session |
 | Tool call starts | `PreToolUse` → `trace.appendCall(PENDING)` | `agent.turn` → (collect tool calls during turn) | `handle_tool_call` → `trace.appendCall(PENDING)` | no pending-open in current v0.1 hook path | (MCP tools wrap calls themselves; emit on tool entry) |
 | Tool call completes | `PostToolUse` → `trace.closeCall(SUCCESS)` | `agent.response` → `trace.closeCall(SUCCESS)` for each tool call in turn | (on return) → `trace.closeCall(SUCCESS)` | `PostToolUse` buffers completed calls; `Stop` flushes/appends/closes | (MCP tools wrap completion) |
 | Memory write (semantic) | hook intercepts user's explicit memory intent | `agent.response` extracts facts → `client.add()` | `sync_turn` extracts facts → `client.add()` | similar to Claude Code | explicit MCP tool: `add_memory` |
@@ -107,16 +108,17 @@ This is the canonical mapping. Per-runtime docs reference back to this matrix.
 
 | Plugin | Status |
 |---|---|
-| `@onemem/claude-code-plugin` | Built; package tests pass; trusted live hook smoke remains separate proof |
+| `@onemem/claude-code-plugin` | Built; package tests pass; trusted live hook proof complete |
 | `@onemem/oc-onemem` (OpenClaw) | Built; runtime-policy tests pass |
 | `hermes-onemem` (Hermes PyPI) | Built; package tests pass |
 | `@onemem/mcp` (universal MCP server) | Built and JSON-RPC verified |
-| `@onemem/codex-plugin` | Built; package tests pass; live hook proof pending |
+| `@onemem/codex-plugin` | Built; package tests pass; trusted live hook proof complete |
 | Codex via MCP wired | Built through `packages/plugin-codex/.mcp.json` and manual config path |
-| Cursor / Windsurf / Antigravity via MCP docs | Universal MCP path documented; native runtime work deferred |
+| Cursor / Windsurf via MCP docs | Universal MCP path documented; native hook ports deferred until OneMem adapts and proves ClaudeMem-style installers |
+| Antigravity via MCP docs | Universal MCP path documented; native runtime work deferred |
 
-Registry check, 2026-06-18: `@onemem/mcp` and `@onemem/oc-onemem` are current
-on npm. `@onemem/claude-code-plugin` and `@onemem/codex-plugin` are missing on
-npm, and `hermes-onemem@0.2.0` is ahead of PyPI latest `0.1.0`. Keep registry
-publication separate from repository marketplace install and script-level hook
-proof.
+Registry check, 2026-06-19: `pnpm registry:status --strict` reports the npm and
+PyPI runtime packages as current. Keep registry publication separate from
+repository marketplace install and local package tests. Trusted Codex/Claude
+hook proof is recorded in
+`.thoughts/verification/2026-06-19-trusted-runtime-hook-proof.md`.

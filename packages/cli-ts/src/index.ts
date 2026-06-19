@@ -12,8 +12,7 @@ import {
 } from "./commands/namespace.js";
 import { traceEvents, traceGet, traceList } from "./commands/trace.js";
 import { verifyCommand } from "./commands/verify.js";
-
-export const VERSION = "0.1.0";
+import { VERSION } from "./version.js";
 
 export function buildProgram(): Command {
   const program = new Command();
@@ -41,7 +40,7 @@ export function buildProgram(): Command {
   program
     .command("login")
     .description("Pair this terminal with the hosted dashboard (browser approval)")
-    .option("--url <url>", "Dashboard URL (default $ONEMEM_DASHBOARD_URL or app.onemem.ai)")
+    .option("--url <url>", "Dashboard URL (default $ONEMEM_DASHBOARD_URL or app.onemem.xyz)")
     .option("--timeout <seconds>", "How long to wait for browser approval")
     .option("--no-open", "Print the URL instead of opening a browser")
     .action(loginCommand);
@@ -100,4 +99,24 @@ export function buildProgram(): Command {
   return program;
 }
 
-buildProgram().parseAsync(process.argv);
+function isCommanderExit(err: unknown): err is { exitCode: number; message: string } {
+  return (
+    err !== null &&
+    typeof err === "object" &&
+    "exitCode" in err &&
+    typeof (err as { exitCode?: unknown }).exitCode === "number"
+  );
+}
+
+const program = buildProgram();
+program.exitOverride();
+program.parseAsync(process.argv).catch((err: unknown) => {
+  if (isCommanderExit(err)) {
+    if (err.exitCode !== 0 && err.message) process.stderr.write(`${err.message}\n`);
+    process.exitCode = err.exitCode;
+    return;
+  }
+  const message = err instanceof Error ? err.message : String(err);
+  process.stderr.write(`error: ${message}\n`);
+  process.exitCode = 1;
+});

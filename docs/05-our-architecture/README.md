@@ -22,7 +22,7 @@ This folder is the **design phase** of OneMem. Each sub-group is organized per b
 | `04-frameworks/` | Per-framework provider design (Vercel AI, OpenAI Agents, CrewAI, LiveKit, ElevenLabs at v0.1) | After SDKs lock |
 | `05-cli/` | `onemem` CLI design (Node + Python, mirrored commands) | After SDKs lock |
 | `06-dashboard/` | Local + hosted dashboard UI architecture (Next.js, SSE, Radix Themes + dapp-kit) | After SDKs lock |
-| `07-marketing-and-docs/` | `onemem.ai` landing + `docs.onemem.ai` Mintlify | Parallel with dashboard |
+| `07-marketing-and-docs/` | `onemem.xyz` landing + `docs.onemem.xyz` Mintlify | Parallel with dashboard |
 | `08-demos-and-tests/` | The 4 demo apps + e2e test matrix | After everything else is designed |
 | `09-stretch/` | Nautilus TEE + v0.2+ vision (reputation graphs, marketplaces, ERC-8004) | Last; only for the pitch's vision section |
 
@@ -34,12 +34,12 @@ This folder is the **design phase** of OneMem. Each sub-group is organized per b
 |---|---|---|
 | `00-overview/` | Historical design context | Active status now lives in `.thoughts/wiki/` plus current source and CI. |
 | `01-protocol/` | Built + testnet deployed | Move source/tests are live; testnet package v2 is recorded. Mainnet remains pending. |
-| `02-sdks/` | TS/Python built and published | `@onemem/sdk-ts@0.6.0` is current on npm; `onemem-sdk-python@0.2.0` is current on PyPI. |
+| `02-sdks/` | TS/Python built and published | `@onemem/sdk-ts@0.6.2` is current on npm; `onemem-sdk-python@0.2.0` is current on PyPI. |
 | `03-runtimes/` | Built with proof boundaries | MCP/OpenClaw current on npm; Claude/Codex marketplace install works; npm/plugin hook live proof gaps remain explicit. |
 | `04-frameworks/` | Built and published | Provider packages include trace + explicit memory helpers; current npm/PyPI versions match local source. |
 | `05-cli/` | Built and published | TS/Python CLI source and docs are current; `@onemem/cli`, `@onemem/dashboard`, and `onemem-cli` are public registry packages. |
-| `06-dashboard/` | Local/hosted source built | Local and hosted app builds/smokes exist. Hosted DNS deploy and Walrus Sites mirror remain external deploy evidence. |
-| `07-marketing-and-docs/` | Partial current docs | `apps/docs` and landing source exist; public domain deployment remains separate. |
+| `06-dashboard/` | Local/hosted source built | Local and hosted app builds/smokes exist. `app.onemem.xyz` is live; Walrus Sites live URL/full mirror remain pending. |
+| `07-marketing-and-docs/` | Partial current docs | `onemem.xyz` is live. `apps/docs` source exists; `docs.onemem.xyz` deployment proof remains pending. |
 | `08-demos-and-tests/` | Executable demos + CI matrix | Four safe testnet demo harnesses and deterministic demo matrix are built. |
 | `09-stretch/` | Deferred | Nautilus/TEE and v0.2+ marketplace/reputation work remain stretch scope. |
 

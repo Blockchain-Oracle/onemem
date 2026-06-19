@@ -1,10 +1,10 @@
 "use client";
 
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useHostedAuthConfig } from "@/components/HostedProviders";
 import { Icon } from "@/components/Icon";
-import { saveHostedProvisioningState } from "@/lib/hosted-state";
+import { loadHostedProvisioningState, saveHostedProvisioningState } from "@/lib/hosted-state";
 import { type ProvisioningResult, SponsoredProvisioning } from "./SponsoredProvisioning";
 
 const RUNTIMES: Array<[string, string]> = [
@@ -21,6 +21,20 @@ function shortAddress(address: string): string {
   return `${address.slice(0, 10)}...${address.slice(-6)}`;
 }
 
+function resultFromStoredState(
+  state: ReturnType<typeof loadHostedProvisioningState>,
+): ProvisioningResult | null {
+  if (!state) return null;
+  return {
+    network: state.network,
+    namespaceId: state.namespaceId,
+    adminCapId: state.adminCapId,
+    rwCapId: state.rwCapId,
+    namespaceDigest: state.namespaceDigest,
+    rwCapDigest: state.rwCapDigest,
+  };
+}
+
 export default function OnboardingPage() {
   const account = useCurrentAccount();
   const authConfig = useHostedAuthConfig();
@@ -28,7 +42,24 @@ export default function OnboardingPage() {
   const [runtime, setRuntime] = useState(0);
   const [provisioned, setProvisioned] = useState<ProvisioningResult | null>(null);
   const steps = ["Account", "Runtime", "Provision", "Verify", "Done"];
-  const canAdvance = step !== 0 || account !== null;
+  const canAdvance =
+    (step === 0 && account !== null) ||
+    step === 1 ||
+    (step === 2 && provisioned !== null) ||
+    step === 3;
+
+  useEffect(() => {
+    if (!account) {
+      setProvisioned(null);
+      return;
+    }
+
+    setProvisioned(
+      resultFromStoredState(
+        loadHostedProvisioningState(account.address, authConfig.defaultNetwork),
+      ),
+    );
+  }, [account, authConfig.defaultNetwork]);
 
   function rememberProvisioning(result: ProvisioningResult) {
     setProvisioned(result);
@@ -71,7 +102,12 @@ export default function OnboardingPage() {
                 Google sign-in when this deployment has public Enoki config.
               </p>
               <div style={{ marginTop: 14 }}>
-                <ConnectButton className="auth-btn" connectText="Connect wallet or Google" />
+                <ConnectButton
+                  className="auth-btn"
+                  connectText={
+                    authConfig.enokiConfigured ? "Connect wallet or Google" : "Connect Sui wallet"
+                  }
+                />
               </div>
               <div className={`verify-mini ${account ? "ok" : ""}`} style={{ marginTop: 14 }}>
                 <span className="vm-ic">
@@ -93,10 +129,7 @@ export default function OnboardingPage() {
                   <span className="vm-ic">
                     <Icon name="info" size={16} />
                   </span>
-                  <span>
-                    Enoki Google sign-in is not configured in this build. Missing{" "}
-                    <span className="mono">{authConfig.enokiMissing.join(", ")}</span>.
-                  </span>
+                  <span>Google sign-in is not enabled yet. Use a Sui wallet to continue.</span>
                 </div>
               ) : null}
             </>
@@ -134,10 +167,46 @@ export default function OnboardingPage() {
                 The browser signs sponsored Sui transactions; the server keeps the Enoki private key
                 off the client.
               </p>
-              <SponsoredProvisioning
-                sender={account?.address ?? null}
-                onProvisioned={rememberProvisioning}
-              />
+              {provisioned ? (
+                <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+                  <div className="verify-mini ok">
+                    <span className="vm-ic">
+                      <Icon name="check" size={16} />
+                    </span>
+                    <span>
+                      Already provisioned on {provisioned.network}. Continue with this namespace, or
+                      create a new one only if you intentionally need a separate hosted setup.
+                    </span>
+                  </div>
+                  <div className="receipt">
+                    <div className="rcp-row">
+                      <span className="rk">Namespace</span>
+                      <span className="rv mono">{shortAddress(provisioned.namespaceId)}</span>
+                    </div>
+                    <div className="rcp-row">
+                      <span className="rk">Admin cap</span>
+                      <span className="rv mono">{shortAddress(provisioned.adminCapId)}</span>
+                    </div>
+                    <div className="rcp-row">
+                      <span className="rk">ReadWrite cap</span>
+                      <span className="rv mono">{shortAddress(provisioned.rwCapId)}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setProvisioned(null)}
+                    style={{ justifyContent: "center" }}
+                  >
+                    Provision a new namespace
+                  </button>
+                </div>
+              ) : (
+                <SponsoredProvisioning
+                  sender={account?.address ?? null}
+                  onProvisioned={rememberProvisioning}
+                />
+              )}
             </>
           )}
           {step === 3 && (
@@ -191,7 +260,7 @@ export default function OnboardingPage() {
                   </div>
                 </div>
               ) : null}
-              <a className="btn btn-primary" href="http://localhost:4040" style={{ marginTop: 16 }}>
+              <a className="btn btn-primary" href="/dashboard" style={{ marginTop: 16 }}>
                 Open dashboard
               </a>
             </div>

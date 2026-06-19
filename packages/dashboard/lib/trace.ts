@@ -26,11 +26,16 @@ export function hex(bytes: number[] | Uint8Array | undefined, len = 0): string {
   return len > 0 ? full.slice(0, len + 2) : full;
 }
 
-function client(): { rpc: SuiJsonRpcClient; packageId: string } {
+function client(): { rpc: SuiJsonRpcClient; packageId: string; eventPackageId: string } {
   const addr = addressesFor(NETWORK);
   return {
     rpc: new SuiJsonRpcClient({ network: NETWORK, url: addr.rpcUrl }),
     packageId: addr.packageId,
+    // Events + objects retain the ORIGINAL package id in their type after an
+    // on-chain package upgrade, so event-type queries MUST use originalPackageId.
+    // Mirrors cli-ts/src/util/sui.ts:23. Without this the list/overview reads come
+    // back empty after an upgrade while per-session verify still works.
+    eventPackageId: addr.originalPackageId || addr.packageId,
   };
 }
 
@@ -195,9 +200,9 @@ function optParentId(value: unknown): string | null {
 }
 
 export async function fetchRecentSessions(limit = 25): Promise<SessionListItem[]> {
-  const { rpc, packageId } = client();
+  const { rpc, eventPackageId } = client();
   const page = await rpc.queryEvents({
-    query: { MoveEventType: `${packageId}::${SESSION_OPENED}` },
+    query: { MoveEventType: `${eventPackageId}::${SESSION_OPENED}` },
     limit,
     order: "descending",
   });

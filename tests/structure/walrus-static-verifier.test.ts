@@ -13,6 +13,7 @@ interface NetworksJson {
   networks: {
     testnet: {
       package_id: string;
+      original_package_id: string;
       rpc_url: string;
       suiscan_base: string;
     };
@@ -48,7 +49,7 @@ describe("Walrus Sites static verifier", () => {
     assert.match(app, /fetchEvents\(\{ \.\.\.network, packageId: session\.packageId \}/);
     assert.match(app, /location\.pathname\.match/);
     assert.match(app, /pathSession/);
-    assert.match(app, new RegExp(networks.networks.testnet.package_id));
+    assert.match(app, new RegExp(networks.networks.testnet.original_package_id));
     assert.match(app, new RegExp(networks.networks.testnet.rpc_url.replaceAll(".", "\\.")));
     assert.doesNotMatch(app, /packageId: ""[\s\S]*enabled: true/);
   });

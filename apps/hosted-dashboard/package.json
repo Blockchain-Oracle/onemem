@@ -1,8 +1,8 @@
 {
   "name": "@onemem/hosted-dashboard",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "private": true,
-  "description": "app.onemem.ai — hosted Enoki-authenticated wrapper around @onemem/dashboard + public /verify/[session_id] page",
+  "description": "app.onemem.xyz — hosted Enoki-authenticated wrapper around @onemem/dashboard + public /verify/[session_id] page",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
@@ -11,10 +11,12 @@
     "dev": "next dev -p 3001",
     "test": "vitest run --passWithNoTests --pool=forks --poolOptions.forks.minForks=1 --poolOptions.forks.maxForks=1",
     "browser:smoke": "node scripts/browser-smoke.mjs",
+    "enoki:readiness": "node scripts/check-enoki-readiness.mjs",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@next/env": "^15.5.18",
     "@mysten-incubation/memwal": "^0.0.7",
     "@mysten/dapp-kit": "^0.16.0",
     "@mysten/enoki": "^0.6.0",

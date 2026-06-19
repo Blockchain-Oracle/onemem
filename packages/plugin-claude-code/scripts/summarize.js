@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// OneMem Claude Code plugin — SessionEnd hook.
+// OneMem Claude Code plugin — Stop hook.
 // Flushes the buffered tool calls into the OneMem TraceSession (each as a
 // Seal-encrypted, Walrus-stored, Merkle-chained ActionCall) and closes the
 // session — producing one verifiable on-chain trace per Claude session.
@@ -8,9 +8,9 @@
 import {
   clearBufferedToolCalls,
   clearSessionState,
-  drainToolCalls,
   loadClient,
   loadConfig,
+  postWorker,
   readBufferedToolCalls,
   readHookInput,
   readSessionState,
@@ -22,8 +22,11 @@ const enc = (v) => new TextEncoder().encode(typeof v === "string" ? v : JSON.str
 async function main() {
   const input = await readHookInput();
   const claudeSessionId = input.session_id;
+  if (!claudeSessionId) return;
+  await postWorker("/api/sessions/end", { id: claudeSessionId, endedAt: Date.now() });
+
   const config = loadConfig();
-  if (!config || !claudeSessionId) return;
+  if (!config) return;
 
   const state = readSessionState(claudeSessionId);
   if (!state) return;
@@ -36,7 +39,6 @@ async function main() {
 
   const onemem = await loadClient(config);
   if (!onemem) return;
-  drainToolCalls(claudeSessionId);
 
   // Flush each buffered tool call as a verifiable ActionCall.
   const { CallStatus, SessionStatus } = await import("@onemem/sdk-ts");
@@ -71,6 +73,8 @@ async function main() {
   process.stderr.write(
     `[onemem] flushed ${calls.length} call(s) → verifiable session ${state.onememSessionId}\n`,
   );
+  clearBufferedToolCalls(claudeSessionId);
+  clearSessionState(claudeSessionId);
 }
 
 main()

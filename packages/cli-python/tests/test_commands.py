@@ -33,7 +33,7 @@ def patched(monkeypatch: pytest.MonkeyPatch):
         def __exit__(self, *_):
             return False
 
-    monkeypatch.setattr(main, "_ctx", lambda _n: (FakeRpc(), "0xpkg"))
+    monkeypatch.setattr(main, "_ctx", lambda _n: (FakeRpc(), "0xcurrent", "0xoriginal"))
     monkeypatch.setattr(
         main, "fetch_trace_session", lambda *_: {"agent_id": "a", "environment": "e"}
     )
@@ -64,14 +64,18 @@ def test_failed_verification_json_emits_single_object(monkeypatch, patched):
 
 
 def test_successful_verification_exits_0(monkeypatch, patched):
+    seen: list[str] = []
     monkeypatch.setattr(
         main,
         "verify_session",
-        lambda *_: FakeResult(True, None, b"\x02", b"\x02", 2, 1),
+        lambda _rpc, package_id, _session_id: (
+            seen.append(package_id) or FakeResult(True, None, b"\x02", b"\x02", 2, 1)
+        ),
     )
     res = CliRunner().invoke(main.cli, ["verify", "0xsess"])
     assert res.exit_code == 0
     assert "✓ VERIFIED" in res.output
+    assert seen == ["0xoriginal"]
 
 
 def test_missing_session_errors_not_false_verified(monkeypatch, patched):

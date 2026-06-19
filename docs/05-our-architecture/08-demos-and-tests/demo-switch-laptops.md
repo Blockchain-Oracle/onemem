@@ -55,7 +55,7 @@ Narrator: "Cross-runtime. Cross-device. Cryptographically provable.
            Built on Walrus + Sui + Seal + MemWal."
 
 [1:25 — Demo card with brand + URL]
-"OneMem · onemem.ai"
+"OneMem · onemem.xyz"
 [End]
 ```
 

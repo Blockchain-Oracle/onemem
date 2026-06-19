@@ -1,19 +1,9 @@
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { RuntimeLogo } from "@/components/RuntimeLogo";
 import { fetchRecentSessions, NETWORK } from "@/lib/trace";
 
 export const dynamic = "force-dynamic";
-
-const RT_ICON: Record<string, string> = {
-  hermes: "cube",
-  "openai-agents": "bolt",
-  crewai: "branch",
-  livekit: "apps",
-  elevenlabs: "apps",
-  "vercel-ai": "bolt",
-  openclaw: "branch",
-  "claude-code": "bolt",
-};
 
 export default async function OverviewPage() {
   let sessions: Awaited<ReturnType<typeof fetchRecentSessions>> = [];
@@ -66,14 +56,12 @@ export default async function OverviewPage() {
           <div className="sub">distinct environments</div>
         </div>
         <div className="card stat-card">
-          <div className="k" style={{ color: "var(--verify)" }}>
+          <div className="k">
             <Icon name="shield" />
-            Verifiable
+            On-chain
           </div>
-          <div className="v" style={{ color: "var(--verify)" }}>
-            {sessions.length}
-          </div>
-          <div className="sub">Merkle-chained</div>
+          <div className="v">{sessions.length}</div>
+          <div className="sub">anchored · verify per session</div>
         </div>
         <div className="card stat-card">
           <div className="k">
@@ -110,8 +98,12 @@ export default async function OverviewPage() {
                 <Link key={s.sessionId} className="act-row" href={`/trace/${s.sessionId}`}>
                   <span className="t mono">{`${s.sessionId.slice(0, 8)}…`}</span>
                   <div className="a">
-                    <span className="ic-st st-ok">
-                      <Icon name="checkCircle" size={16} />
+                    <span className="ic-st">
+                      <RuntimeLogo
+                        id={s.environment || s.agentId || "unknown"}
+                        icon="sessions"
+                        size={16}
+                      />
                     </span>
                     <span style={{ minWidth: 0 }}>
                       <span className="nm">{s.agentId || "agent"}</span>
@@ -144,7 +136,7 @@ export default async function OverviewPage() {
                   }}
                 >
                   <span className="rt-logo">
-                    <Icon name={RT_ICON[name] ?? "cube"} size={16} />
+                    <RuntimeLogo id={name} name={name} icon="cube" size={16} />
                   </span>
                   <span style={{ flex: 1 }} className="nm">
                     {name}

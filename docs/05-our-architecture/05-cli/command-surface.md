@@ -99,7 +99,7 @@ Options:
 
 | Flag | Description |
 |---|---|
-| `--url <url>` | Dashboard URL. Defaults to `$ONEMEM_DASHBOARD_URL` or `https://app.onemem.ai`. |
+| `--url <url>` | Dashboard URL. Defaults to `$ONEMEM_DASHBOARD_URL` or `https://app.onemem.xyz`. |
 | `--timeout <seconds>` | Callback wait timeout. |
 | `--no-open` | Print the pairing URL instead of opening a browser. |
 

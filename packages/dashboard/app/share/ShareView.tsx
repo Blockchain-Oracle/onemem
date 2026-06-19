@@ -60,8 +60,8 @@ export function ShareView({
   const [sessionId, setSessionId] = useState("");
   const [mode, setMode] = useState<ShareMode>("Owner");
   const link = sessionId.trim()
-    ? `https://app.onemem.ai/verify/${sessionId.trim()}`
-    : "https://app.onemem.ai/verify/<session-id>";
+    ? `https://app.onemem.xyz/verify/${sessionId.trim()}`
+    : "https://app.onemem.xyz/verify/<session-id>";
   const commandNamespace = namespaceId ?? "<namespace-id>";
   const commandAdminCap = adminCapId ?? "<admin-cap-id>";
   const shareCommand = `onemem namespace share ${commandNamespace} <recipient-address> --cap ReadOnly --admin-cap ${commandAdminCap}`;

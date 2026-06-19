@@ -44,7 +44,8 @@ class OneMem:
 
     def verify_session(self, session_id: str) -> VerifyResult:
         """Off-chain Merkle verification of a trace session (see traces.verify_session)."""
-        return verify_session(self.rpc, self.addresses.package_id, session_id)
+        package_id = self.addresses.original_package_id or self.addresses.package_id
+        return verify_session(self.rpc, package_id, session_id)
 
     def close(self) -> None:
         self.rpc.close()

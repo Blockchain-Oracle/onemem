@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://onemem.ai"
+Homepage = "https://onemem.xyz"
 
 [build-system]
 requires = ["hatchling"]

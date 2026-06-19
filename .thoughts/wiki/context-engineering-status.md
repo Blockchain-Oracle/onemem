@@ -92,8 +92,10 @@ Codex Memory Plugin is the seventh implemented runtime slice. The repo now has
 Codex skill, and optional `SessionStart`/`PostToolUse`/`Stop` hooks. A temporary
 `CODEX_HOME` install proof passed through `codex plugin marketplace add` and
 `codex plugin add`. MCP memory/search/verify is the stable baseline; full
-automatic Codex tool-call trace coverage remains pending until a live Codex
-`/hooks` trust/session proof exists.
+automatic Codex tool-call trace coverage is now proven for an interactive
+trusted hook session on testnet:
+`0x0c88317632dcd386b6f81b94ee510003ba107d3c4bfa035ba8072fca8304e330`.
+`codex exec` remains unsuitable as the hook-proof path on Codex CLI 0.140.0.
 
 Plugin Marketplace Publication Readiness updates that runtime slice: the Codex
 marketplace is now named `onemem`, the production selector is
@@ -124,8 +126,9 @@ runtime policy before buffering, opening sessions, or flushing content. Claude
 hook helpers now support isolated state directories and preserve buffers on
 client setup failure. Dashboard runtime metadata can now mark all current
 first-party runtime capture paths as enforced. Live trusted Claude/Codex hook
-sessions remain separate smoke proof; the closed follow-up here is script-level
-runtime-control enforcement covered by local tests.
+sessions were later proven in the trusted runtime hook proof slice; the closed
+follow-up here is script-level runtime-control enforcement covered by local
+tests.
 
 Grouped Session Replay Export is the tenth implemented prototype delta.
 Dashboard `/sessions` groups now expose a Replay/export action backed by
@@ -447,9 +450,9 @@ plugin keeps MCP as the stable installable layer and uses an empty
 `SessionStart` matcher for optional hooks. Package and runtime docs now state
 that `SessionStart` arms local trace state while `Stop` flushes buffered calls
 through the trace CLI. Local Codex CLI 0.140 `codex exec` proof attempts did not
-execute user-level or plugin hooks, so full automatic Codex hook tracing remains
-unclaimed until a trusted interactive `/hooks` session emits a verifiable
-on-chain OneMem `TraceSession`.
+execute user-level or plugin hooks. This historical boundary is superseded by
+the sixtieth trusted runtime hook proof slice, where an interactive trusted
+Codex session emitted a verifiable on-chain OneMem `TraceSession`.
 
 Release Preflight Auth Diagnostics is the forty-fourth release-readiness slice.
 `pnpm release:preflight` now reports npm/PyPI packages needing publication and
@@ -524,21 +527,271 @@ configured for future release workflow runs.
 
 Vercel Public Deployment is the fifty-first deployment-readiness slice. The
 landing and hosted-dashboard Vercel projects are linked under
-`blockchain-oracles-projects`, SSO deployment protection is disabled, and both
-production aliases return public HTTP 200:
-`https://onemem-landing.vercel.app` and
-`https://onemem-hosted-dashboard.vercel.app`. Landing CTAs now route to the
-hosted dashboard instead of `localhost`, root `prepare` skips Lefthook outside a
-git worktree for Vercel builds, Turbo declares Vercel build env inputs, and the
-dashboard Next config uses stable `typedRoutes`. Chrome verified landing,
-hosted home, and the real testnet public verifier route with no console errors.
-Vercel accepted `onemem.xyz` for landing and `app.onemem.xyz` for hosted
-dashboard, but both require DNS changes before they are live:
-`A onemem.xyz 76.76.21.21` and `A app.onemem.xyz 76.76.21.21`, or Vercel
-nameservers. Remaining boundaries: custom DNS is not verified, docs hosting is
-not deployed, and hosted wallet sign-in is not ready because Enoki auth
-providers/origins are not configured even though `/api/enoki/status` reports the
-private key valid.
+`blockchain-oracles-projects`, SSO deployment protection is disabled, and the
+custom domains are live through Cloudflare: `https://onemem.xyz` and
+`https://app.onemem.xyz` both return HTTP 200 with Vercel headers. Landing
+production env `NEXT_PUBLIC_ONEMEM_APP_URL` now points to
+`https://app.onemem.xyz`, and live landing HTML no longer points CTA traffic at
+the Vercel project URL. Final production deployments are
+`dpl_7QVMXfRcGiH4nTus31KWUBCYNbHK` for landing and
+`dpl_BtEdipDexSrxYPgYniqWiJ7ZGvU7` for hosted-dashboard.
+
+The hosted dashboard hub now links only to routes served by the hosted shell:
+`/dashboard`, `/share`, `/onboarding`, `/login`, and a real public verifier
+sample. The previous `/dashboard` cards to root-level `/memories`, `/sessions`,
+`/apps`, and `/settings` were live 404s and are fixed with a structure guard.
+Chrome verified landing, hosted dashboard, login, and the real testnet public
+verifier with clean fresh app console logs. The public login/dashboard copy no
+longer exposes raw `NEXT_PUBLIC_*` env names. A later Chrome pass with Slush
+configured confirmed production `/dashboard` and `/onboarding` can see connected
+account `0x93b37bc1...d119d6`, and `/api/onboarding/sponsored/prepare` returns
+a real testnet namespace-create transaction. The live onboarding proof remains
+pending at the Slush `sign-transaction` prompt because browser automation cannot
+control `chrome-extension://` pages directly. Remaining boundaries: docs hosting
+is not deployed, hosted Google sign-in is now ready after the Enoki public key,
+Google OAuth client ID, allowed origins, and Enoki Google provider were
+configured, and wallet-signed onboarding/share/CLI/revoke proofs must finish
+through manual Slush approvals before being claimed complete.
+
+Hosted Sui Upgrade Type Parser is the fifty-third production fix slice. The
+hosted onboarding error
+`transaction did not create expected object type ...::MemoryNamespace` was traced
+to a Sui package-upgrade ID split: Move calls target current package
+`0xc2e839...`, but created object and event type strings use original package
+`0x64c14f...`. `config/networks.json`, generated TS/Python address artifacts,
+SDK namespace/trace/memory readers, hosted sponsored provisioning, future
+deploy/migrate scripts, and the static verifier now carry/use
+`originalPackageId` where type strings require it. Production deployment
+`dpl_697kAYJWnJQteUYXURrcTYj3foSA` is live on `https://app.onemem.xyz`. The same
+slice also hardened hosted onboarding UX: Continue is disabled until real
+namespace/Admin/RW IDs exist, and `Cancel wallet request` invalidates stale
+signing runs so late approvals cannot overwrite the active page. Regression
+gates pass, including hosted tests/build/typecheck, SDK tests/build/typecheck,
+CLI tests/build/typecheck, Python SDK tests, and 432/432 structure tests. Live
+Chrome verification on production saw connected wallet `0x93b37bc1...d119d6`,
+disabled Continue with empty receipts, one cancel button while provisioning, no
+app console errors, and a clean idle cancel message. Live chain evidence shows
+namespace-create transactions succeed under original package object types; the
+remaining end-to-end wallet proof is a fresh manual Slush approval for
+namespace-create plus the following ReadWrite-capability mint.
+
+Hosted Sui Parser Semantic Fallback is the fifty-fourth production fix slice.
+After the user saw the namespace-create parser error again, Vercel logs showed
+no fresh 502 on the current deployment, and chain inspection confirmed recent
+namespace-create object changes use original package type strings. The hosted
+parser now matches exact expected object types first, then narrowly falls back
+to the OneMem `MemoryNamespace` and `NamespaceCapability<T>` Move type shapes if
+package IDs drift. Parser failures now include observed created object types.
+The regression failed before the fix and passed after it. Hosted dashboard
+typecheck/build, hosted tests, and 433/433 structure tests pass. Production
+deployment `dpl_EfEcJ5xcTVUEeQwGkKFEpV6x9nMg` is live on
+`https://app.onemem.xyz`, with `/`, `/login`, `/onboarding`, `/dashboard`,
+`/share`, and `/api/enoki/status` returning HTTP 200. Full wallet onboarding is
+still not claimed until Slush manually approves namespace-create and the
+following ReadWrite-capability mint.
+
+Production User Flow Audit and Onboarding Saved-State Reuse is the fifty-fifth
+production readiness slice. The live custom domains are active, route checks
+return HTTP 200 for the hosted shell, and `vercel inspect app.onemem.xyz`
+confirms production deployment `dpl_5ntGx66kHTKGdqXLeSnofvsutX98` is aliased to
+`https://app.onemem.xyz`. Chrome verification on production showed the connected
+Slush account `0x93b37bc1...d119d6`, hosted dashboard state for namespace
+`0x1363c4b1...5e23f9`, and onboarding now rendering "Already provisioned on
+testnet" with namespace/Admin/ReadWrite receipts instead of immediately pushing
+the user into another namespace-create mutation. The share view also reads the
+same saved Admin and ReadWrite capability history, and the public verifier still
+renders a verified trace. Structure coverage now enforces hosted onboarding
+saved-state reuse and no localhost completion link. Hosted typecheck, hosted
+tests, hosted build, focused structure tests, and 440/440 structure tests pass.
+The honest boundary remains unchanged: Enoki Google sign-in is still
+unconfigured, and fresh wallet side-effect proofs need manual Slush approval.
+
+Hosted CLI Login Cancel Guard is the fifty-sixth production readiness slice. A
+real temporary `onemem login --no-open` pairing was opened against
+`https://app.onemem.xyz/cli-login`; Chrome saw connected Slush wallet
+`0x93b37bc1...d119d6`, active namespace `0x1363c4b1...5e23f9`, and after the
+MemWal account existed, MemWal account `0x76bf026a4d...e2940b04`. The CLI page
+previously had no app-side escape hatch while wallet registration was pending.
+It now uses an `activeRunRef` stale-request guard, exposes `Cancel wallet
+request` during account/delegate wallet requests, returns to idle after cancel,
+and ignores late approvals from the old request. Production deployment
+`dpl_GXYFnN5DvQdMPCP3Ly3h75z92Xf2` is live on `https://app.onemem.xyz`. Hosted
+typecheck, hosted tests, hosted build, focused structure, and full 440/440
+structure tests pass. A follow-up default-browser `onemem login` rerun opened
+Chrome for `/cli-login?nonce=51d21ce24dfcdc8dd8caf2a82e1af911&port=52119`,
+Slush approved the delegate registration transaction, the hosted page rendered
+"Pairing complete", and the CLI persisted validated credentials under an
+isolated temp HOME. That temp HOME was removed after sanitized inspection so the
+delegate private key is not left on disk. CLI memory search still requires
+`ONEMEM_EMBEDDING_API_KEY`; the CLI now reports that boundary without falsely
+listing `MEMWAL_PACKAGE_ID` when the login credential already contains it. CLI
+lint, tests, typecheck, and build pass after that message fix.
+
+Production Enoki Diagnostic and UI Re-Audit is the fifty-seventh production
+readiness slice. The hosted `/api/enoki/status` endpoint no longer points users
+at a fake `enoki_public_*` placeholder. It now reports the actual missing public
+env vars (`NEXT_PUBLIC_ENOKI_API_KEY`,
+`NEXT_PUBLIC_ENOKI_GOOGLE_CLIENT_ID`), required origin
+`https://app.onemem.xyz`, missing origins, and Google-provider presence. Vercel
+production deployment `dpl_6eymTySQEppgozZprPNxvNGjjfqY` is live and aliased to
+`https://app.onemem.xyz`; live route checks returned HTTP 200 for `/`,
+`/login`, `/dashboard`, `/onboarding`, `/share`, and `/api/enoki/status`.
+Chrome audits found no `vercel.app`, `localhost`, or `127.0.0.1` anchors on the
+public landing or hosted app pages; `/login`, `/dashboard`, `/onboarding`,
+`/share`, and the sample public verifier rendered without OneMem console
+errors. Onboarding still reuses saved testnet namespace/Admin/ReadWrite state,
+and share history loads 2/2 active capabilities. Hosted typecheck, hosted
+tests, hosted build, focused structure, and full 441/441 structure tests pass.
+The previous Enoki Google sign-in boundary is now closed: Vercel production has
+the Google OAuth Web client ID, the Enoki Portal has the Google auth provider,
+and the live readiness endpoint reports `signInReady: true`.
+
+Enoki Readiness Preflight is the fifty-eighth production readiness slice. The
+repo now has `apps/hosted-dashboard/scripts/check-enoki-readiness.mjs` exposed
+through `pnpm --filter @onemem/hosted-dashboard run enoki:readiness`. The
+preflight reads local env without printing secret values, checks the Enoki app
+metadata through the server private key, optionally compares the deployed
+`/api/enoki/status` endpoint, and supports `--strict` for release automation.
+On 2026-06-19 the local `.env` contains `ENOKI_PRIVATE_KEY` with owner-only file
+permissions, and the preflight reaches Enoki metadata. After the Enoki portal
+origin update, both local metadata and deployed `/api/enoki/status` report
+allowed origins `https://onemem.xyz` and `https://app.onemem.xyz`, with
+`missingOrigins: []`. The Enoki public API key was then added to local `.env`
+and Vercel production, and deployment `dpl_6idCiYDeEKhZYehoXKzwEfGFbDJL` was
+promoted on `https://app.onemem.xyz`. The Google OAuth Web client ID was later
+added to local `.env` and Vercel production, and deployment
+`dpl_TwJBMCFqT1gm82wEXi4JHdN3zMG9` was promoted on `https://app.onemem.xyz`.
+Live `/api/enoki/status` now reports `publicEnv.configured: true`,
+`missingOrigins: []`, `hasGoogleProvider: true`, `authProviders: 1`, and
+`signInReady: true`. The strict readiness preflight passes against both local
+metadata and the deployed status endpoint. Chrome live check of
+`https://app.onemem.xyz/login` shows Enoki Google wallets registered for testnet,
+does not show the Google-disabled copy, and has no browser console errors.
+Hosted lint, typecheck, tests, build, focused plugin/app structure, and full
+443/443 structure tests pass. The CLI login page was split into a local
+`model.ts` helper to keep source files under the 400-line cap without changing
+behavior. Chrome reached Google Cloud Console sign-in for the active `gcloud`
+project `project-9105c0b4-dfc1-4ee7-b22`; OAuth client creation was later
+completed by the user outside this session and the resulting client ID is now
+configured in OneMem env and Enoki.
+
+Brand and Video Context Engineering is the fifty-second launch-readiness slice.
+The brand package now contains the cream-first static campaign kit, OG/social
+assets, vendor logo inventory, HyperFrames emotional intro renders, Remotion
+dashboard-capture demo renders, and darker 30-second Remotion launch-mode cuts
+for X/social at `packages/brand/video/onemem-demo/renders/onemem-launch-30s.mp4`,
+`packages/brand/video/onemem-demo/renders/onemem-launch-square-30s.mp4`, and
+`packages/brand/video/onemem-demo/renders/onemem-launch-vertical-30s.mp4`.
+The launch cut was benchmarked against downloaded AgentCard, Circle,
+Triton/Seal, and Sui X reference videos, uses a package-local audio headroom
+pass after render, includes generated intro and launch handoffs with probed MP4
+metadata and social copy, a package-local designer/ChatGPT brand brief, a
+generated media-kit index and static visual gallery for designers/agents, a
+final-video producer brief/spec that separates current cuts from live proof and
+keeps WASI/Nautilus/TEE as future/stretch unless proven, plus a live-proof
+intake validator, manifest template, generated shot-by-shot
+recording runbook, generated recording-pack/readiness handoff, a live-proof
+operator command for readiness/capture/hash flow, non-mutating recording preflight,
+strict live-footage preparation step with per-clip MP4 SHA-256 validation, and
+canonical Sui ID/base58 digest validation, Sui RPC existence validation, and
+dedicated live-proof Remotion
+compositions for the final recording pass. It uses
+`onemem.xyz`,
+`docs.onemem.xyz`, and `x.com/OneMemAI`, keeps OpenClaw spelling, and stays
+memory-first. The honest boundary remains: the current demo footage is
+dashboard trace-page capture backed by checked-in testnet trace artifacts, not
+fresh live proof of physical laptop switching, a wallet transfer, live web
+research, or runtime hooks.
+
+End-to-End Production Readiness Verification is the fifty-ninth readiness
+slice. The active 2026-06-19 audit now has current evidence across production
+configuration, local dashboard UI, hosted dashboard UI, CLI, SDK, MCP baseline,
+plugins, providers, Python packages, Move contracts, registry state, and repo
+structure. A live SDK blocker was found and fixed in source:
+`@mysten/seal` rejects upgraded package objects for Seal identities, so the
+TypeScript SDK now uses `originalPackageId` for Seal encryption/session keys,
+the current package for `seal_policy::seal_approve`, and the original package
+for capability type identity. The full live SDK integration passes on testnet:
+canonical verify, fresh namespace/session/calls, real Walrus tool I/O, and Seal
+encrypt -> Walrus store -> cap-holder decrypt. The Walrus failure was diagnosed
+honestly: the test signer needed current WAL/SUI balance management; a minimal
+Walrus write/read succeeded before the full SDK integration rerun. A production
+release blocker was then found and closed: the old
+`npm exec --yes --package @onemem/cli@0.1.0 -- onemem --version` path failed
+because the published `@onemem/sdk-ts@0.6.0` runtime artifact did not export
+`resolveMemoryConfigFromSources`. `scripts/check-release-preflight.py` now
+checks the SDK runtime tarball for that marker, and the current npm publication
+line is live: `@onemem/sdk-ts@0.6.3`, `@onemem/cli@0.6.3`,
+`@onemem/mcp@0.6.3`, `@onemem/codex-plugin@0.1.2`,
+`@onemem/claude-code-plugin@0.1.1`, `@onemem/dashboard@0.1.4`,
+`@onemem/oc-onemem@0.2.5`,
+`@onemem/openai-agents@0.1.5`, and `@onemem/vercel-ai-provider@0.1.4`.
+`npm exec --yes --package @onemem/cli@0.6.3 -- onemem --version` prints
+`0.6.3`, and a temporary public pack/install inspection of
+`@onemem/sdk-ts@0.6.3` confirms the dynamic trace chunk required by the hook
+flush path is present. The registry/preflight scripts now retry
+transient HTTP fetch failures after PyPI timeouts produced changing
+false-positive package errors. Current `pnpm registry:status --strict` reports
+every npm and PyPI version current, and `pnpm release:preflight --strict
+--timeout 30` exits 0 with all checked artifact markers present. Local
+publishing tokens are persisted in gitignored `.env`, `.npmrc`, and `.pypirc`
+with `0600` permissions; `.npmrc`/`.pypirc` are now ignored, and release scripts
+load `.env` locally without overriding shell/CI env.
+Current repo-local/deployed gates pass: `pnpm lint`,
+`pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:structure` (454/454),
+`pnpm test:demo-matrix`, hosted production browser smoke against
+`https://app.onemem.xyz` (48 checks), local packaged dashboard route/API checks,
+Enoki strict readiness against `https://app.onemem.xyz/api/enoki/status`,
+Python ruff/pyright/pytest, MCP live stdio trace verification, and
+`git diff --check`. A follow-up docs-source slice added Mintlify canonical URL
+metadata and `apps/docs/favicon.svg`, added a structure test for docs navigation,
+favicon, and CLI install-proof copy, and proved `apps/docs` with
+`mise exec -- npx mintlify@latest validate` under the repo-pinned Node 20.18.0;
+direct shell Node 26 is rejected by the Mintlify CLI. Structure now passes
+454/454. The docs domain is now live through the Vercel `onemem-docs` project
+using a Mintlify static export: deployment
+`dpl_F4iKnanzYDEq968cbtq1Z3hHNwLb` is aliased to `docs.onemem.xyz`, SSO
+protection is disabled for public access, and `/`, `/quickstart`,
+`/reference/cli`, and `/integrations/runtimes` return HTTP 200 with expected
+OneMem/docs content. This is not a native Mintlify dashboard/Git deployment, so
+docs source changes still need an explicit export plus Vercel redeploy until
+that path is automated. The MCP memory boundary is now also proven with repo
+`.env` loaded: the live stdio integration started with `memory ON`,
+`onemem_add_memory` returned a Walrus blob id, and `onemem_search_memory` found
+the stored test fact. The same follow-up repaired stale generated
+launch-audio/video provenance hashes caught by structure tests. A later focused
+gate caught generated brand JSON formatter drift and a stale
+`audio-provenance.generated.json` hash in the designer-campaign manifest; the
+manifest now records size `4225` and SHA-256
+`bd7830963d617dfdb9275f45676b2652021200c601d795b08728a7b14c05acbe`, while the
+current silent launch WAV remains
+`b96b59dcb0153a383ff6ddc3ae729c687e4fb9efb816dcc4f719f1718ef58574`.
+`tests/structure/brand-designer-campaign.test.ts` now recomputes manifest file
+sizes and SHA-256 hashes from disk, and the latest focused gates are green:
+`pnpm lint`, `pnpm test:structure` (454/454), and `git diff --check`.
+Trusted Runtime Hook Proof is the sixtieth runtime-readiness slice. The
+previously unclaimed Codex and Claude Code hook boundary is now closed with
+fresh testnet evidence from real trusted runtime sessions. Codex trusted
+`SessionStart`, `PostToolUse`, and `Stop` and emitted
+`0x0c88317632dcd386b6f81b94ee510003ba107d3c4bfa035ba8072fca8304e330`; Claude
+Code ran `SessionStart`, `PostToolUse`, and `Stop` with
+`--include-hook-events` and emitted
+`0x9c88993b6197a8460f4fbd4a886c6353505d36383bf35035e5305088b64825e7`. Both
+sessions verify `ok: true`, `callCount: 1`, and matching Merkle roots through
+the CLI and published `@onemem/mcp@0.6.3`. The proof also fixed the concrete
+runtime issues found during testing: Codex manifest now declares
+`"hooks": "./hooks/hooks.json"`, Codex hook config no longer has the rejected
+top-level `description`, Claude Code flushes on `Stop` instead of `SessionEnd`,
+and the Claude Code plugin now bundles `.mcp.json` like ClaudeMem.
+
+Remaining honest boundaries are manual hosted/deployment proofs:
+fresh wallet-popup mutation digests, docs deployment automation/native Mintlify
+integration, public marketplace push parity for the latest plugin fixes, and
+CI-side trusted publishing/secret configuration.
+Chrome can see the pending OneMem Slush testnet transaction tab, but automation
+is blocked from controlling `chrome-extension://` pages by browser policy, so
+wallet-popup proof still requires manual approval before a digest can be
+claimed.
 
 ## Documentation Standing
 
@@ -570,22 +823,26 @@ Use subagents for independent lanes with disjoint write scopes:
 2. Run a live `site-builder` deployment for the static public verifier shell
    and record the returned Walrus URL; full dashboard static mirroring remains
    separate future work.
-3. Render the brand video/animated bumper once final submission video
-   requirements are known.
-4. Update DNS for the Vercel-attached landing and hosted dashboard domains
-   (`A onemem.xyz 76.76.21.21`, `A app.onemem.xyz 76.76.21.21`) and verify the
-   live custom URLs. Decide/deploy docs hosting for `docs.onemem.xyz`.
-5. Configure Enoki auth providers/client IDs and allowed origins, then continue
-   hosted/manual wallet verification for CLI delegate registration,
-   hosted share execution, and hosted holder self-revoke when real
-   wallet/Enoki/MemWal config is available.
+3. Record fresh live proof clips for physical laptop switching, wallet
+   transfer, and live research before calling the final proof demo complete.
+   Trusted Codex/Claude runtime hooks now have on-chain proof, but demo footage
+   can still include them if useful.
+4. Automate docs hosting for `docs.onemem.xyz`; the current domain is live via
+   Vercel static Mintlify export, but future source changes still require a
+   deliberate export/deploy/alias step unless native Mintlify Git deployment or
+   CI automation is added.
+5. Start fresh Slush-backed hosted mutations only when side-effect proof is
+   required. Returning onboarding users now reuse saved namespace/Admin/ReadWrite
+   state; fresh proof still requires manual approval for namespace-create,
+   ReadWrite-capability mint, hosted share execution, and holder self-revoke
+   before claiming the entire hosted wallet path.
 6. Protocol-backed claim/transfer and owner-driven revoke remain separate
    follow-up designs.
 7. Re-run affected quality gates and write verification before claiming done.
 8. Configure CI repository secrets or npm/PyPI trusted publishing for future
-   automated releases. Manual npm/PyPI publication is current as of 2026-06-18,
-   but future version bumps should prove parity again with `pnpm
-   registry:status --strict`.
+   automated releases. Local npm/PyPI credentials are now available, but CI
+   still needs repository secrets or trusted publishing before unattended
+   release runs can publish without local intervention.
 
 ## Verification Rule
 
