@@ -1,8 +1,7 @@
 // The local worker's HTTP daemon. Binds 127.0.0.1 only — it serves your private
 // observations. Hooks POST tool calls here on the hot path; the worker writes
 // them to the local store synchronously and PUSHES them to any connected
-// dashboard over SSE (real push, not a poll). On-chain anchoring is reconciled
-// off this path and pushed as proof_status updates.
+// dashboard over SSE (real push, not a poll).
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { AddObservationInput, InitSessionInput, Observation, WorkerStore } from "./store.js";
@@ -85,7 +84,7 @@ export function createWorkerServer(opts: WorkerServerOptions): WorkerServer {
         const observation: Observation = store.addObservation(
           await readJson<AddObservationInput>(req),
         );
-        // Hot path: pushed to the dashboard instantly, proof_status = "local".
+        // Hot path: pushed to the dashboard instantly.
         broadcast("new_observation", observation);
         return json(res, 200, observation);
       }

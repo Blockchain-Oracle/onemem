@@ -8,17 +8,25 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const allowed: ReadonlySet<string> = new Set<string>(VENDOR_LOGO_FILES);
-const require = createRequire(import.meta.url);
-const packageLogoDir = join(
-  dirname(require.resolve("@onemem/brand/vendor-logos/manifest.json")),
-  "svg",
-);
+
+// Resolve the packaged brand logo dir lazily (inside the handler): doing the
+// `require.resolve` at module top-level makes the Next bundler rewrite it to a
+// numeric module id that breaks build-time page-data collection.
+function packageLogoDir(): string | null {
+  try {
+    const require = createRequire(import.meta.url);
+    return join(dirname(require.resolve("@onemem/brand/vendor-logos/manifest.json")), "svg");
+  } catch {
+    return null;
+  }
+}
 
 async function readLogo(file: string): Promise<string | null> {
+  const packaged = packageLogoDir();
   const candidates = [
     resolve(process.cwd(), "../brand/vendor-logos/svg", file),
     resolve(process.cwd(), "packages/brand/vendor-logos/svg", file),
-    join(packageLogoDir, file),
+    ...(packaged ? [join(packaged, file)] : []),
   ];
 
   for (const candidate of candidates) {

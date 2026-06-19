@@ -16,7 +16,7 @@ interface AddOpts {
   namespace?: string;
 }
 
-/** `onemem add <text>` — store a memory (MemWal) + emit a verifiable ActionCall. */
+/** `onemem add <text>` — store a memory on MemWal (Seal-encrypted blob on Walrus). */
 export function addCommand(text: string, opts: AddOpts, command: Cmd) {
   const g = command.optsWithGlobals();
   return runCommand(g, async () => {
@@ -29,7 +29,6 @@ export function addCommand(text: string, opts: AddOpts, command: Cmd) {
     printLine("✓ memory stored");
     printLine(`  memoryId    ${result.memoryId}`);
     printLine(`  walrusBlob  ${result.walrusBlobId}`);
-    if (result.suiTxDigest) printLine(`  suiTx       ${result.suiTxDigest}`);
   });
 }
 

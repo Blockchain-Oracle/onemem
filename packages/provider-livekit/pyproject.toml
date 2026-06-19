@@ -1,13 +1,13 @@
 [project]
 name = "onemem-livekit"
 version = "0.1.1"
-description = "OneMem provider for LiveKit Agents — record voice-agent sessions as verifiable on-chain traces"
+description = "OneMem provider for LiveKit Agents — decentralized memory for voice sessions, stored on MemWal"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 authors = [{ name = "OneMem contributors" }]
-# Pure-stdlib: the tracer listens to LiveKit AgentSession events and shells out
-# to the `onemem-trace` Node CLI (@onemem/sdk-ts) for the on-chain write — no
-# Python Sui/Walrus/Seal deps. livekit-agents is the host runtime (provided).
+# Memory recall/capture via onemem-sdk-python's ProviderMemory, which shells out
+# to the `onemem-memory` Node CLI (@onemem/sdk-ts) for the MemWal round-trip.
+# livekit-agents is the host runtime (provided at install), not a build dependency.
 dependencies = [
     "onemem-sdk-python>=0.2.0",
 ]

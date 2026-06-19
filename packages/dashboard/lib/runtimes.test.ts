@@ -2,37 +2,45 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { SessionListItem } from "./trace";
+import type { LocalSession } from "./local-worker";
 
 const mocks = vi.hoisted(() => ({
-  fetchRecentSessions: vi.fn(),
+  fetchLocalWorker: vi.fn(),
 }));
 
-vi.mock("@/lib/trace", () => ({
-  fetchRecentSessions: mocks.fetchRecentSessions,
+vi.mock("@/lib/local-worker", () => ({
+  fetchLocalWorker: mocks.fetchLocalWorker,
 }));
 
 import { fetchRuntimeInventory, updateRuntimeControl } from "./runtimes";
 
 let dir = "";
 
-function session(environment: string, openedAtMs: number): SessionListItem {
+function session(runtime: string, startedAt: number): LocalSession {
   return {
-    sessionId: `0x${environment}`,
-    agentId: environment,
-    environment,
-    namespaceId: "0xnamespace",
-    sdkVersion: "0.1.0",
-    capturedByAddress: "0xabc",
-    startedAtMs: openedAtMs,
-    openedAtMs,
+    id: `0x${runtime}`,
+    runtime,
+    projectPath: null,
+    namespaceId: null,
+    onememSessionId: null,
+    status: "open",
+    startedAt,
+    endedAt: null,
   };
+}
+
+function sessionsResponse(sessions: LocalSession[]): Response {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ sessions }),
+  } as unknown as Response;
 }
 
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), "onemem-dashboard-runtimes-"));
   process.env.ONEMEM_RUNTIME_CONTROLS_PATH = join(dir, "runtime-controls.json");
-  mocks.fetchRecentSessions.mockReset();
+  mocks.fetchLocalWorker.mockReset();
 });
 
 afterEach(() => {
@@ -42,11 +50,13 @@ afterEach(() => {
 
 describe("fetchRuntimeInventory", () => {
   it("groups by execution location: location-A is controllable, deployed adapters are read-only", async () => {
-    mocks.fetchRecentSessions.mockResolvedValue([
-      session("vercel-ai", Date.now()),
-      session("vercel-ai", Date.now() - 1_000),
-      session("openclaw", Date.now() - 2_000),
-    ]);
+    mocks.fetchLocalWorker.mockResolvedValue(
+      sessionsResponse([
+        session("vercel-ai", Date.now()),
+        session("vercel-ai-2", Date.now() - 1_000),
+        session("openclaw", Date.now() - 2_000),
+      ]),
+    );
     // openclaw is a location-A runtime → controllable; pausing it must stick.
     updateRuntimeControl("openclaw", { paused: true });
     // vercel-ai is a deployed adapter (location B) → NOT controllable; even a
@@ -73,9 +83,9 @@ describe("fetchRuntimeInventory", () => {
       statusLabel: "paused",
     });
 
-    // Deployed adapter: seen on-chain, read-only, never controllable/paused here.
+    // Deployed adapter: seen in the feed, read-only, never controllable/paused here.
     expect(vercel).toMatchObject({
-      sessions: 2,
+      sessions: 1,
       controllable: false,
       tier: "deployed-adapter",
       section: "environments",
@@ -102,12 +112,12 @@ describe("fetchRuntimeInventory", () => {
     });
   });
 
-  it("still returns known runtimes when chain reads fail", async () => {
-    mocks.fetchRecentSessions.mockRejectedValue(new Error("rpc down"));
+  it("still returns known runtimes when the worker read fails", async () => {
+    mocks.fetchLocalWorker.mockRejectedValue(new Error("worker down"));
 
     const inventory = await fetchRuntimeInventory();
 
-    expect(inventory.traceError).toBe("rpc down");
+    expect(inventory.traceError).toBe("worker down");
     expect(inventory.runtimes.some((row) => row.id === "codex")).toBe(true);
   });
 });

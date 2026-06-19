@@ -6,7 +6,7 @@ import {
   runtimeControlsPath,
   setRuntimeControl,
 } from "@onemem/sdk-ts/runtime";
-import { fetchRecentSessions } from "@/lib/trace";
+import { fetchLocalWorker, type LocalSession } from "@/lib/local-worker";
 
 const ONLINE_MS = 15 * 60 * 1000;
 const IDLE_MS = 24 * 60 * 60 * 1000;
@@ -206,13 +206,17 @@ export async function fetchRuntimeInventory(): Promise<RuntimeInventory> {
   const byRuntime = new Map<string, { count: number; lastMs: number }>();
   let traceError: string | null = null;
 
+  // Recency + counts come from the local worker's captured sessions.
   try {
-    for (const session of await fetchRecentSessions(100)) {
-      const id = (session.environment || session.agentId || "unknown").trim().toLowerCase();
+    const res = await fetchLocalWorker("/api/sessions");
+    if (!res.ok) throw new Error(`worker responded ${res.status}`);
+    const data = (await res.json()) as { sessions?: LocalSession[] };
+    for (const session of data.sessions ?? []) {
+      const id = (session.runtime || "unknown").trim().toLowerCase();
       const prev = byRuntime.get(id) ?? { count: 0, lastMs: 0 };
       byRuntime.set(id, {
         count: prev.count + 1,
-        lastMs: Math.max(prev.lastMs, session.openedAtMs),
+        lastMs: Math.max(prev.lastMs, session.startedAt),
       });
     }
   } catch (error) {

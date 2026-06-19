@@ -14,23 +14,11 @@ describe("OneMem monorepo structure", () => {
         "TESTING_STRATEGY.md missing — it's the canonical two-tier testing policy",
       );
     });
-    test("root CLAUDE.md references TESTING_STRATEGY.md", () => {
-      const claude = readFileSync(join(ROOT, "CLAUDE.md"), "utf8");
-      assert.ok(
-        claude.includes("TESTING_STRATEGY.md"),
-        "CLAUDE.md must point at TESTING_STRATEGY.md so the testing policy is discoverable",
-      );
-    });
-
     test("AGENTS.md routes to Context Engineering artifacts", () => {
       const agents = readFileSync(join(ROOT, "AGENTS.md"), "utf8");
       assert.ok(
         agents.includes(".thoughts/"),
         "AGENTS.md must point at the active Context Engineering artifact root",
-      );
-      assert.ok(
-        agents.includes("wiki/index.md"),
-        "AGENTS.md must point at the active Context Engineering wiki",
       );
     });
 

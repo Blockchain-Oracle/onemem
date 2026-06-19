@@ -13,9 +13,6 @@ pre-commit:
       glob: "*.py"
       run: uv run ruff format {staged_files}
       stage_fixed: true
-    move-build:
-      glob: "contracts/onemem/**/*.move"
-      run: cd contracts/onemem && sui move build
 
 pre-push:
   commands:

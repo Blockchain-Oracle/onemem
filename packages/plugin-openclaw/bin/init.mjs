@@ -3,8 +3,8 @@
 //
 // Grants the ONE thing OpenClaw's security model won't let a plugin self-enable:
 // conversation-access for its lifecycle hooks (privacy opt-in, by design). Also
-// enables + allowlists the plugin. Everything else (namespace, ReadWrite cap,
-// signer) is auto-provisioned by the plugin at first run — nothing to copy.
+// enables + allowlists the plugin. Captured observations stream to the local
+// OneMem worker (127.0.0.1:4041) — nothing else to configure.
 //
 // Usage:
 //   npx @onemem/oc-onemem init              # default profile (~/.openclaw)
@@ -68,7 +68,7 @@ function main(argv) {
   console.log(`  plugins.entries.${PLUGIN_ID}.enabled = true`);
   console.log(`  plugins.entries.${PLUGIN_ID}.hooks.allowConversationAccess = true`);
   console.log(`  plugins.allow += "${PLUGIN_ID}"`);
-  console.log("Restart the gateway. The namespace, ReadWrite cap, and signer auto-provision on first agent run.");
+  console.log("Restart the gateway. Each agent run is captured to the local OneMem worker (127.0.0.1:4041).");
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

@@ -1,32 +1,17 @@
 # `@onemem/dashboard` — Coding Agent Context
 
-Active repo routing lives in `AGENTS.md`; active Context Engineering artifacts
-live under `.thoughts/`.
+Root routing: `AGENTS.md`. Context: `.thoughts/`.
 
-Next.js 15 standalone dashboard. Same code serves BOTH local (`localhost:4040`) and hosted (`app.onemem.xyz`). Routes split per `purpose-local-vs-hosted.md`: this package owns the SHARED routes; `apps/hosted-dashboard/` owns the hosted-only ones (`/login`, `/cli-login`, `/onboarding`, `/share`, `/share/[capability_id]`, `/verify/[session_id]`).
+The **local** dashboard for Product A (claude-mem, decentralized): a readable, *alive* view of the memory your coding agents capture. Next.js 15 (App Router, `output: 'standalone'`), served at `localhost:4040`; `apps/hosted-dashboard/` wraps it for the hosted surface.
 
-## Read before editing
-- `docs/05-our-architecture/06-dashboard/purpose-local-vs-hosted.md` (READ FIRST — authoritative purpose split)
-- `docs/05-our-architecture/06-dashboard/ui-architecture.md` (routes, state mgmt, SSE, data fetching)
-- `docs/05-our-architecture/06-dashboard/design-system.md` (brand token application)
-- `docs/05-our-architecture/06-dashboard/route-<name>.md` (per-route specs)
-- `docs/02-inspirations/claude-mem/HOOKS_AND_VIEWER_REFERENCE.md` (SSE pattern reference)
-- `.thoughts/prototype-discovery/2026-06-17-one-mem-2.md` (prototype-derived deltas)
+> Being rebuilt (Phase 3): a claude-mem-style readable memory feed (observation/summary cards, the files view, per-runtime color pills, project selector, alive SSE, cost meter). The old trace/verify/sessions UI has been removed.
 
 ## Non-negotiables
-- **App Router only.** No pages/ directory. Next.js 15 conventions.
-- **Brand tokens come from `@onemem/brand`** (workspace dep). Don't hardcode lavender/chartreuse/cream/sui-blue hex values; import from `@onemem/brand/tokens.css`.
-- **Chartreuse `#D4FF5E` is reserved for Verify affordances ONLY.** Sui blue `#0090FF` is reserved for Suiscan links ONLY. Per `BRAND_AND_SURFACES.md`.
-- **Decrypt CLIENT-side via Seal `/manual`.** Server never sees plaintext.
-- **SSE pattern lifted from claude-mem viewer.** Don't invent a new transport.
-- **TDD per `superpowers:test-driven-development`.** Vitest unit + integration.
-  On Codex, browser-check affected local routes with the `@chrome` plugin before
-  claiming UI work done. Use a separate repo-owned browser harness only for
-  committed regression coverage or when the Chrome plugin is unavailable and the
-  fallback is recorded.
+- **App Router only**; Next.js 15 conventions.
+- **Brand tokens from `@onemem/brand`** (cdr-kit: lavender / chartreuse / cream / sui-blue) — don't hardcode hex; import `@onemem/brand/tokens.css`.
+- **Alive feed = SSE from the local worker** (`@onemem/worker` at `127.0.0.1:4041`, proxied via `/api/worker/*`). Don't invent a new transport.
+- **No trace / no verify UI.** Memory is stored via MemWal; the dashboard reads it — it does not anchor or verify on-chain.
+- **TDD** (Vitest unit + integration). Browser-check local routes with the Chrome plugin (real-integration rule) before claiming UI done.
 
-## Build
-- `next build` produces `.next/standalone` (per `next.config.mjs` `output: 'standalone'`). The `bin/onemem-dashboard` script launches that bundle for local mode.
-
-## Headline view
-- `/trace/[session_id]` is THE demo moment. The Verify drawer turning the page chartreuse "Verified ✓" is the trust narrative. Don't ship without it polished.
+## Build / run
+- `next build` → `.next/standalone`; `bin/onemem-dashboard` launches it for local mode.

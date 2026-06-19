@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // onemem-memory — add/search OneMem memories from a non-JS runtime. The bridge
 // the Python SDK (and its plugins) shell out to so they get the full MemWal
-// round-trip (client-side Seal encryption + Walrus + embeddings + on-chain
-// attestation) without reimplementing any of it — mirroring `onemem-trace`.
+// round-trip (client-side Seal encryption + Walrus + embeddings) without
+// reimplementing any of it.
 //
 // Reads a JSON payload from argv[2] (a file path) or stdin:
 //   { "op": "add",    "text": "...",  "namespace": "..."? }

@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 import {
-  bufferToolCall,
   postWorker,
   preview,
   readHookInput,
-  readSessionState,
   sessionIdFromInput,
   toolOutputFromInput,
   traceCaptureEnabled,
@@ -27,17 +25,6 @@ async function main() {
     toolNamespace: "codex",
     inputPreview: preview(input.tool_input),
     outputPreview: preview(toolOutputFromInput(input)),
-  });
-
-  if (!readSessionState(sessionId)) return;
-
-  bufferToolCall(sessionId, {
-    toolUseId: input.tool_use_id ?? null,
-    toolName,
-    toolNamespace: "codex",
-    toolInput: input.tool_input ?? null,
-    toolResponse: toolOutputFromInput(input),
-    toolError: input.tool_error ?? null,
   });
 }
 

@@ -1,19 +1,11 @@
 import { spawn, spawnSync } from "node:child_process";
-import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { setRuntimePaused } from "../../sdk-ts/src/runtime-controls.ts";
-import {
-  bufferPath,
-  bufferToolCall,
-  readBufferedToolCalls,
-  readSessionState,
-  statePath,
-  writeSessionState,
-} from "../scripts/onemem-lib.mjs";
 
 const SCRIPTS = fileURLToPath(new URL("../scripts/", import.meta.url));
 const HOOKS = fileURLToPath(new URL("../hooks/hooks.json", import.meta.url));
@@ -28,8 +20,6 @@ function runScript(script: string, payload: unknown, env: Record<string, string>
     env: {
       ...process.env,
       PLUGIN_DATA: dir,
-      ONEMEM_NAMESPACE_ID: "",
-      ONEMEM_RW_CAP_ID: "",
       ONEMEM_WORKER_AUTOSTART: "0",
       ...env,
     },
@@ -40,8 +30,6 @@ function scriptEnv(env: Record<string, string> = {}) {
   return {
     ...process.env,
     PLUGIN_DATA: dir,
-    ONEMEM_NAMESPACE_ID: "",
-    ONEMEM_RW_CAP_ID: "",
     ONEMEM_WORKER_AUTOSTART: "0",
     ...env,
   };
@@ -99,21 +87,6 @@ function runScriptAsync(script: string, payload: unknown, env: Record<string, st
   );
 }
 
-function fakeTraceCli(status: number) {
-  const path = join(dir, `fake-trace-${status}.mjs`);
-  const output = join(dir, `fake-trace-${status}.json`);
-  writeFileSync(
-    path,
-    `import { readFileSync, writeFileSync } from "node:fs";
-const payload = JSON.parse(readFileSync(process.argv[2], "utf8"));
-writeFileSync(${JSON.stringify(output)}, JSON.stringify(payload));
-process.exit(${status});
-`,
-  );
-  chmodSync(path, 0o755);
-  return { path, output };
-}
-
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), "onemem-codex-plugin-"));
   previousPluginData = process.env.PLUGIN_DATA;
@@ -145,7 +118,7 @@ describe("Codex plugin hooks", () => {
     expect(hooks.hooks?.SessionStart?.[0]?.matcher).toBe("");
   });
 
-  it("SessionStart returns valid Codex JSON context without trace config", () => {
+  it("SessionStart returns valid Codex JSON context", () => {
     const result = runScript("inject.js", {
       hook_event_name: "SessionStart",
       session_id: "codex-test",
@@ -161,71 +134,27 @@ describe("Codex plugin hooks", () => {
     expect(out.hookSpecificOutput?.additionalContext).toContain("OneMem is installed");
   });
 
-  it("SessionStart arms trace capture without opening a network session", () => {
-    const result = runScript(
-      "inject.js",
-      {
-        hook_event_name: "SessionStart",
-        session_id: "codex-test",
-        source: "startup",
-      },
-      {
-        ONEMEM_NAMESPACE_ID: "0xnamespace",
-        ONEMEM_RW_CAP_ID: "0xrw",
-        SUI_NETWORK: "testnet",
-      },
+  it("SessionStart registers the session with the local worker", async () => {
+    const { result, requests } = await captureRequests((baseUrl) =>
+      runScriptAsync(
+        "inject.js",
+        { hook_event_name: "SessionStart", session_id: "codex-test", cwd: "/tmp/project" },
+        { ONEMEM_WORKER_URL: baseUrl },
+      ),
     );
 
     expect(result.status).toBe(0);
-    const out = JSON.parse(result.stdout) as {
-      hookSpecificOutput?: { additionalContext?: string };
-    };
-    expect(out.hookSpecificOutput?.additionalContext).toContain("trace capture is armed");
-    expect(readSessionState("codex-test")).toEqual({
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-      network: "testnet",
-    });
+    const init = requests.find((r) => r.url === "/api/sessions/init");
+    expect(init?.body).toEqual(
+      expect.objectContaining({
+        id: "codex-test",
+        runtime: "codex",
+        projectPath: "/tmp/project",
+      }),
+    );
   });
 
-  it("PostToolUse buffers Codex-shaped tool_output without network work", () => {
-    writeSessionState("codex-test", {
-      onememSessionId: "0xsession",
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-    });
-
-    const result = runScript("observe.js", {
-      hook_event_name: "PostToolUse",
-      session_id: "codex-test",
-      tool_use_id: "tool-1",
-      tool_name: "Bash",
-      tool_input: { command: "pwd" },
-      tool_output: { exit_code: 0, stdout: "/tmp/project" },
-    });
-
-    expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ continue: true });
-    expect(bufferPath("codex-test")).toContain(dir);
-    expect(readBufferedToolCalls("codex-test")).toEqual([
-      {
-        toolUseId: "tool-1",
-        toolName: "Bash",
-        toolNamespace: "codex",
-        toolInput: { command: "pwd" },
-        toolResponse: { exit_code: 0, stdout: "/tmp/project" },
-        toolError: null,
-      },
-    ]);
-  });
-
-  it("PostToolUse posts readable previews to the local worker before Stop", async () => {
-    writeSessionState("codex-test", {
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-      network: "testnet",
-    });
-
+  it("PostToolUse posts readable previews to the local worker", async () => {
     const { result, requests } = await captureRequests((baseUrl) =>
       runScriptAsync(
         "observe.js",
@@ -257,140 +186,43 @@ describe("Codex plugin hooks", () => {
     ]);
   });
 
-  it("PostToolUse does not buffer while codex tracing is disabled", () => {
-    writeSessionState("codex-test", {
-      onememSessionId: "0xsession",
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-    });
+  it("PostToolUse does not post while codex capture is paused", async () => {
     setRuntimePaused("codex", true);
 
-    const result = runScript("observe.js", {
-      hook_event_name: "PostToolUse",
-      session_id: "codex-test",
-      tool_use_id: "tool-1",
-      tool_name: "Bash",
-      tool_input: { command: "pwd" },
-      tool_output: { exit_code: 0, stdout: "/tmp/project" },
-    });
-
-    expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ continue: true });
-    expect(readBufferedToolCalls("codex-test")).toHaveLength(0);
-  });
-
-  it("Stop exits successfully and writes valid JSON when trace config is absent", () => {
-    const result = runScript("summarize.js", {
-      hook_event_name: "Stop",
-      session_id: "codex-test",
-    });
-
-    expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ continue: true });
-  });
-
-  it("Stop preserves buffered calls when the trace CLI fails", () => {
-    writeSessionState("codex-test", {
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-      network: "testnet",
-    });
-    bufferToolCall("codex-test", {
-      toolUseId: "tool-1",
-      toolName: "Bash",
-      toolNamespace: "codex",
-      toolInput: { command: "pwd" },
-      toolResponse: { exit_code: 0, stdout: "/tmp/project" },
-      toolError: null,
-    });
-
-    const result = runScript(
-      "summarize.js",
-      {
-        hook_event_name: "Stop",
-        session_id: "codex-test",
-      },
-      {
-        ONEMEM_NAMESPACE_ID: "0xnamespace",
-        ONEMEM_RW_CAP_ID: "0xrw",
-        ONEMEM_TRACE_CLI: fakeTraceCli(1).path,
-      },
+    const { result, requests } = await captureRequests((baseUrl) =>
+      runScriptAsync(
+        "observe.js",
+        {
+          hook_event_name: "PostToolUse",
+          session_id: "codex-test",
+          tool_use_id: "tool-1",
+          tool_name: "Bash",
+          tool_input: { command: "pwd" },
+          tool_output: { exit_code: 0, stdout: "/tmp/project" },
+        },
+        { ONEMEM_WORKER_URL: baseUrl },
+      ),
     );
 
     expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ continue: true });
-    expect(readBufferedToolCalls("codex-test")).toHaveLength(1);
+    expect(requests).toHaveLength(0);
   });
 
-  it("Stop flushes buffered calls through the trace CLI and clears local state", () => {
-    writeSessionState("codex-test", {
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-      network: "testnet",
-    });
-    bufferToolCall("codex-test", {
-      toolUseId: "tool-1",
-      toolName: "Bash",
-      toolNamespace: "codex",
-      toolInput: { command: "pwd" },
-      toolResponse: { exit_code: 0, stdout: "/tmp/project" },
-      toolError: null,
-    });
-    const fake = fakeTraceCli(0);
-
-    const result = runScript(
-      "summarize.js",
-      {
-        hook_event_name: "Stop",
-        session_id: "codex-test",
-      },
-      {
-        ONEMEM_NAMESPACE_ID: "0xnamespace",
-        ONEMEM_RW_CAP_ID: "0xrw",
-        ONEMEM_TRACE_CLI: fake.path,
-      },
+  it("Stop marks the session ended on the local worker", async () => {
+    const { result, requests } = await captureRequests((baseUrl) =>
+      runScriptAsync(
+        "summarize.js",
+        { session_id: "codex-test", hook_event_name: "Stop", reason: "stop" },
+        { ONEMEM_WORKER_URL: baseUrl },
+      ),
     );
 
     expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ continue: true });
-    expect(readBufferedToolCalls("codex-test")).toHaveLength(0);
-    expect(readSessionState("codex-test")).toBeNull();
-    expect(readFileSync(fake.output, "utf8")).toContain('"environment":"codex"');
-    expect(readFileSync(fake.output, "utf8")).toContain('"toolName":"Bash"');
-  });
-
-  it("Stop clears local state and buffers while codex tracing is disabled", () => {
-    writeSessionState("codex-test", {
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-    });
-    bufferToolCall("codex-test", {
-      toolUseId: "tool-1",
-      toolName: "Bash",
-      toolNamespace: "codex",
-      toolInput: { command: "pwd" },
-      toolResponse: { exit_code: 0, stdout: "/tmp/project" },
-      toolError: null,
-    });
-    setRuntimePaused("codex", true);
-
-    const result = runScript(
-      "summarize.js",
+    expect(requests).toEqual([
       {
-        hook_event_name: "Stop",
-        session_id: "codex-test",
+        url: "/api/sessions/end",
+        body: expect.objectContaining({ id: "codex-test" }),
       },
-      {
-        ONEMEM_NAMESPACE_ID: "0xnamespace",
-        ONEMEM_RW_CAP_ID: "0xrw",
-        ONEMEM_PRIVATE_KEY: "not-a-valid-sui-private-key",
-      },
-    );
-
-    expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ continue: true });
-    expect(readBufferedToolCalls("codex-test")).toHaveLength(0);
-    expect(readSessionState("codex-test")).toBeNull();
-    expect(statePath("codex-test")).toContain(dir);
+    ]);
   });
 });

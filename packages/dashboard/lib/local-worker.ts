@@ -1,5 +1,3 @@
-export type LocalProofStatus = "local" | "queued" | "anchored" | "verified" | "failed";
-
 export interface LocalObservation {
   readonly id: number;
   readonly sessionId: string;
@@ -11,9 +9,6 @@ export interface LocalObservation {
   readonly outputPreview: string | null;
   readonly parentCallId: string | null;
   readonly createdAt: number;
-  readonly proofStatus: LocalProofStatus;
-  readonly callId: string | null;
-  readonly txDigest: string | null;
 }
 
 export interface LocalSession {

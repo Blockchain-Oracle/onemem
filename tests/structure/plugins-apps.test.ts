@@ -164,38 +164,17 @@ describe("OneMem monorepo structure", () => {
       );
       assert.doesNotMatch(
         source,
+        /href:\s*"\/(share|onboarding|verify)/,
+        "hosted /dashboard must not link to removed trace/namespace routes",
+      );
+      assert.doesNotMatch(
+        source,
         /NEXT_PUBLIC_DASHBOARD_URL/,
         "hosted /dashboard must not rely on an env prefix that can make card links drift",
       );
-      for (const href of ["/dashboard", "/share", "/onboarding", "/login"]) {
+      for (const href of ["/cli-login", "/login"]) {
         assert.match(source, new RegExp(`href:\\s*"${href}"`));
       }
-      assert.match(
-        source,
-        /loadHostedProvisioningState/,
-        "hosted /dashboard should reflect saved provisioning state",
-      );
-
-      const onboarding = readFileSync(
-        join(ROOT, "apps/hosted-dashboard/app/onboarding/page.tsx"),
-        "utf8",
-      );
-      assert.doesNotMatch(
-        onboarding,
-        /localhost:4040/,
-        "hosted onboarding completion must not route production users to localhost",
-      );
-      assert.match(
-        onboarding,
-        /loadHostedProvisioningState/,
-        "hosted onboarding should reuse saved provisioning state instead of prompting duplicate namespace creation",
-      );
-      assert.match(
-        onboarding,
-        /Already provisioned/,
-        "hosted onboarding should render an already-provisioned state before offering a new namespace mutation",
-      );
-      assert.match(onboarding, /href="\/dashboard"/);
     });
 
     test("hosted-dashboard has Walrus Sites mirror artifacts", () => {
@@ -204,7 +183,6 @@ describe("OneMem monorepo structure", () => {
     });
 
     test("hosted-dashboard has hosted CLI pairing support", () => {
-      assert.ok(exists("apps/hosted-dashboard/lib/hosted-state.ts"));
       assert.ok(exists("apps/hosted-dashboard/lib/cli-login.ts"));
       assert.ok(exists("apps/hosted-dashboard/app/api/cli-login/memwal-account/route.ts"));
       const source = readFileSync(
@@ -240,21 +218,6 @@ describe("OneMem monorepo structure", () => {
       );
       assert.ok(exists("apps/hosted-dashboard/scripts/browser-smoke.mjs"));
       assert.ok(exists("apps/hosted-dashboard/app/icon.svg"));
-      assert.ok(exists("apps/hosted-dashboard/lib/sponsored-provisioning.ts"));
-      assert.ok(exists("apps/hosted-dashboard/app/onboarding/SponsoredProvisioning.tsx"));
-      assert.ok(exists("apps/hosted-dashboard/app/api/onboarding/sponsored/prepare/route.ts"));
-      assert.ok(exists("apps/hosted-dashboard/app/api/onboarding/sponsored/execute/route.ts"));
-      assert.ok(exists("apps/hosted-dashboard/app/share/HostedShareView.tsx"));
-      assert.ok(exists("apps/hosted-dashboard/app/share/ShareHistoryPanel.tsx"));
-      assert.ok(exists("apps/hosted-dashboard/app/share/[capability_id]/page.tsx"));
-      assert.ok(
-        exists("apps/hosted-dashboard/app/share/[capability_id]/ShareCapabilityAccountHint.tsx"),
-      );
-      assert.ok(exists("apps/hosted-dashboard/lib/share-capability.ts"));
-      assert.ok(exists("apps/hosted-dashboard/lib/share-history.ts"));
-      assert.ok(exists("apps/hosted-dashboard/app/api/share/history/route.ts"));
-      assert.ok(exists("apps/hosted-dashboard/app/api/share/sponsored/prepare/route.ts"));
-      assert.ok(exists("apps/hosted-dashboard/app/api/share/sponsored/execute/route.ts"));
     });
   });
 });

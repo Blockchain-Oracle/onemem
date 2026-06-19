@@ -24,25 +24,11 @@ jobs:
         with:
           experimental: true
 
-      - name: Install Sui CLI (pinned prebuilt linux binary)
-        env:
-          SUI_VERSION: testnet-v1.72.2
-        run: |
-          set -euo pipefail
-          url="https://github.com/MystenLabs/sui/releases/download/${SUI_VERSION}/sui-${SUI_VERSION}-ubuntu-x86_64.tgz"
-          echo "Downloading $url"
-          curl -fsSL "$url" -o /tmp/sui.tgz
-          mkdir -p /tmp/sui-bin
-          tar -xzf /tmp/sui.tgz -C /tmp/sui-bin
-          install -m 0755 "$(find /tmp/sui-bin -name sui -type f | head -n1)" /usr/local/bin/sui
-          sui --version
-
       - name: Show toolchain
         run: |
           node --version
           pnpm --version
           uv --version
-          sui --version
 
       - name: Install TS deps
         run: pnpm install --frozen-lockfile
@@ -52,9 +38,6 @@ jobs:
 
       - name: Verify monorepo structure
         run: pnpm test:structure
-
-      - name: Verify deterministic demo matrix
-        run: pnpm test:demo-matrix
 
       - name: Lint
         run: pnpm turbo run lint
@@ -67,12 +50,6 @@ jobs:
 
       - name: Build
         run: pnpm turbo run build
-
-      - name: Move build + test
-        working-directory: contracts/onemem
-        run: |
-          sui move build
-          sui move test
 
       - name: Python lint
         run: uv run ruff check .

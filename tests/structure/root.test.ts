@@ -19,9 +19,6 @@ describe("OneMem monorepo structure", () => {
     for (const d of [
       "packages",
       "apps",
-      "contracts/onemem",
-      "services",
-      "demos",
       "scripts",
       "docs",
       ".thoughts",
@@ -144,12 +141,6 @@ describe("OneMem monorepo structure", () => {
       );
     });
 
-    test("CI exposes deterministic demo matrix gate", () => {
-      const workflow = readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8");
-      assert.match(workflow, /Verify deterministic demo matrix/);
-      assert.match(workflow, /pnpm test:demo-matrix/);
-    });
-
     test("CI runs all Python package tests", () => {
       const workflow = readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8");
       assert.match(workflow, /uv run pytest packages\/sdk-python/);
@@ -265,18 +256,10 @@ describe("OneMem monorepo structure", () => {
         "release preflight must not upload packages",
       );
     });
-
-    test("root package exposes deterministic demo matrix script", () => {
-      const manifest = readJson<{ scripts?: Record<string, string> }>("package.json");
-      assert.equal(
-        manifest.scripts?.["test:demo-matrix"],
-        "turbo run test typecheck lint build --filter=./demos/*",
-      );
-    });
   });
 
   describe("CLAUDE.md inventory", () => {
-    test("exactly 5 CLAUDE.md files (root + 4 load-bearing per-package)", () => {
+    test("exactly 3 CLAUDE.md files (root + 2 load-bearing per-package)", () => {
       const present = EXPECTED_CLAUDE_MD.filter(exists);
       assert.equal(
         present.length,

@@ -1,10 +1,9 @@
 """Memory mirror — add/search over MemWal, mirroring the TS MemoryAPI.
 
-Python can't drive Walrus/Seal/embeddings natively, so (like the trace path)
-this shells out to the ``onemem-memory`` Node CLI from ``@onemem/sdk-ts``, which
-owns the full MemWal round-trip (client-side Seal encryption + Walrus +
-embeddings + on-chain attestation). MemWal config + signer come from env, read
-by the CLI:
+Python can't drive Walrus/Seal/embeddings natively, so this shells out to the
+``onemem-memory`` Node CLI from ``@onemem/sdk-ts``, which owns the full MemWal
+round-trip (client-side Seal encryption + Walrus + embeddings). MemWal config +
+signer come from env, read by the CLI:
 
     ONEMEM_DELEGATE_KEY / ONEMEM_ACCOUNT_ID / ONEMEM_EMBEDDING_API_KEY
     [+ MEMWAL_PACKAGE_ID / MEMWAL_RELAYER_URL / ONEMEM_RPC_URL]

@@ -24,7 +24,6 @@ import {
   type MemWalLookupResponse,
   shortId,
 } from "@/lib/cli-login-client";
-import { type HostedProvisioningState, loadHostedProvisioningState } from "@/lib/hosted-state";
 import { CliLoginFallback } from "./fallback";
 import { isPairingRunning, type PairingStatus, pairingStatusMessage, TTL_OPTIONS } from "./model";
 
@@ -44,7 +43,6 @@ function CliLoginInner() {
   const [delegateLabel, setDelegateLabel] = useState("onemem-cli");
   const [delegateTtlSeconds, setDelegateTtlSeconds] = useState<number>(TTL_OPTIONS[1].seconds);
   const [lookup, setLookup] = useState<MemWalLookupResponse | null>(null);
-  const [hostedState, setHostedState] = useState<HostedProvisioningState | null>(null);
   const [lastDelegateDigest, setLastDelegateDigest] = useState<string | null>(null);
 
   const canPair = Boolean(nonce && port && account && lookup?.accountId);
@@ -79,20 +77,17 @@ function CliLoginInner() {
     activeRunRef.current += 1;
     if (!account) {
       setLookup(null);
-      setHostedState(null);
       return;
     }
 
     let cancelled = false;
     setStatus("loading-account");
     setError(null);
-    setHostedState(null);
 
     fetchMemWalAccount(account.address)
       .then((next) => {
         if (cancelled) return;
         setLookup(next);
-        setHostedState(loadHostedProvisioningState(account.address, next.network));
         setStatus("idle");
       })
       .catch((err) => {
@@ -205,12 +200,9 @@ function CliLoginInner() {
           delegateTtlSeconds,
           accountId: lookup.accountId,
           suiAddress: account.address,
-          activeNamespaceId: hostedState?.namespaceId,
-          namespace: hostedState?.namespaceId,
           memwalPackageId: lookup.packageId,
           relayerUrl: lookup.relayerUrl,
           network: lookup.network,
-          agentId: "cli-default",
           createdAt: createdAt.toISOString(),
           expiresAt: expiresAt.toISOString(),
           sdkVersion: "0.1.0",
@@ -276,10 +268,6 @@ function CliLoginInner() {
                 <div className="rcp-row">
                   <span className="rk">MemWal account</span>
                   <span className="rv mono">{shortId(lookup?.accountId)}</span>
-                </div>
-                <div className="rcp-row">
-                  <span className="rk">Active namespace</span>
-                  <span className="rv mono">{shortId(hostedState?.namespaceId)}</span>
                 </div>
                 <div className="rcp-row">
                   <span className="rk">Delegate tx</span>

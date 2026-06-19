@@ -1,13 +1,12 @@
-// Shared memory recorder for runtime integrations — the Mem0-mirror half that
-// complements the trace recorder (runtime.ts). Providers/plugins use it to:
+// Shared memory recorder for runtime integrations — the Mem0-mirror surface.
+// Providers/plugins use it to:
 //   recall(query)  -> vector-search prior memories to inject into context
-//   capture(text)  -> store a new memory (MemWal + on-chain attestation)
+//   capture(text)  -> store a new memory (MemWal: Seal-encrypted blob on Walrus)
 // Both are defensive: a OneMem/MemWal failure must never break the host agent
 // (recall returns [] so injection is simply empty; capture is fire-and-forget).
 
-import { OneMem } from "./client.js";
+import { OneMem, type SuiNetwork } from "./client.js";
 import { resolveMemoryConfigFromSources } from "./credentials.js";
-import type { SuiNetwork } from "./generated/addresses.js";
 import type { Memory, MemoryConfig } from "./memory.js";
 import { type RuntimeLogger, resolveNetwork, resolveSigner } from "./runtime.js";
 
@@ -55,9 +54,10 @@ export interface MemoryRecorder {
   /** Vector-search prior memories for injection. Returns [] when disabled or on failure. */
   recall(query: string, topK?: number): Promise<Memory[]>;
   /**
-   * Store a memory (MemWal + on-chain attestation). Never throws — returns true
-   * when the write succeeded, false when disabled/empty or the write failed, so
-   * a caller that cares about durability can detect (but isn't broken by) loss.
+   * Store a memory on MemWal (Seal-encrypted blob on Walrus). Never throws —
+   * returns true when the write succeeded, false when disabled/empty or the
+   * write failed, so a caller that cares about durability can detect (but isn't
+   * broken by) loss.
    */
   capture(text: string): Promise<boolean>;
 }

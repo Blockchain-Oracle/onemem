@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { tmpdir } from "node:os";
@@ -6,39 +6,16 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { setRuntimePaused } from "../../sdk-ts/src/runtime-controls.ts";
-import {
-  bufferToolCall,
-  readBufferedToolCalls,
-  readSessionState,
-  writeSessionState,
-} from "../scripts/onemem-lib.mjs";
 
 const SCRIPTS = fileURLToPath(new URL("../scripts/", import.meta.url));
 let dir = "";
 let previousPluginData: string | undefined;
 let previousRuntimeControlsPath: string | undefined;
 
-function runScript(script: string, payload: unknown, env: Record<string, string> = {}) {
-  return spawnSync(process.execPath, [`${SCRIPTS}${script}`], {
-    input: JSON.stringify(payload),
-    encoding: "utf8",
-    env: {
-      ...process.env,
-      CLAUDE_PLUGIN_DATA: dir,
-      ONEMEM_NAMESPACE_ID: "",
-      ONEMEM_RW_CAP_ID: "",
-      ONEMEM_WORKER_AUTOSTART: "0",
-      ...env,
-    },
-  });
-}
-
 function scriptEnv(env: Record<string, string> = {}) {
   return {
     ...process.env,
     CLAUDE_PLUGIN_DATA: dir,
-    ONEMEM_NAMESPACE_ID: "",
-    ONEMEM_RW_CAP_ID: "",
     ONEMEM_WORKER_AUTOSTART: "0",
     ...env,
   };
@@ -119,38 +96,27 @@ afterEach(() => {
 });
 
 describe("Claude Code plugin hooks", () => {
-  it("PostToolUse buffers when trace policy allows capture", () => {
-    writeSessionState("claude-test", {
-      onememSessionId: "0xsession",
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-    });
-
-    const result = runScript("observe.js", {
-      hook_event_name: "PostToolUse",
-      session_id: "claude-test",
-      tool_name: "Bash",
-      tool_input: { command: "pwd" },
-      tool_response: { exit_code: 0, stdout: "/tmp/project" },
-    });
+  it("SessionStart registers the session with the local worker", async () => {
+    const { result, requests } = await captureRequests((baseUrl) =>
+      runScriptAsync(
+        "inject.js",
+        { session_id: "claude-test", cwd: "/tmp/project" },
+        { ONEMEM_WORKER_URL: baseUrl },
+      ),
+    );
 
     expect(result.status).toBe(0);
-    expect(readBufferedToolCalls("claude-test")).toEqual([
-      {
-        toolName: "Bash",
-        toolInput: { command: "pwd" },
-        toolResponse: { exit_code: 0, stdout: "/tmp/project" },
-      },
-    ]);
+    const init = requests.find((r) => r.url === "/api/sessions/init");
+    expect(init?.body).toEqual(
+      expect.objectContaining({
+        id: "claude-test",
+        runtime: "claude-code",
+        projectPath: "/tmp/project",
+      }),
+    );
   });
 
-  it("PostToolUse posts readable previews to the local worker before Stop", async () => {
-    writeSessionState("claude-test", {
-      onememSessionId: "0xsession",
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-    });
-
+  it("PostToolUse posts readable previews to the local worker", async () => {
     const { result, requests } = await captureRequests((baseUrl) =>
       runScriptAsync(
         "observe.js",
@@ -181,78 +147,42 @@ describe("Claude Code plugin hooks", () => {
     ]);
   });
 
-  it("PostToolUse does not buffer while claude-code tracing is disabled", () => {
-    writeSessionState("claude-test", {
-      onememSessionId: "0xsession",
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-    });
+  it("PostToolUse does not post while claude-code capture is paused", async () => {
     setRuntimePaused("claude-code", true);
 
-    const result = runScript("observe.js", {
-      hook_event_name: "PostToolUse",
-      session_id: "claude-test",
-      tool_name: "Bash",
-      tool_input: { command: "pwd" },
-      tool_response: { exit_code: 0, stdout: "/tmp/project" },
-    });
-
-    expect(result.status).toBe(0);
-    expect(readBufferedToolCalls("claude-test")).toHaveLength(0);
-  });
-
-  it("Stop preserves buffered calls when trace client setup fails", () => {
-    writeSessionState("claude-test", {
-      onememSessionId: "0xsession",
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-    });
-    bufferToolCall("claude-test", {
-      toolName: "Bash",
-      toolInput: { command: "pwd" },
-      toolResponse: { exit_code: 0, stdout: "/tmp/project" },
-    });
-
-    const result = runScript(
-      "summarize.js",
-      { session_id: "claude-test", hook_event_name: "Stop", reason: "stop" },
-      {
-        ONEMEM_NAMESPACE_ID: "0xnamespace",
-        ONEMEM_RW_CAP_ID: "0xrw",
-        ONEMEM_PRIVATE_KEY: "not-a-valid-sui-private-key",
-      },
+    const { result, requests } = await captureRequests((baseUrl) =>
+      runScriptAsync(
+        "observe.js",
+        {
+          hook_event_name: "PostToolUse",
+          session_id: "claude-test",
+          tool_name: "Bash",
+          tool_input: { command: "pwd" },
+          tool_response: { exit_code: 0, stdout: "/tmp/project" },
+        },
+        { ONEMEM_WORKER_URL: baseUrl },
+      ),
     );
 
     expect(result.status).toBe(0);
-    expect(readBufferedToolCalls("claude-test")).toHaveLength(1);
-    expect(readSessionState("claude-test")).not.toBeNull();
+    expect(requests).toHaveLength(0);
   });
 
-  it("Stop clears local state and buffers while claude-code tracing is disabled", () => {
-    writeSessionState("claude-test", {
-      onememSessionId: "0xsession",
-      namespaceId: "0xnamespace",
-      rwCapId: "0xrw",
-    });
-    bufferToolCall("claude-test", {
-      toolName: "Bash",
-      toolInput: { command: "pwd" },
-      toolResponse: { exit_code: 0, stdout: "/tmp/project" },
-    });
-    setRuntimePaused("claude-code", true);
-
-    const result = runScript(
-      "summarize.js",
-      { session_id: "claude-test", hook_event_name: "Stop", reason: "stop" },
-      {
-        ONEMEM_NAMESPACE_ID: "0xnamespace",
-        ONEMEM_RW_CAP_ID: "0xrw",
-        ONEMEM_PRIVATE_KEY: "not-a-valid-sui-private-key",
-      },
+  it("Stop marks the session ended on the local worker", async () => {
+    const { result, requests } = await captureRequests((baseUrl) =>
+      runScriptAsync(
+        "summarize.js",
+        { session_id: "claude-test", hook_event_name: "Stop", reason: "stop" },
+        { ONEMEM_WORKER_URL: baseUrl },
+      ),
     );
 
     expect(result.status).toBe(0);
-    expect(readBufferedToolCalls("claude-test")).toHaveLength(0);
-    expect(readSessionState("claude-test")).toBeNull();
+    expect(requests).toEqual([
+      {
+        url: "/api/sessions/end",
+        body: expect.objectContaining({ id: "claude-test" }),
+      },
+    ]);
   });
 });

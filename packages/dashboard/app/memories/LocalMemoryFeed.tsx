@@ -202,7 +202,6 @@ function MemoryObservation({
               {project} · {formatTime(observation.createdAt)} · {shortId(observation.sessionId)}
             </div>
           </div>
-          <span className="badge badge-grey">{observation.proofStatus}</span>
         </div>
         <div className="local-feed-tags">
           <span>{observation.toolName ?? observation.type}</span>

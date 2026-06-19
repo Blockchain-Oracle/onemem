@@ -1,17 +1,9 @@
 #!/usr/bin/env node
 // OneMem Claude Code plugin — PostToolUse hook.
-// Buffers each tool call to a local file INSTANTLY (no network) so Claude Code
-// stays responsive; the buffer is flushed on-chain in one batch at Stop
-// (per the "hooks must be fast" rule). Defensive: always exits 0.
+// Posts each tool call to the local OneMem worker INSTANTLY so the dashboard
+// fills up live. Defensive: always exits 0.
 
-import {
-  bufferToolCall,
-  postWorker,
-  preview,
-  readHookInput,
-  readSessionState,
-  traceCaptureEnabled,
-} from "./onemem-lib.mjs";
+import { postWorker, preview, readHookInput, traceCaptureEnabled } from "./onemem-lib.mjs";
 
 async function main() {
   const input = await readHookInput();
@@ -27,15 +19,6 @@ async function main() {
     toolNamespace: "claude-code",
     inputPreview: preview(input.tool_input),
     outputPreview: preview(input.tool_response),
-  });
-
-  // Only buffer for on-chain flush if a OneMem session was opened at SessionStart.
-  if (!readSessionState(claudeSessionId)) return;
-
-  bufferToolCall(claudeSessionId, {
-    toolName: input.tool_name,
-    toolInput: input.tool_input ?? null,
-    toolResponse: input.tool_response ?? null,
   });
 }
 

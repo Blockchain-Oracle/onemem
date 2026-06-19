@@ -1,17 +1,15 @@
 // Memory API — the Mem0-mirror surface, wrapping MemWal's `/manual` flow.
 //
 // MemWal stores each memory as a client-side-Seal-encrypted Walrus blob (the
-// relayer never sees plaintext). OneMem's value-add: every memory write also
-// emits an on-chain `ActionCall` (tool_name="memwal_write") referencing that
-// blob — the verifiable, Merkle-chained attestation MemWal itself doesn't ship.
+// relayer never sees plaintext) and does its own Seal + Walrus internally.
 //
-// Surface (per docs/.../shared-api-surface.md):
-//   add(text, opts?)    → rememberManual + optional ActionCall + attestation
+// Surface:
+//   add(text, opts?)    → rememberManual
 //   search(query, opts?)→ recallManual, mapped to Memory[] (relevance=1-distance)
 //
-// MemWal 0.0.5 has no get-by-id / update / delete / history primitives, so
-// those are intentionally not exposed at v0.1 (tracked as OneMem-side
-// bookkeeping / v0.2 — see PILLAR2_AUDIT_AND_CORRECTION.md).
+// MemWal 0.0.5 has no get-by-id / update / delete / history / list primitives,
+// so those are intentionally not exposed at v0.1 (the index/listing layer is a
+// later phase).
 
 import type { MemWalManual } from "@mysten-incubation/memwal/manual";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -39,13 +37,6 @@ export interface MemoryConfig {
 export interface AddMemoryArgs {
   /** MemWal namespace override. */
   readonly namespace?: string;
-  /**
-   * When all three are present, the memory write also emits a verifiable
-   * on-chain ActionCall into the session (the OneMem differentiator).
-   */
-  readonly sessionId?: string;
-  readonly onememNamespaceId?: string;
-  readonly rwCapId?: string;
 }
 
 export interface AddMemoryResult {
@@ -53,17 +44,11 @@ export interface AddMemoryResult {
   readonly memoryId: string;
   /** Walrus blob id holding the Seal-encrypted memory. */
   readonly walrusBlobId: string;
-  /** ActionCall tx digest, when a verifiable trace was emitted. */
-  readonly suiTxDigest?: string;
-  /** ActionCall id, when emitted. */
-  readonly callId?: string;
-  /** Verifiability receipt the host app can surface. */
+  /** Receipt the host app can surface (blob id + content hash). */
   readonly attestation: {
     readonly walrusBlobId: string;
     readonly memoryId: string;
     readonly inputHashHex: string;
-    readonly suiTxDigest?: string;
-    readonly callId?: string;
   };
 }
 
@@ -110,30 +95,11 @@ export class MemoryReadError extends Error {
   }
 }
 
-/**
- * Thrown when the memory blob WAS written to MemWal but the on-chain ActionCall
- * attestation failed. The memory exists (carries its ids) but is unattested —
- * retry the attestation with `walrusBlobId`/`memoryId` rather than re-adding.
- */
-export class MemoryAttestationError extends Error {
-  constructor(
-    readonly memoryId: string,
-    readonly walrusBlobId: string,
-    options?: { cause?: unknown },
-  ) {
-    super(
-      `Memory ${memoryId} written to Walrus (${walrusBlobId}) but the on-chain ActionCall failed — memory is unattested, retry the attestation`,
-      options,
-    );
-    this.name = "MemoryAttestationError";
-  }
-}
-
 function hex(bytes: Uint8Array): string {
   return `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
 }
 
-/** Mem0-style memory operations backed by MemWal `/manual` + OneMem traces. */
+/** Mem0-style memory operations backed by MemWal `/manual`. */
 export class MemoryAPI {
   private memwal: MemWalManual | null = null;
 
@@ -162,11 +128,7 @@ export class MemoryAPI {
     return this.memwal;
   }
 
-  /**
-   * Write a memory: MemWal stores the Seal-encrypted blob; if session +
-   * namespace + cap are supplied, OneMem also emits a verifiable ActionCall
-   * referencing the blob (hash taken over the plaintext).
-   */
+  /** Write a memory: MemWal stores the Seal-encrypted blob on Walrus. */
   async add(text: string, opts: AddMemoryArgs = {}): Promise<AddMemoryResult> {
     let remembered: { id: string; blob_id: string };
     try {
@@ -177,39 +139,13 @@ export class MemoryAPI {
     }
     const inputHash = sha256(new TextEncoder().encode(text));
 
-    let suiTxDigest: string | undefined;
-    let callId: string | undefined;
-    if (opts.sessionId && opts.onememNamespaceId && opts.rwCapId) {
-      try {
-        const emitted = await this.client.traces.appendCall({
-          sessionId: opts.sessionId,
-          namespaceId: opts.onememNamespaceId,
-          rwCapId: opts.rwCapId,
-          toolName: "memwal_write",
-          toolNamespace: "@onemem/sdk-ts",
-          input: { walrusBlob: remembered.blob_id, hash: inputHash },
-          label: "memory",
-        });
-        callId = emitted.callId;
-        suiTxDigest = emitted.txDigest;
-      } catch (error) {
-        // The memory IS written to MemWal; only the on-chain attestation
-        // failed. Surface a recoverable typed error carrying the ids.
-        throw new MemoryAttestationError(remembered.id, remembered.blob_id, { cause: error });
-      }
-    }
-
     return {
       memoryId: remembered.id,
       walrusBlobId: remembered.blob_id,
-      suiTxDigest,
-      callId,
       attestation: {
         walrusBlobId: remembered.blob_id,
         memoryId: remembered.id,
         inputHashHex: hex(inputHash),
-        suiTxDigest,
-        callId,
       },
     };
   }
@@ -233,58 +169,6 @@ export class MemoryAPI {
         relevance: Math.max(0, 1 - hit.distance),
       }));
     return { results };
-  }
-
-  /**
-   * List memory references from chain. MemWal 0.0.5 has no list endpoint, so the
-   * inventory is derived from on-chain `memwal_write` ActionCalls — a verifiable
-   * list of memory blobs (metadata only; plaintext stays Seal-encrypted on Walrus
-   * and decrypts client-side). Optionally scope by OneMem namespace.
-   */
-  async getAll(opts: { namespaceId?: string; limit?: number } = {}): Promise<
-    Array<{
-      walrusBlobId: string | null;
-      contentHash: string;
-      namespaceId: string;
-      callId: string;
-      capturedAt: number;
-    }>
-  > {
-    const packageId = this.client.addresses.originalPackageId || this.client.addresses.packageId;
-    const out: Array<{
-      walrusBlobId: string | null;
-      contentHash: string;
-      namespaceId: string;
-      callId: string;
-      capturedAt: number;
-    }> = [];
-    const limit = opts.limit ?? 100;
-    // biome-ignore lint/suspicious/noExplicitAny: opaque cursor type
-    let cursor: any = null;
-    while (true) {
-      const page = await this.client.client.queryEvents({
-        query: { MoveEventType: `${packageId}::events::ActionCallEmittedEvent` },
-        cursor,
-        order: "descending",
-        limit: 50,
-      });
-      for (const e of page.data) {
-        const f = e.parsedJson as Record<string, unknown> | undefined;
-        if (!f || f.tool_name !== "memwal_write") continue;
-        if (opts.namespaceId && f.namespace_id !== opts.namespaceId) continue;
-        out.push({
-          walrusBlobId: (f.walrus_input_blob as string) || null,
-          contentHash: `0x${Buffer.from((f.content_hash as number[]) ?? []).toString("hex")}`,
-          namespaceId: String(f.namespace_id ?? ""),
-          callId: String(f.call_id ?? ""),
-          capturedAt: Number(f.captured_at ?? 0),
-        });
-        if (out.length >= limit) return out;
-      }
-      if (!page.hasNextPage || !page.nextCursor) break;
-      cursor = page.nextCursor;
-    }
-    return out;
   }
 
   /** Wipe MemWal key material from memory. Call when done with the client. */

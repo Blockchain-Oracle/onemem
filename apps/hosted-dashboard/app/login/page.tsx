@@ -38,13 +38,9 @@ export default function LoginPage() {
               }
             />
             {account ? (
-              <a
-                className="btn btn-primary"
-                href="/onboarding"
-                style={{ justifyContent: "center" }}
-              >
+              <a className="btn btn-primary" href="/dashboard" style={{ justifyContent: "center" }}>
                 <Icon name="arrowRight" size={16} />
-                Continue to onboarding
+                Continue to dashboard
               </a>
             ) : null}
           </div>
@@ -85,9 +81,7 @@ export default function LoginPage() {
             </div>
           )}
           <p className="faint" style={{ fontSize: ".78rem", textAlign: "center", marginTop: 18 }}>
-            Google sign-in uses Enoki zkLogin when configured. Wallet connect uses dApp Kit. No
-            MemWal account or namespace is minted until onboarding runs a real sponsored
-            transaction.
+            Google sign-in uses Enoki zkLogin when configured. Wallet connect uses dApp Kit.
           </p>
         </div>
       </div>

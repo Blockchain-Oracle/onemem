@@ -62,12 +62,6 @@ importers:
       '@onemem/brand':
         specifier: workspace:*
         version: link:../../packages/brand
-      '@onemem/dashboard':
-        specifier: workspace:*
-        version: link:../../packages/dashboard
-      '@onemem/sdk-ts':
-        specifier: workspace:*
-        version: link:../../packages/sdk-ts
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.100.14(react@19.2.6)
@@ -127,73 +121,6 @@ importers:
       postcss:
         specifier: ^8.4.0
         version: 8.5.15
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-
-  demos/agent-sends-money:
-    dependencies:
-      '@onemem/sdk-ts':
-        specifier: workspace:*
-        version: link:../../packages/sdk-ts
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.21
-        version: 22.19.21
-      tsx:
-        specifier: ^4.19.0
-        version: 4.22.3
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-      vitest:
-        specifier: ^2.1.0
-        version: 2.1.9(@types/node@22.19.21)
-
-  demos/multi-agent-coordination:
-    dependencies:
-      '@onemem/sdk-ts':
-        specifier: workspace:*
-        version: link:../../packages/sdk-ts
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.21
-        version: 22.19.21
-      tsx:
-        specifier: ^4.19.0
-        version: 4.22.3
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-
-  demos/switch-laptops:
-    dependencies:
-      '@onemem/sdk-ts':
-        specifier: workspace:*
-        version: link:../../packages/sdk-ts
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.21
-        version: 22.19.21
-      tsx:
-        specifier: ^4.19.0
-        version: 4.22.3
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-
-  demos/verifiable-research-agent:
-    dependencies:
-      '@onemem/sdk-ts':
-        specifier: workspace:*
-        version: link:../../packages/sdk-ts
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.21
-        version: 22.19.21
-      tsx:
-        specifier: ^4.19.0
-        version: 4.22.3
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -347,13 +274,6 @@ importers:
         version: 2.1.9(@types/node@25.9.3)
 
   packages/plugin-openclaw:
-    dependencies:
-      '@mysten/sui':
-        specifier: ^2.17.0
-        version: 2.17.0(typescript@5.9.3)
-      '@onemem/sdk-ts':
-        specifier: workspace:*
-        version: link:../sdk-ts
     devDependencies:
       '@mysten-incubation/oc-memwal':
         specifier: ^0.0.4
@@ -429,15 +349,9 @@ importers:
       '@mysten-incubation/memwal':
         specifier: ^0.0.5
         version: 0.0.5(@mysten/seal@1.1.3(@mysten/sui@2.17.0(typescript@5.9.3)))(@mysten/sui@2.17.0(typescript@5.9.3))(@mysten/walrus@1.1.7(@mysten/sui@2.17.0(typescript@5.9.3)))(ai@6.0.205(zod@3.25.76))(zod@3.25.76)
-      '@mysten/seal':
-        specifier: ^1.1.0
-        version: 1.1.3(@mysten/sui@2.17.0(typescript@5.9.3))
       '@mysten/sui':
         specifier: ^2.17.0
         version: 2.17.0(typescript@5.9.3)
-      '@mysten/walrus':
-        specifier: ^1.1.7
-        version: 1.1.7(@mysten/sui@2.17.0(typescript@5.9.3))
       '@noble/hashes':
         specifier: ^2.2.0
         version: 2.2.0
@@ -456,10 +370,6 @@ importers:
         version: 2.1.9(@types/node@22.19.21)
 
   packages/worker:
-    dependencies:
-      '@onemem/sdk-ts':
-        specifier: workspace:*
-        version: link:../sdk-ts
     devDependencies:
       '@types/node':
         specifier: ^25.9.3

@@ -16,8 +16,6 @@ const NAV = [
   { key: "overview", label: "Overview", href: "/", icon: "overview" },
   { key: "memories", label: "Memories", href: "/memories", icon: "memory" },
   { key: "apps", label: "Integrations", href: "/apps", icon: "apps" },
-  { key: "sessions", label: "Sessions", href: "/sessions", icon: "sessions" },
-  { key: "share", label: "Share", href: "/share", icon: "share" },
 ] as const;
 
 function BrandMark() {

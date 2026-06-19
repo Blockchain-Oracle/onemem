@@ -1,9 +1,8 @@
 // The local worker's durable store. Built on node:sqlite (built-in, no native
 // dep). The hot path is: a hook POSTs a tool call → addObservation() writes it
 // synchronously and the worker SSE-pushes it instantly, so the dashboard fills
-// up live. A background reconciler later anchors each observation on-chain and
-// flips its proof_status (local → queued → anchored → verified) — the chain is
-// NEVER on the hot path. This is the claude-mem "alive" model adapted to OneMem.
+// up live. This is the claude-mem "alive" model adapted to OneMem — local
+// SQLite is the alive feed cache.
 
 import { createRequire } from "node:module";
 import type { DatabaseSync } from "node:sqlite";
@@ -13,8 +12,6 @@ import type { DatabaseSync } from "node:sqlite";
 // createRequire at runtime (Node resolves it natively) and keep the type-only
 // import above for full typing.
 const sqlite = createRequire(import.meta.url)("node:sqlite") as typeof import("node:sqlite");
-
-export type ProofStatus = "local" | "queued" | "anchored" | "verified" | "failed";
 
 export interface LocalSession {
   readonly id: string;
@@ -38,9 +35,6 @@ export interface Observation {
   readonly outputPreview: string | null;
   readonly parentCallId: string | null;
   readonly createdAt: number;
-  readonly proofStatus: ProofStatus;
-  readonly callId: string | null;
-  readonly txDigest: string | null;
 }
 
 export interface InitSessionInput {
@@ -85,9 +79,6 @@ interface ObservationRow {
   readonly output_preview: string | null;
   readonly parent_call_id: string | null;
   readonly created_at: number;
-  readonly proof_status: string;
-  readonly call_id: string | null;
-  readonly tx_digest: string | null;
 }
 
 const SCHEMA = `
@@ -111,22 +102,10 @@ CREATE TABLE IF NOT EXISTS observations (
   input_preview TEXT,
   output_preview TEXT,
   parent_call_id TEXT,
-  created_at INTEGER NOT NULL,
-  proof_status TEXT NOT NULL DEFAULT 'local',
-  call_id TEXT,
-  tx_digest TEXT
+  created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_obs_session ON observations(session_id, seq);
-CREATE INDEX IF NOT EXISTS idx_obs_proof ON observations(proof_status);
 `;
-
-const PENDING_STATUSES: readonly ProofStatus[] = ["local", "queued", "failed"];
-
-function toProofStatus(value: string): ProofStatus {
-  return value === "queued" || value === "anchored" || value === "verified" || value === "failed"
-    ? value
-    : "local";
-}
 
 function rowToSession(r: SessionRow): LocalSession {
   return {
@@ -153,9 +132,6 @@ function rowToObservation(r: ObservationRow): Observation {
     outputPreview: r.output_preview,
     parentCallId: r.parent_call_id,
     createdAt: r.created_at,
-    proofStatus: toProofStatus(r.proof_status),
-    callId: r.call_id,
-    txDigest: r.tx_digest,
   };
 }
 
@@ -203,8 +179,8 @@ export class WorkerStore {
     const info = this.db
       .prepare(
         `INSERT INTO observations
-           (session_id, seq, type, tool_name, tool_namespace, input_preview, output_preview, parent_call_id, created_at, proof_status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'local')`,
+           (session_id, seq, type, tool_name, tool_namespace, input_preview, output_preview, parent_call_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         input.sessionId,
@@ -220,20 +196,6 @@ export class WorkerStore {
     const created = this.getObservation(Number(info.lastInsertRowid));
     if (!created) throw new Error("addObservation failed");
     return created;
-  }
-
-  /** Background reconciler flips an observation's proof badge as the chain settles. */
-  setProofStatus(
-    id: number,
-    status: ProofStatus,
-    meta: { callId?: string; txDigest?: string } = {},
-  ): Observation | null {
-    this.db
-      .prepare(
-        "UPDATE observations SET proof_status = ?, call_id = COALESCE(?, call_id), tx_digest = COALESCE(?, tx_digest) WHERE id = ?",
-      )
-      .run(status, meta.callId ?? null, meta.txDigest ?? null, id);
-    return this.getObservation(id);
   }
 
   endSession(id: string, endedAt = Date.now()): void {
@@ -271,17 +233,6 @@ export class WorkerStore {
       : this.db
           .prepare("SELECT * FROM observations ORDER BY id DESC LIMIT ?")
           .all(limit)) as unknown as ObservationRow[];
-    return rows.map(rowToObservation);
-  }
-
-  /** Observations still awaiting on-chain anchoring (the reconciler's work queue). */
-  pendingProof(limit = 50): Observation[] {
-    const placeholders = PENDING_STATUSES.map(() => "?").join(", ");
-    const rows = this.db
-      .prepare(
-        `SELECT * FROM observations WHERE proof_status IN (${placeholders}) ORDER BY id ASC LIMIT ?`,
-      )
-      .all(...PENDING_STATUSES, limit) as unknown as ObservationRow[];
     return rows.map(rowToObservation);
   }
 
