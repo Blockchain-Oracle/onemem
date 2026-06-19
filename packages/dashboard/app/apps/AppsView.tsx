@@ -7,13 +7,13 @@ import type { RuntimeInventory, RuntimeRow, RuntimeSection } from "@/lib/runtime
 
 type Patch = {
   paused?: boolean;
-  permissions?: { traceCapture?: boolean };
+  permissions?: { captureEnabled?: boolean };
 };
 
-function traceBadge(row: RuntimeRow): { cls: string; label: string } {
+function captureBadge(row: RuntimeRow): { cls: string; label: string } {
   if (row.paused) return { cls: "cov-paused", label: "Paused" };
-  if (!row.traceCapture) return { cls: "cov-paused", label: "Trace off" };
-  return { cls: "cov-full", label: "Tracing" };
+  if (!row.captureEnabled) return { cls: "cov-paused", label: "Capture off" };
+  return { cls: "cov-full", label: "Capturing" };
 }
 
 const SECTIONS: { key: RuntimeSection; title: string; blurb: string }[] = [
@@ -71,7 +71,7 @@ export function AppsView({
       const data = (await res.json()) as {
         ok?: boolean;
         error?: string;
-        control?: { paused: boolean; permissions: { traceCapture: boolean } };
+        control?: { paused: boolean; permissions: { captureEnabled: boolean } };
       };
       if (!res.ok || !data.ok || !data.control) {
         throw new Error(data.error || `request failed (${res.status})`);
@@ -82,17 +82,17 @@ export function AppsView({
             ? {
                 ...row,
                 paused: data.control?.paused ?? row.paused,
-                traceCapture: data.control?.permissions.traceCapture ?? row.traceCapture,
+                captureEnabled: data.control?.permissions.captureEnabled ?? row.captureEnabled,
                 statusClass:
-                  data.control?.paused || data.control?.permissions.traceCapture === false
+                  data.control?.paused || data.control?.permissions.captureEnabled === false
                     ? "sdot-offline"
                     : row.lastMs
                       ? row.statusClass
                       : "sdot-offline",
                 statusLabel: data.control?.paused
                   ? "paused"
-                  : data.control?.permissions.traceCapture === false
-                    ? "trace off"
+                  : data.control?.permissions.captureEnabled === false
+                    ? "capture off"
                     : row.lastMs
                       ? row.statusLabel
                       : "no sessions",
@@ -108,7 +108,7 @@ export function AppsView({
   }
 
   function controllableCard(row: RuntimeRow) {
-    const badge = traceBadge(row);
+    const badge = captureBadge(row);
     const busy = saving === row.id;
     return (
       <div
@@ -153,11 +153,13 @@ export function AppsView({
         </div>
 
         <button
-          aria-pressed={row.traceCapture}
+          aria-pressed={row.captureEnabled}
           className={`perm${row.paused ? " disabled" : ""}`}
-          data-testid={`runtime-trace-${row.id}`}
+          data-testid={`runtime-capture-${row.id}`}
           disabled={busy || row.paused}
-          onClick={() => patchRuntime(row.id, { permissions: { traceCapture: !row.traceCapture } })}
+          onClick={() =>
+            patchRuntime(row.id, { permissions: { captureEnabled: !row.captureEnabled } })
+          }
           style={{
             background: "none",
             border: 0,
@@ -169,10 +171,10 @@ export function AppsView({
           }}
           type="button"
         >
-          <span className={`pc${row.traceCapture ? " on" : ""}`}>
-            {row.traceCapture ? <Icon name="check" size={14} /> : null}
+          <span className={`pc${row.captureEnabled ? " on" : ""}`}>
+            {row.captureEnabled ? <Icon name="check" size={14} /> : null}
           </span>
-          Trace capture
+          Memory capture
           <span className="rt-meta mono" style={{ marginLeft: "auto" }}>
             {row.tierLabel}
           </span>

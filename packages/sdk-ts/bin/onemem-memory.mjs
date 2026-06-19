@@ -12,7 +12,7 @@
 // ONEMEM_EMBEDDING_API_KEY [+ MEMWAL_PACKAGE_ID / MEMWAL_RELAYER_URL]).
 // Signer: ONEMEM_PRIVATE_KEY → sui keystore → generated+persisted wallet.
 // Prints one JSON line to stdout:
-//   add    -> { "memoryId", "walrusBlobId", "attestation": {...} }
+//   add    -> { "memoryId", "walrusBlobId", "inputHashHex"? }
 //   search -> { "results": [{ "text", "walrusBlobId", "relevance" }, ...] }
 
 import { readFileSync } from "node:fs";
@@ -50,7 +50,7 @@ async function main() {
     }
     const r = await onemem.requireMemory().add(p.text, { namespace: p.namespace });
     process.stdout.write(
-      `${JSON.stringify({ memoryId: r.memoryId, walrusBlobId: r.walrusBlobId, attestation: r.attestation })}\n`,
+      `${JSON.stringify({ memoryId: r.memoryId, walrusBlobId: r.walrusBlobId, inputHashHex: r.inputHashHex })}\n`,
     );
     return;
   }

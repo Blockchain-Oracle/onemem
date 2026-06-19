@@ -98,12 +98,22 @@ const plugin = {
       return;
     }
 
-    // Track which worker sessions we've opened so each gets one init.
+    // Track which worker sessions we've opened so each gets one init. Returns
+    // whether the session is open (so callers can skip a dropped observation).
     const opened = new Set<string>();
-    async function ensureSession(sessionKey: string): Promise<void> {
-      if (opened.has(sessionKey)) return;
+    async function ensureSession(sessionKey: string): Promise<boolean> {
+      if (opened.has(sessionKey)) return true;
+      // Await the init BEFORE marking opened so a transient worker failure
+      // doesn't poison the key — a later hook retries the init.
+      const ok = await postWorker("/api/sessions/init", { id: sessionKey, runtime: "openclaw" });
+      if (!ok) {
+        api.logger?.warn?.(
+          `[oc-onemem] worker session init failed for ${sessionKey} — observations will not be captured`,
+        );
+        return false;
+      }
       opened.add(sessionKey);
-      await postWorker("/api/sessions/init", { id: sessionKey, runtime: "openclaw" });
+      return true;
     }
 
     // All hooks run inside the host's dispatch and api.on is fire-and-forget
@@ -125,8 +135,8 @@ const plugin = {
       "after_tool_call",
       safe("after_tool_call", async (event, ctx) => {
         const sessionKey = sessionKeyOf(event, ctx);
-        await ensureSession(sessionKey);
-        await postWorker("/api/sessions/observations", {
+        if (!(await ensureSession(sessionKey))) return;
+        const ok = await postWorker("/api/sessions/observations", {
           sessionId: sessionKey,
           type: "tool_use",
           toolName: (event.toolName as string) ?? "tool",
@@ -134,6 +144,8 @@ const plugin = {
           inputPreview: preview(event.params ?? null),
           outputPreview: preview(event.result ?? event.error ?? null),
         });
+        if (!ok)
+          api.logger?.warn?.("[oc-onemem] after_tool_call observation dropped (worker down)");
       }),
     );
 
@@ -143,8 +155,8 @@ const plugin = {
         const output = event.lastAssistant ?? event.assistantTexts ?? null;
         if (output === null) return;
         const sessionKey = sessionKeyOf(event, ctx);
-        await ensureSession(sessionKey);
-        await postWorker("/api/sessions/observations", {
+        if (!(await ensureSession(sessionKey))) return;
+        const ok = await postWorker("/api/sessions/observations", {
           sessionId: sessionKey,
           type: "llm_output",
           toolName: "llm_call",
@@ -152,6 +164,7 @@ const plugin = {
           inputPreview: preview({ provider: event.provider, model: event.model }),
           outputPreview: preview(output),
         });
+        if (!ok) api.logger?.warn?.("[oc-onemem] llm_output observation dropped (worker down)");
       }),
     );
 
@@ -161,7 +174,8 @@ const plugin = {
         const sessionKey = sessionKeyOf(event, ctx);
         if (!opened.has(sessionKey)) return;
         opened.delete(sessionKey);
-        await postWorker("/api/sessions/end", { id: sessionKey });
+        const ok = await postWorker("/api/sessions/end", { id: sessionKey });
+        if (!ok) api.logger?.warn?.(`[oc-onemem] worker session end failed for ${sessionKey}`);
       }),
     );
   },

@@ -9,10 +9,10 @@ const PRIVATE_FILE_MODE = 0o600;
 const PRIVATE_DIR_MODE = 0o700;
 const RUNTIME_ID_RE = /^[a-z0-9][a-z0-9._-]{0,79}$/;
 
-export type RuntimePermissionKey = "traceCapture";
+export type RuntimePermissionKey = "captureEnabled";
 
 export interface RuntimePermissions {
-  readonly traceCapture: boolean;
+  readonly captureEnabled: boolean;
 }
 
 export interface RuntimeControl {
@@ -68,12 +68,12 @@ function emptyControls(): RuntimeControlsFile {
 
 function normalizeControl(runtime: string, stored?: StoredRuntimeControl): RuntimeControl {
   const permissions = stored?.permissions ?? {};
-  const traceCapture =
-    typeof permissions.traceCapture === "boolean" ? permissions.traceCapture : true;
+  const captureEnabled =
+    typeof permissions.captureEnabled === "boolean" ? permissions.captureEnabled : true;
   return {
     runtime,
     paused: stored?.paused === true,
-    permissions: { traceCapture },
+    permissions: { captureEnabled },
     updatedAt: typeof stored?.updatedAt === "string" ? stored.updatedAt : null,
   };
 }
@@ -81,7 +81,7 @@ function normalizeControl(runtime: string, stored?: StoredRuntimeControl): Runti
 function storedFromControl(control: RuntimeControl): StoredRuntimeControl {
   return {
     paused: control.paused,
-    permissions: { traceCapture: control.permissions.traceCapture },
+    permissions: { captureEnabled: control.permissions.captureEnabled },
     updatedAt: control.updatedAt,
   };
 }
@@ -144,7 +144,7 @@ export function setRuntimeControl(
     runtime: id,
     paused: patch.paused ?? current.paused,
     permissions: {
-      traceCapture: patch.permissions?.traceCapture ?? current.permissions.traceCapture,
+      captureEnabled: patch.permissions?.captureEnabled ?? current.permissions.captureEnabled,
     },
     updatedAt: new Date().toISOString(),
   };
@@ -175,7 +175,7 @@ export function setRuntimePermission(
   return setRuntimeControl(runtime, { permissions: { [key]: value } }, path);
 }
 
-export function shouldTraceRuntime(runtime: string, path = runtimeControlsPath()): boolean {
+export function shouldCaptureRuntime(runtime: string, path = runtimeControlsPath()): boolean {
   const control = getRuntimeControl(runtime, path);
-  return !control.paused && control.permissions.traceCapture;
+  return !control.paused && control.permissions.captureEnabled;
 }

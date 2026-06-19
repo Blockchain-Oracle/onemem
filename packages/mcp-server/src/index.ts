@@ -76,7 +76,7 @@ export function buildServer(onemem: OneMem): McpServer {
         return ok({
           memoryId: r.memoryId,
           walrusBlobId: r.walrusBlobId,
-          attestation: r.attestation,
+          inputHashHex: r.inputHashHex,
         });
       } catch (error) {
         return fail(errMessage(error));

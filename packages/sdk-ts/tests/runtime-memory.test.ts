@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const search = vi.fn(async () => ({
   results: [{ text: "prior", walrusBlobId: "b", relevance: 0.9 }],
 }));
-const add = vi.fn(async () => ({ memoryId: "m", walrusBlobId: "b", attestation: {} }));
+const add = vi.fn(async () => ({ memoryId: "m", walrusBlobId: "b", inputHashHex: "0xh" }));
 const create = vi.fn(async () => ({ requireMemory: () => ({ search, add }) }));
 
 vi.mock("../src/client.js", () => ({ OneMem: { create: (...a: unknown[]) => create(...a) } }));
@@ -136,20 +136,22 @@ describe("memoryConfigFromEnv", () => {
     }
   });
 
-  it("returns undefined unless all three required secrets are present", () => {
+  it("returns undefined unless all four required secrets are present", () => {
     expect(memoryConfigFromEnv()).toBeUndefined();
     process.env.ONEMEM_ACCOUNT_ID = "a";
     process.env.ONEMEM_DELEGATE_KEY = "k";
-    expect(memoryConfigFromEnv()).toBeUndefined(); // embedding key still missing
+    process.env.ONEMEM_EMBEDDING_API_KEY = "e";
+    expect(memoryConfigFromEnv()).toBeUndefined(); // MEMWAL_PACKAGE_ID still missing
   });
 
-  it("builds config from env with sensible defaults when the three secrets are set", () => {
+  it("builds config from env with sensible defaults when the four secrets are set", () => {
     process.env.ONEMEM_ACCOUNT_ID = "a";
     process.env.ONEMEM_DELEGATE_KEY = "k";
     process.env.ONEMEM_EMBEDDING_API_KEY = "e";
+    process.env.MEMWAL_PACKAGE_ID = "0xpkg";
     const cfg = memoryConfigFromEnv();
     expect(cfg).toMatchObject({ accountId: "a", delegateKey: "k", embeddingApiKey: "e" });
-    expect(cfg?.memwalPackageId).toBe(""); // unset → empty (caller/SDK supplies)
+    expect(cfg?.memwalPackageId).toBe("0xpkg"); // required secret, enforced at the boundary
     expect(cfg?.relayerUrl).toContain("memory.walrus.xyz"); // defaulted
   });
 });

@@ -8,7 +8,7 @@ signer come from env, read by the CLI:
     ONEMEM_DELEGATE_KEY / ONEMEM_ACCOUNT_ID / ONEMEM_EMBEDDING_API_KEY
     [+ MEMWAL_PACKAGE_ID / MEMWAL_RELAYER_URL / ONEMEM_RPC_URL]
 
-MemWal 0.0.5 has no get-by-id / update / delete / list primitive, so — exactly
+MemWal 0.0.7 has no get-by-id / update / delete / list primitive, so — exactly
 as in the TS SDK — only ``add`` + ``search`` are exposed here.
 """
 
@@ -43,8 +43,9 @@ class Memory:
 class AddResult:
     memory_id: str
     walrus_blob_id: str
-    #: The verifiability receipt (sui tx digest, call id, content hash, ...).
-    attestation: dict[str, Any]
+    #: Client-side SHA-256 of the plaintext, for local dedup — NOT a chain
+    #: attestation. May be absent if the bridge did not return it.
+    input_hash_hex: str | None = None
 
 
 class MemoryClient:
@@ -64,17 +65,19 @@ class MemoryClient:
         self.timeout_s = timeout_s
 
     def add(self, text: str, *, namespace: str | None = None) -> AddResult:
-        """Store a memory (Seal-encrypted on Walrus + on-chain ActionCall attestation)."""
+        """Store a memory via MemWal (client-side Seal-encrypted, saved to Walrus).
+
+        Returns the MemWal memory id + Walrus blob id (and the client-side input
+        hash, when the bridge supplies it).
+        """
         if not text:
             raise MemoryError("add requires non-empty text")
         out = self._run({"op": "add", "text": text, "namespace": namespace or self.namespace})
-        attestation = out.get("attestation", {})
+        input_hash = out.get("inputHashHex")
         return AddResult(
             memory_id=str(out.get("memoryId", "")),
             walrus_blob_id=str(out.get("walrusBlobId", "")),
-            attestation=cast("dict[str, Any]", attestation)
-            if isinstance(attestation, dict)
-            else {},
+            input_hash_hex=str(input_hash) if isinstance(input_hash, str) else None,
         )
 
     def search(self, query: str, *, top_k: int = 5, namespace: str | None = None) -> list[Memory]:

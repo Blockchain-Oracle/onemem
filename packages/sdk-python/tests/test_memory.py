@@ -23,11 +23,7 @@ def test_add_sends_payload_and_parses_result(monkeypatch: pytest.MonkeyPatch) ->
     def fake_run(cmd: Sequence[str], **kwargs: Any) -> SimpleNamespace:
         captured["cmd"] = cmd
         captured["input"] = json.loads(kwargs["input"])
-        return _proc(
-            json.dumps(
-                {"memoryId": "m1", "walrusBlobId": "b1", "attestation": {"suiTxDigest": "0xtx"}}
-            )
-        )
+        return _proc(json.dumps({"memoryId": "m1", "walrusBlobId": "b1", "inputHashHex": "0xhash"}))
 
     monkeypatch.setattr(subprocess, "run", fake_run)
     client = MemoryClient(network="testnet", namespace="ns", command="onemem-memory")
@@ -39,7 +35,7 @@ def test_add_sends_payload_and_parses_result(monkeypatch: pytest.MonkeyPatch) ->
     assert captured["input"]["network"] == "testnet"
     assert res.memory_id == "m1"
     assert res.walrus_blob_id == "b1"
-    assert res.attestation["suiTxDigest"] == "0xtx"
+    assert res.input_hash_hex == "0xhash"
 
 
 def test_search_parses_ranked_memories(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import {
+  captureEnabled,
   postWorker,
   preview,
   readHookInput,
   sessionIdFromInput,
   toolOutputFromInput,
-  traceCaptureEnabled,
   writeCodexOutput,
 } from "./onemem-lib.mjs";
 
@@ -16,7 +16,7 @@ async function main() {
   const sessionId = sessionIdFromInput(input);
   const toolName = input.tool_name;
   if (!sessionId || !toolName) return;
-  if (!traceCaptureEnabled("codex")) return;
+  if (!captureEnabled("codex")) return;
 
   await postWorker("/api/sessions/observations", {
     sessionId,

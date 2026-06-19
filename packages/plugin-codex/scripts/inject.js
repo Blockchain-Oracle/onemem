@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import {
+  captureEnabled,
   codexOutput,
   ensureWorker,
   postWorker,
   readHookInput,
   sessionIdFromInput,
-  traceCaptureEnabled,
   writeCodexOutput,
 } from "./onemem-lib.mjs";
 
@@ -15,7 +15,7 @@ async function main() {
   const context =
     "OneMem is installed for Codex. Use the bundled onemem MCP tools for durable memory search and memory writes.";
 
-  if (sessionId && traceCaptureEnabled("codex")) {
+  if (sessionId && captureEnabled("codex")) {
     await ensureWorker();
     await postWorker("/api/sessions/init", {
       id: sessionId,

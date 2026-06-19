@@ -8,7 +8,7 @@ import {
   listRuntimeControls,
   setRuntimePaused,
   setRuntimePermission,
-  shouldTraceRuntime,
+  shouldCaptureRuntime,
 } from "../src/runtime-controls.js";
 
 let dir = "";
@@ -24,32 +24,32 @@ afterEach(() => {
 });
 
 describe("runtime controls", () => {
-  it("defaults missing runtimes to trace capture on", () => {
+  it("defaults missing runtimes to capture on", () => {
     expect(getRuntimeControl("Vercel-AI", file)).toMatchObject({
       runtime: "vercel-ai",
       paused: false,
-      permissions: { traceCapture: true },
+      permissions: { captureEnabled: true },
       updatedAt: null,
     });
-    expect(shouldTraceRuntime("vercel-ai", file)).toBe(true);
+    expect(shouldCaptureRuntime("vercel-ai", file)).toBe(true);
   });
 
-  it("persists pause state and trace-capture permission in an owner-only file", () => {
+  it("persists pause state and capture permission in an owner-only file", () => {
     setRuntimePaused("vercel-ai", true, file);
-    setRuntimePermission("vercel-ai", "traceCapture", false, file);
+    setRuntimePermission("vercel-ai", "captureEnabled", false, file);
 
     expect(getRuntimeControl("vercel-ai", file)).toMatchObject({
       runtime: "vercel-ai",
       paused: true,
-      permissions: { traceCapture: false },
+      permissions: { captureEnabled: false },
     });
-    expect(shouldTraceRuntime("vercel-ai", file)).toBe(false);
+    expect(shouldCaptureRuntime("vercel-ai", file)).toBe(false);
     expect(statSync(file).mode & 0o777).toBe(0o600);
   });
 
   it("normalizes and lists persisted runtimes", () => {
     setRuntimePaused("OpenAI-Agents", true, file);
-    setRuntimePermission("codex", "traceCapture", false, file);
+    setRuntimePermission("codex", "captureEnabled", false, file);
 
     expect(listRuntimeControls(file).map((entry) => entry.runtime)).toEqual([
       "codex",
@@ -63,6 +63,6 @@ describe("runtime controls", () => {
     setRuntimePaused("codex", false, file);
 
     expect(statSync(file).mode & 0o777).toBe(0o600);
-    expect(shouldTraceRuntime("codex", file)).toBe(true);
+    expect(shouldCaptureRuntime("codex", file)).toBe(true);
   });
 });

@@ -7,7 +7,7 @@
 //   add(text, opts?)    → rememberManual
 //   search(query, opts?)→ recallManual, mapped to Memory[] (relevance=1-distance)
 //
-// MemWal 0.0.5 has no get-by-id / update / delete / history / list primitives,
+// MemWal 0.0.7 has no get-by-id / update / delete / history / list primitives,
 // so those are intentionally not exposed at v0.1 (the index/listing layer is a
 // later phase).
 
@@ -44,12 +44,11 @@ export interface AddMemoryResult {
   readonly memoryId: string;
   /** Walrus blob id holding the Seal-encrypted memory. */
   readonly walrusBlobId: string;
-  /** Receipt the host app can surface (blob id + content hash). */
-  readonly attestation: {
-    readonly walrusBlobId: string;
-    readonly memoryId: string;
-    readonly inputHashHex: string;
-  };
+  /**
+   * Client-side SHA-256 of the plaintext, for local dedup — NOT a chain
+   * attestation.
+   */
+  readonly inputHashHex?: string;
 }
 
 export interface SearchMemoryArgs {
@@ -142,11 +141,7 @@ export class MemoryAPI {
     return {
       memoryId: remembered.id,
       walrusBlobId: remembered.blob_id,
-      attestation: {
-        walrusBlobId: remembered.blob_id,
-        memoryId: remembered.id,
-        inputHashHex: hex(inputHash),
-      },
+      inputHashHex: hex(inputHash),
     };
   }
 
@@ -166,7 +161,7 @@ export class MemoryAPI {
       .map((hit) => ({
         text: hit.text,
         walrusBlobId: hit.blob_id,
-        relevance: Math.max(0, 1 - hit.distance),
+        relevance: Math.min(1, Math.max(0, 1 - hit.distance)),
       }));
     return { results };
   }

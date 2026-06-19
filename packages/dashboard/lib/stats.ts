@@ -23,7 +23,10 @@ async function localSessions(): Promise<LocalSession[]> {
     if (!res.ok) return [];
     const data = (await res.json()) as { sessions?: LocalSession[] };
     return data.sessions ?? [];
-  } catch {
+  } catch (error) {
+    console.warn(
+      `[onemem/stats] local-worker sessions read failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return [];
   }
 }
@@ -34,7 +37,10 @@ async function localObservationCount(): Promise<number> {
     if (!res.ok) return 0;
     const data = (await res.json()) as { observations?: unknown[] };
     return data.observations?.length ?? 0;
-  } catch {
+  } catch (error) {
+    console.warn(
+      `[onemem/stats] local-worker observations read failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return 0;
   }
 }

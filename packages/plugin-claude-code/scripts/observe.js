@@ -3,14 +3,14 @@
 // Posts each tool call to the local OneMem worker INSTANTLY so the dashboard
 // fills up live. Defensive: always exits 0.
 
-import { postWorker, preview, readHookInput, traceCaptureEnabled } from "./onemem-lib.mjs";
+import { captureEnabled, postWorker, preview, readHookInput } from "./onemem-lib.mjs";
 
 async function main() {
   const input = await readHookInput();
   if (input.hook_event_name && input.hook_event_name !== "PostToolUse") return;
   const claudeSessionId = input.session_id;
   if (!claudeSessionId || !input.tool_name) return;
-  if (!(await traceCaptureEnabled("claude-code"))) return;
+  if (!(await captureEnabled("claude-code"))) return;
 
   await postWorker("/api/sessions/observations", {
     sessionId: claudeSessionId,

@@ -92,9 +92,9 @@ export function localCredentialSummary(
     const credentials = readOnememCredentials(file);
     const resolved = resolveMemoryConfigFromSources(env, credentials, now);
     const cfg = resolved.config;
-    const missing = [...resolved.missing, cfg?.memwalPackageId ? null : "MEMWAL_PACKAGE_ID"].filter(
-      (key): key is string => key !== null,
-    );
+    // MEMWAL_PACKAGE_ID is enforced as a required secret by the resolver, so it
+    // is already in `resolved.missing` when absent — don't append it again.
+    const missing = resolved.missing;
     const lifecycle = lifecycleStatus(credentials, now);
     const status: LocalCredentialStatus =
       credentials === null

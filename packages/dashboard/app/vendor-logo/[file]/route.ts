@@ -16,7 +16,10 @@ function packageLogoDir(): string | null {
   try {
     const require = createRequire(import.meta.url);
     return join(dirname(require.resolve("@onemem/brand/vendor-logos/manifest.json")), "svg");
-  } catch {
+  } catch (error) {
+    console.warn(
+      `[onemem/vendor-logo] could not resolve @onemem/brand logo dir: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return null;
   }
 }

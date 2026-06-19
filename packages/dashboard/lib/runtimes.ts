@@ -15,7 +15,7 @@ const IDLE_MS = 24 * 60 * 60 * 1000;
 // WHERE its code runs (execution location). Only location-A runtimes that read
 // ~/.onemem/runtime-controls.json on this machine are controllable from this
 // (local) dashboard. Framework adapters (Vercel AI, ElevenLabs, …) run on a
-// deployed server — they are NOT local apps, get NO pause/trace toggles here,
+// deployed server — they are NOT local apps, get NO pause/capture toggles here,
 // and are managed from the hosted dashboard. Showing them a toggle was theater.
 export type RuntimeTier =
   | "native-hooks" // location A: hooks auto-capture this machine's tool calls
@@ -43,7 +43,7 @@ function sectionFor(tier: RuntimeTier): RuntimeSection {
 }
 
 // Only location-A runtimes that actually read the local runtime-controls file can
-// be paused / trace-toggled from the local dashboard. MCP clients and deployed
+// be paused / capture-toggled from the local dashboard. MCP clients and deployed
 // adapters cannot — a toggle here would write a file their code never reads.
 function isControllable(tier: RuntimeTier): boolean {
   return (
@@ -123,7 +123,7 @@ const METADATA = new Map(KNOWN_RUNTIMES.map((runtime) => [runtime.id, runtime]))
 /**
  * True only for location-A runtimes that read the local runtime-controls file.
  * MCP clients, deployed adapters, and unknown on-chain environments return false
- * so no surface (UI or API) can pretend to pause/trace-toggle them locally.
+ * so no surface (UI or API) can pretend to pause/capture-toggle them locally.
  */
 export function isRuntimeControllable(id: string): boolean {
   const meta = METADATA.get(id);
@@ -140,7 +140,7 @@ export interface RuntimeRow {
   readonly statusClass: string;
   readonly statusLabel: string;
   readonly paused: boolean;
-  readonly traceCapture: boolean;
+  readonly captureEnabled: boolean;
   readonly tier: RuntimeTier;
   readonly tierLabel: string;
   readonly section: RuntimeSection;
@@ -180,9 +180,9 @@ function rowFor(
     ? statusOf(stats?.lastMs ?? 0, now)
     : control.paused
       ? { cls: "sdot-offline", label: "paused" }
-      : control.permissions.traceCapture
+      : control.permissions.captureEnabled
         ? statusOf(stats?.lastMs ?? 0, now)
-        : { cls: "sdot-offline", label: "trace off" };
+        : { cls: "sdot-offline", label: "capture off" };
   return {
     id,
     name: meta.name,
@@ -193,7 +193,7 @@ function rowFor(
     statusClass: status.cls,
     statusLabel: status.label,
     paused: controllable ? control.paused : false,
-    traceCapture: controllable ? control.permissions.traceCapture : false,
+    captureEnabled: controllable ? control.permissions.captureEnabled : false,
     tier: meta.tier,
     tierLabel: TIER_LABEL[meta.tier],
     section: sectionFor(meta.tier),

@@ -99,14 +99,14 @@ function normalizeRuntime(runtime) {
   return String(runtime || "").trim().toLowerCase();
 }
 
-export function traceCaptureEnabled(runtime) {
+export function captureEnabled(runtime) {
   const id = normalizeRuntime(runtime);
   if (!id) return false;
   try {
     const parsed = JSON.parse(readFileSync(runtimeControlsPath(), "utf8"));
     const control = parsed?.runtimes?.[id];
-    const traceCapture = control?.permissions?.traceCapture;
-    return control?.paused !== true && traceCapture !== false;
+    const capture = control?.permissions?.captureEnabled;
+    return control?.paused !== true && capture !== false;
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
       return true;

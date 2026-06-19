@@ -37,8 +37,11 @@ export async function GET() {
         captured.set(name, Math.max(captured.get(name) ?? 0, s.startedAt));
       }
     }
-  } catch {
+  } catch (error) {
     // worker read failed — still report any live beats below
+    console.warn(
+      `[onemem/heartbeat] local-worker sessions read failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
   const names = new Set<string>([...captured.keys(), ...beats.keys()]);
   const runtimes = [...names].map((name) => {

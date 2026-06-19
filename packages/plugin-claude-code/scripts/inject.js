@@ -6,13 +6,13 @@
 //
 // Spec: docs/05-our-architecture/03-runtimes/claude-code-plugin.md
 
-import { ensureWorker, postWorker, readHookInput, traceCaptureEnabled } from "./onemem-lib.mjs";
+import { captureEnabled, ensureWorker, postWorker, readHookInput } from "./onemem-lib.mjs";
 
 async function main() {
   const input = await readHookInput();
   const claudeSessionId = input.session_id;
   if (!claudeSessionId) return;
-  if (!(await traceCaptureEnabled("claude-code"))) return;
+  if (!(await captureEnabled("claude-code"))) return;
 
   await ensureWorker();
   await postWorker("/api/sessions/init", {

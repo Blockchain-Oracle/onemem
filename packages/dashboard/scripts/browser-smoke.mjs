@@ -13,13 +13,12 @@ const providedBaseUrl = process.env.ONEMEM_DASHBOARD_SMOKE_BASE_URL;
 const baseUrl = providedBaseUrl || `http://127.0.0.1:${defaultPort}`;
 const headless = process.env.ONEMEM_DASHBOARD_SMOKE_HEADLESS !== "0";
 const artifactsDir = join(root, ".browser-smoke");
-const screenshotPath = join(artifactsDir, "sessions-grouped-replay.png");
-const traceScreenshotPath = join(artifactsDir, "trace-single-replay.png");
 const settingsScreenshotPath = join(artifactsDir, "settings-delegate-lifecycle.png");
 const smokeCredentialsPath = join(artifactsDir, "credentials.json");
-const traceSmokeSession =
-  process.env.ONEMEM_DASHBOARD_TRACE_SMOKE_SESSION ||
-  "0x6ceaab0fe2961043d490326960dfd192e43c25ed655772d42c04c265ad3ec080";
+
+// Surviving dashboard routes after the trace/verify removal. The old /sessions
+// and /trace/<id> pages (and the grouped-replay modal) were deleted.
+const SURVIVING_ROUTES = ["/", "/memories", "/apps", "/settings"];
 
 const checks = [];
 const consoleErrors = [];
@@ -45,50 +44,11 @@ try {
       if (res.status() >= 400) resourceErrors.push(`${res.status()} ${res.url()}`);
     });
 
-    await page.goto(`${baseUrl}/sessions`, { waitUntil: "domcontentloaded" });
-    await expectText(page, "Sessions", "sessions page title");
-    await expectText(
-      page,
-      "Dashboard-derived day groups over on-chain TraceSessions.",
-      "sessions proof-boundary subtitle",
-    );
-
-    const replayButtons = page.getByRole("button", { name: "Replay/export" });
-    const replayCount = await replayButtons.count();
-    if (replayCount > 0) {
-      check(true, `found ${replayCount} Replay/export button(s)`);
-      await clickUntilVisible(
-        page,
-        replayButtons.first(),
-        page.getByRole("dialog", { name: "Grouped session replay" }),
-        "grouped replay modal opened",
-      );
-
-      await expectText(page, "Grouped replay", "grouped replay modal title");
-      await expectText(page, "onemem.grouped-session-export.v1", "grouped export schema");
-      await expectText(page, "Download JSON", "download json action");
-      await expectText(page, "Copy JSON", "copy json action");
-      await expectText(page, "does not prove plaintext", "proof-boundary text");
-    } else {
-      await expectText(page, "No sessions yet", "sessions empty state");
+    // Each surviving route must load without a 4xx/5xx or console error.
+    for (const route of SURVIVING_ROUTES) {
+      const res = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
+      check(!!res && res.status() < 400, `route ${route} responded ${res?.status() ?? "n/a"}`);
     }
-    await page.screenshot({ fullPage: true, path: screenshotPath });
-
-    await page.goto(`${baseUrl}/trace/${traceSmokeSession}`, { waitUntil: "networkidle" });
-    await expectText(page, "TraceSession", "trace page session title");
-    await expectText(page, "Replay session", "trace replay action");
-    await clickUntilVisible(
-      page,
-      page.getByRole("button", { name: "Replay session" }),
-      page.getByRole("dialog", { name: "Replay session" }),
-      "single trace replay modal opened",
-    );
-    await expectText(page, "Replay", "single trace replay modal title");
-    await expectText(page, "onemem.trace-session-export.v1", "single trace export schema");
-    await expectText(page, "Download JSON", "single trace download action");
-    await expectText(page, "Copy JSON", "single trace copy action");
-    await expectText(page, "does not include plaintext", "single trace no-plaintext boundary");
-    await page.screenshot({ fullPage: true, path: traceScreenshotPath });
 
     if (!providedBaseUrl) {
       await page.goto(`${baseUrl}/settings`, { waitUntil: "networkidle" });
@@ -122,16 +82,10 @@ try {
 
   await writeFile(
     join(artifactsDir, "last-run.json"),
-    `${JSON.stringify(
-      { baseUrl, checks, screenshotPath, traceScreenshotPath, settingsScreenshotPath },
-      null,
-      2,
-    )}\n`,
+    `${JSON.stringify({ baseUrl, checks, settingsScreenshotPath }, null, 2)}\n`,
   );
   console.log(`[browser-smoke] passed ${checks.length} checks`);
   for (const item of checks) console.log(`  - ${item}`);
-  console.log(`[browser-smoke] screenshot ${screenshotPath}`);
-  console.log(`[browser-smoke] screenshot ${traceScreenshotPath}`);
   if (!providedBaseUrl) console.log(`[browser-smoke] screenshot ${settingsScreenshotPath}`);
 } catch (err) {
   console.error(`[browser-smoke] failed: ${err instanceof Error ? err.message : String(err)}`);
@@ -250,20 +204,6 @@ async function findBrowserExecutable() {
 async function expectText(page, text, label) {
   await page.getByText(text, { exact: false }).first().waitFor({ timeout: 30_000 });
   check(true, label);
-}
-
-async function clickUntilVisible(page, button, target, label) {
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    await button.click();
-    try {
-      await target.waitFor({ timeout: 10_000 });
-      check(true, label);
-      return;
-    } catch (err) {
-      if (attempt === 3) throw err;
-      await page.waitForTimeout(750);
-    }
-  }
 }
 
 function check(ok, label) {
