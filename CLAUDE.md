@@ -1,41 +1,28 @@
-# OneMem — Claude Compatibility Context
+# OneMem — Claude Context
 
-Active Codex routing lives in `AGENTS.md`. Active Context Engineering artifacts
-live under `.thoughts/`.
+**OneMem = claude-mem + Mem0, but decentralized. Nothing else. NO trace, NO verify-as-product.**
 
-This file remains because Claude-based tools and `pnpm test:structure` expect a
-root `CLAUDE.md`. Keep it lean; do not put full plans, specs, research, or
-prototype reports here.
+Two products, both on **MemWal** (Seal-encrypted blobs on Walrus + a Sui account/delegate model):
+- **A — claude-mem, decentralized:** memory for coding agents (Claude Code / Codex) + a readable, *alive* local dashboard.
+- **B — Mem0, decentralized:** an embeddable memory-layer SDK (`add`/`search`/…) + framework providers.
 
-## Project Summary
+Decentralization is delivered by MemWal (`@mysten-incubation/memwal`); users configure their own MemWal account id + delegate key. The Walrus track's "verifiable memory layer" is satisfied by living on MemWal/Walrus/Seal — we do **not** build a verify/trace feature.
 
-OneMem is a verifiable cross-runtime AI agent memory and action-trace layer for
-Sui, Walrus, Seal, and MemWal.
+## Start here
+1. `AGENTS.md` — the repo router.
+2. `BUILD_SEQUENCE.md` — current checkbox roadmap (always know the next step).
+3. `.thoughts/plans/2026-06-19-onemem-reset-plan.md` — the approved reset plan.
+4. `.thoughts/research/2026-06-19-reality-brief.md` — grounding facts.
 
-## Start Here
+## Rule enforcement
+- Every change ships via a **PR**. **No direct commits to `main`.**
+- Run the **PR review toolkit (5 pr-review agents)** + a completion audit before merge.
+- **Test for real, per feature, on testnet as you build** — never batch testing to the end. No `try/catch` masking; find where it breaks.
+- Build on MemWal/Walrus/Seal — never fake chain, Walrus, Seal, MCP, runtime, or browser verification.
+- `pnpm add` / `uv add` for versions — never hardcode from memory.
 
-1. Read `AGENTS.md`.
-2. Read `.thoughts/wiki/index.md`.
-3. Read `.thoughts/quality/2026-06-17-project-quality-profile.md`.
-4. For prototype-derived UI work, read
-   `.thoughts/prototype-discovery/2026-06-17-one-mem-2.md`.
+## Commands
+`pnpm build` · `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm test:structure`
+Python: `uv run ruff check .` · `uv run pyright` · `uv run pytest -q`
 
-## Package-Specific Context
-
-Read the package-local file before editing these areas:
-
-- `contracts/onemem/CLAUDE.md`
-- `packages/sdk-ts/CLAUDE.md`
-- `packages/dashboard/CLAUDE.md`
-- `packages/plugin-claude-code/CLAUDE.md`
-
-## Current Rules
-
-- Use `AGENTS.md` as the current repo router.
-- Use `docs/05-our-architecture/00-overview/BUILD_SEQUENCE.md` as historical
-  sequencing context, not as the sole current tracker.
-- Use `docs/05-our-architecture/00-overview/TESTING_STRATEGY.md` for the
-  historical two-tier testing policy and the quality profile for current gates.
-- For docs/context-only changes, run `pnpm test:structure`.
-- For code changes, run the affected-stack checks from the quality profile.
-- Do not fake chain, Walrus, Seal, MCP, runtime, or browser verification.
+Keep this file lean (loaded every turn); detail lives in `AGENTS.md` and `.thoughts/`.
