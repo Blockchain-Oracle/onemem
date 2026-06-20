@@ -1,12 +1,12 @@
 {
   "name": "onemem",
   "version": "0.1.1",
-  "description": "Verifiable agent action traces for Claude Code, backed by Sui, Walrus, Seal, and MemWal",
+  "description": "Decentralized memory for Claude Code — store, search, and recall across sessions; encrypted on Walrus via MemWal, with a live local dashboard",
   "author": {
     "name": "OneMem"
   },
   "homepage": "https://onemem.ai",
   "repository": "https://github.com/Blockchain-Oracle/onemem",
   "license": "Apache-2.0",
-  "keywords": ["memory", "trace", "verifiability", "walrus", "sui", "memwal", "hooks"]
+  "keywords": ["memory", "decentralized", "walrus", "seal", "sui", "memwal", "hooks"]
 }

@@ -92,7 +92,10 @@ describe("registry-aware docs", () => {
     const claude = readText("packages/plugin-claude-code/README.md");
     assert.match(claude, /marketplace path is current/);
     assert.match(claude, /current on npm/);
-    assert.match(claude, /trusted live Claude Code session emitted testnet TraceSession/);
+    // The plugin is decentralized MEMORY + a live local dashboard — NOT an
+    // on-chain trace/verify product (locked direction). The README must not claim
+    // a verifiable on-chain TraceSession.
+    assert.doesNotMatch(claude, /TraceSession|verifiable on-chain|Merkle/i);
   });
 
   test("MCP README treats the published package as the primary public path", () => {

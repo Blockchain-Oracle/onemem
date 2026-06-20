@@ -1,52 +1,45 @@
 # @onemem/cli
 
-The `onemem` command-line tool — verify, inspect, and provision verifiable agent
-memory + traces from your terminal.
+The `onemem` command-line tool — store, search, and manage decentralized agent
+memory from your terminal. Memory is client-side Seal-encrypted and stored on
+Walrus via MemWal, owned by you.
 
 ```bash
 npm install -g @onemem/cli
 # dashboard launcher support:
 npm install -g @onemem/dashboard
 # or
-npx @onemem/cli verify <session-id>
+npx @onemem/cli search "<query>"
 ```
 
 **Publication note, 2026-06-19:** `@onemem/cli@0.6.3` is current on npm and the
 public install path is proven: `npm exec --yes --package @onemem/cli@0.6.3 --
-onemem --version` prints `0.6.3`. `pnpm registry:status --strict` and
-`pnpm release:preflight --strict --timeout 30` both pass. `@onemem/dashboard`
-is current on npm at `0.1.4`.
+onemem --version` prints `0.6.3`. Re-run `pnpm registry:status --strict` before
+making a fresh public install claim.
 
 ## Commands
 
 | Command | What it does | Needs |
 |---|---|---|
-| `onemem verify <session-id>` | Independently re-verify a TraceSession's Merkle chain from chain data alone | nothing (read-only) |
-| `onemem trace list` | List recent sessions | nothing |
-| `onemem trace get <session-id>` | Session metadata (agent, status, call count) | nothing |
-| `onemem trace events <session-id>` | The decoded ActionCall chain (tool, link, content hash, Walrus blob) | nothing |
-| `onemem health` | Check RPC + package reachability | nothing |
+| `onemem init` | Set up OneMem on this machine — zero config | a Sui signer |
+| `onemem health` | Check Sui RPC reachability | nothing |
 | `onemem dashboard` | Launch the local dashboard on `localhost:4040` or `--port <port>` | `@onemem/dashboard` installed |
 | `onemem login` | Pair this terminal with a hosted dashboard callback and save `~/.onemem/credentials.json` | hosted dashboard implementing the callback contract |
-| `onemem init` | Provision (or reuse) a namespace + ReadWrite cap — zero config | a Sui signer |
-| `onemem namespace share <namespace-id> <recipient>` | Mint + transfer a ReadOnly or ReadWrite namespace capability | signer + Admin cap |
-| `onemem namespace revoke <cap-id>` | Self-revoke a capability you hold | signer that owns the cap |
-| `onemem namespace admin-revoke <namespace-id> <cap-id>` | Admin-revoke a capability by ID; object remains but OneMem gates reject it | signer + Admin cap |
-| `onemem namespace capabilities <namespace-id>` | List active capabilities from namespace events | nothing (read-only) |
-| `onemem add <text>` | Store a memory + emit a verifiable ActionCall | signer + MemWal config |
+| `onemem add <text>` | Store a memory (Seal-encrypted blob on Walrus via MemWal) | signer + MemWal config |
 | `onemem search <query>` | Vector-recall memories | signer + MemWal config |
+| `onemem list` | List stored memories from the local index (scope-filtered) | signer + MemWal config |
+| `onemem get <id>` | Fetch one stored memory by id from the local index | signer + MemWal config |
+| `onemem delete <id>` | Soft-delete a memory (the encrypted blob persists on Walrus until its epoch expires) | signer + MemWal config |
+
+Scope flags on `add`/`search`/`list`: `--namespace`, `--user-id`, `--agent-id`,
+`--run-id`, `--metadata <json>`. `search`/`list` also take `--top-k`/`--limit`.
 
 Global flags: `--json` (machine output), `--network <testnet\|mainnet\|devnet\|local>`.
 
-The read-only commands (`verify`, `trace *`, `health`) need **no signer, no
-Walrus, no Seal** — anyone can independently verify a session. `init` resolves a
-signer the same way the SDK runtime does (env key → Sui keystore → a
-generated+persisted wallet). `add`/`search` need the signer plus MemWal env
-(`onemem add` prints exactly which vars are missing).
-
-## Not in v0.1 (deferred)
-
-- **Runtime installers** (`onemem install --runtime …`) — each runtime already has
-  its own one-line install; a unified installer is post-hackathon.
+`init` resolves a signer the same way the SDK runtime does (env key → Sui
+keystore → a generated+persisted wallet). `add`/`search`/`list`/`get`/`delete`
+need the signer plus MemWal env (`onemem add` prints exactly which vars are
+missing). `delete` is a soft-delete in the local index — MemWal 0.0.7 is
+append-only, so a true hard delete is not possible.
 
 Full command spec: `docs/05-our-architecture/05-cli/command-surface.md`.

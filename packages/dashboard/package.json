@@ -1,7 +1,7 @@
 {
   "name": "@onemem/dashboard",
   "version": "0.1.4",
-  "description": "OneMem dashboard — verifiable memory + trace viewer for AI agents (Next.js 15 standalone; serves both localhost:4040 and the hosted-dashboard shell)",
+  "description": "OneMem dashboard — decentralized memory viewer for AI agents (Next.js 15 standalone; serves both localhost:4040 and the hosted-dashboard shell)",
   "license": "Apache-2.0",
   "type": "module",
   "bin": {

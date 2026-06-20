@@ -79,7 +79,8 @@ describe("MemoryAPI.search", () => {
     const memory = await makeMemory();
 
     const { results } = await memory.search("q");
-    expect(results).toEqual([{ text: "hit", walrusBlobId: "b1", relevance: 0.75 }]);
+    // Unindexed hit (no add()) → id is null; relevance = 1 - distance.
+    expect(results).toEqual([{ id: null, text: "hit", walrusBlobId: "b1", relevance: 0.75 }]);
   });
 
   it("clamps relevance into [0, 1] for out-of-range distances", async () => {
@@ -280,8 +281,70 @@ describe("MemoryAPI search post-filtering against the index", () => {
     const { results } = await memory.search("secret", { namespace: "shared", userId: "alice" });
     expect(results.map((r) => r.text)).toEqual(["alice secret"]);
 
-    // getAll agrees: only alice's row under the shared namespace.
-    expect((await memory.getAll({ userId: "alice" })).map((m) => m.text)).toEqual(["alice secret"]);
-    expect((await memory.getAll({ userId: "bob" })).map((m) => m.text)).toEqual(["bob secret"]);
+    // getAll AGREES with search: scoped to the SAME explicit namespace, the
+    // userId post-filter returns only alice's / bob's row. (getAll resolves the
+    // namespace through effectiveNamespace, so the explicit `shared` is used.)
+    expect(
+      (await memory.getAll({ namespace: "shared", userId: "alice" })).map((m) => m.text),
+    ).toEqual(["alice secret"]);
+    expect(
+      (await memory.getAll({ namespace: "shared", userId: "bob" })).map((m) => m.text),
+    ).toEqual(["bob secret"]);
+  });
+
+  it("getAll({userId}) scopes to user:<id> and agrees with search (bare-userId coherence)", async () => {
+    const memory = await makeMemory();
+    // Bare-userId write → namespace user:alice.
+    rememberManual.mockResolvedValueOnce({ id: "ua", blob_id: "bua" });
+    await memory.add("alice bare note", { userId: "alice" });
+    // A memory under an EXPLICIT namespace is NOT reachable via bare getAll({userId}).
+    rememberManual.mockResolvedValueOnce({ id: "us", blob_id: "bus" });
+    await memory.add("alice shared note", { namespace: "shared", userId: "alice" });
+
+    // getAll({userId:'alice'}) resolves to user:alice → only the bare-userId row.
+    const all = await memory.getAll({ userId: "alice" });
+    expect(all.map((m) => m.text)).toEqual(["alice bare note"]);
+    expect(all[0]?.namespace).toBe("user:alice");
+
+    // search({userId:'alice'}) recalls under user:alice too → same namespace, agrees.
+    recallManual.mockResolvedValueOnce({
+      results: [{ blob_id: "bua", distance: 0.1, text: "alice bare note" }],
+    });
+    const { results } = await memory.search("note", { userId: "alice" });
+    expect(results.map((r) => r.text)).toEqual(["alice bare note"]);
+    // The id threads through from the index for an indexed hit.
+    expect(results[0]?.id).toBe("ua");
+  });
+
+  it("write under explicit namespace is reachable only by reading that namespace", async () => {
+    const memory = await makeMemory();
+    rememberManual.mockResolvedValueOnce({ id: "ms", blob_id: "bms" });
+    await memory.add("shared-only note", { namespace: "shared", userId: "alice" });
+    // Bare getAll({userId}) → user:alice → does NOT see the shared-namespace row.
+    expect(await memory.getAll({ userId: "alice" })).toHaveLength(0);
+    // Reading the explicit namespace DOES.
+    expect(
+      (await memory.getAll({ namespace: "shared", userId: "alice" })).map((m) => m.text),
+    ).toEqual(["shared-only note"]);
+  });
+});
+
+describe("MemoryAPI argument validation (SDK boundary)", () => {
+  it("rejects empty / whitespace text and query", async () => {
+    const memory = await makeMemory();
+    await expect(memory.add("")).rejects.toThrow(/non-empty/i);
+    await expect(memory.add("   ")).rejects.toThrow(/non-empty/i);
+    await expect(memory.search("")).rejects.toThrow(/non-empty/i);
+    await expect(memory.search("\t\n")).rejects.toThrow(/non-empty/i);
+  });
+
+  it("rejects non-positive / non-integer topK and limit", async () => {
+    const memory = await makeMemory();
+    await expect(memory.search("q", { topK: 0 })).rejects.toThrow(/positive integer/i);
+    await expect(memory.search("q", { topK: -1 })).rejects.toThrow(/positive integer/i);
+    await expect(memory.search("q", { topK: 1.5 })).rejects.toThrow(/positive integer/i);
+    await expect(memory.getAll({ limit: 0 })).rejects.toThrow(/positive integer/i);
+    await expect(memory.getAll({ limit: -3 })).rejects.toThrow(/positive integer/i);
+    await expect(memory.getAll({ limit: 2.5 })).rejects.toThrow(/positive integer/i);
   });
 });

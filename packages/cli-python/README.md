@@ -1,38 +1,41 @@
 # onemem-cli (Python)
 
-Python build of the OneMem CLI — a read-only mirror of the canonical TS
-`@onemem/cli` for Python-first environments.
+Python build of the OneMem CLI for Python-first environments. It coexists with
+the TS CLI's `onemem` binary.
 
 ```bash
 pipx install onemem-cli   # exposes the `onemem-py` command
-onemem-py verify <session-id>
+onemem-py health
 ```
 
 **Publication note, 2026-06-18:** `onemem-cli@0.1.0` is current on PyPI after
-`pnpm registry:status --strict`. Re-run that command before making a fresh
-public install claim.
-
-`onemem-py` coexists with the TS CLI's `onemem` binary.
+`pnpm registry:status --strict`. Re-run that command before a fresh public
+install claim.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `onemem-py verify <session-id>` | Independently verify a TraceSession's Merkle chain |
-| `onemem-py trace list` | 25 most recent sessions (newest first) |
-| `onemem-py trace get <session-id>` | Session metadata (agent, status, call count) |
-| `onemem-py trace events <session-id>` | The decoded ActionCall chain |
-| `onemem-py health` | Check RPC + package reachability |
+| `onemem-py health` | Check Sui RPC reachability for the selected network |
 
-Global flags: `--json`, `--network <testnet\|mainnet\|devnet\|local>`. All commands
-are read-only — no signer, no Walrus, no Seal. It verifies the same sessions and
-computes the same Merkle roots as the TS CLI, so either tool reaches the same verdict.
+Global flags: `--json`, `--network <testnet\|mainnet\|devnet\|local>`.
 
-## Why read-only (vs the TS CLI's `init` / `add` / `search`)
+## Memory operations
 
-The Python SDK is verification-focused; it doesn't expose namespace provisioning
-or the MemWal memory client. So `init` (provisioning) and `add`/`search` (memory)
-are TS-only. The independently-verifiable read surface — the part anyone should be
-able to run to check a OneMem trace — is fully mirrored here.
+The Python memory surface (add / search / get / list / delete) lives in the
+`onemem` Python SDK's `MemoryClient`, which shells out to the `onemem-memory`
+Node bridge (`@onemem/sdk-ts`) for the full MemWal round-trip (client-side Seal
+encryption + Walrus + embeddings):
+
+```python
+from onemem.memory import MemoryClient
+
+client = MemoryClient(namespace="my-app")
+client.add("ships at night", user_id="alice")
+hits = client.search("when do they ship?", user_id="alice")
+```
+
+Memory is client-side Seal-encrypted and stored on Walrus via MemWal — owned by
+you, portable across runtimes.
 
 Full command spec: `docs/05-our-architecture/05-cli/command-surface.md`.

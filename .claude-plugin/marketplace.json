@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "onemem",
-  "description": "OneMem plugins for verifiable cross-runtime memory and on-chain agent trace capture.",
+  "description": "OneMem plugins for decentralized, cross-runtime agent memory — encrypted on Walrus, owned by you.",
   "owner": {
     "name": "OneMem"
   },
@@ -13,7 +13,7 @@
     {
       "name": "onemem",
       "version": "0.1.1",
-      "description": "Verifiable OneMem action traces for Claude Code, backed by Sui, Walrus, Seal, and MemWal.",
+      "description": "Decentralized memory for Claude Code — store, search, and recall across sessions; encrypted on Walrus via MemWal, with a live local dashboard.",
       "author": {
         "name": "OneMem"
       },

@@ -16,11 +16,18 @@
 // accounts sharing a db path never see each other's rows. The default path is
 // ~/.onemem/memory-index.db.
 
-import { mkdirSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import type { DatabaseSync, SQLInputValue } from "node:sqlite";
+
+// The index db stores DECRYPTED plaintext (the `text` column) so get/getAll can
+// return memories without a MemWal round-trip. That makes it as sensitive as the
+// credentials file, so we harden it the SAME way credentials.ts hardens
+// credentials.json: owner-only file (0600) inside an owner-only dir (0700).
+const SECRET_FILE_MODE = 0o600;
+const SECRET_DIR_MODE = 0o700;
 
 // node:sqlite is newer than some bundlers' builtin list, so a static `import`
 // makes Vite/esbuild try to bundle it. Load it through createRequire at runtime
@@ -48,6 +55,21 @@ function loadSqlite(): typeof import("node:sqlite") {
 
 /** Default index db path. Override via SqliteMemoryIndex's `path`. */
 export const DEFAULT_MEMORY_INDEX_FILE = join(homedir(), ".onemem", "memory-index.db");
+
+/**
+ * chmod a path to `mode` if it exists. The WAL/SHM sidecars may be created
+ * lazily, so a missing sidecar is fine; only a real chmod error (e.g. wrong
+ * owner) is surfaced as a MemoryIndexError so a half-hardened plaintext db never
+ * passes silently.
+ */
+function hardenPerm(target: string, mode: number): void {
+  if (!existsSync(target)) return;
+  try {
+    chmodSync(target, mode);
+  } catch (error) {
+    throw new MemoryIndexError(`cannot harden permissions on ${target}`, { cause: error });
+  }
+}
 
 /** A single mirrored memory row. */
 export interface MemoryIndexRecord {
@@ -174,6 +196,16 @@ function rowToRecord(r: MemoryRow): MemoryIndexRecord {
   };
 }
 
+/**
+ * True when `candidate` should win over the currently-kept `current` for the
+ * same blob id: a live row beats a deleted one; otherwise the newer createdAt
+ * wins. So `getByBlobIds` surfaces a non-deleted row whenever one exists.
+ */
+function preferRecord(candidate: MemoryIndexRecord, current: MemoryIndexRecord): boolean {
+  if (candidate.deleted !== current.deleted) return !candidate.deleted;
+  return candidate.createdAt >= current.createdAt;
+}
+
 /** Order-insensitive deep equality for JSON-serializable metadata values. */
 function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
@@ -228,14 +260,20 @@ export class SqliteMemoryIndex implements MemoryIndex {
    */
   constructor(accountId: string, path: string = DEFAULT_MEMORY_INDEX_FILE) {
     this.accountId = accountId;
-    if (path !== ":memory:") {
+    const onDisk = path !== ":memory:";
+    if (onDisk) {
+      const dir = dirname(path);
       try {
-        mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+        mkdirSync(dir, { recursive: true, mode: SECRET_DIR_MODE });
       } catch (error) {
         throw new MemoryIndexError(`cannot create memory index directory for ${path}`, {
           cause: error,
         });
       }
+      // mkdirSync's `mode` only applies on creation (and is masked by umask), and
+      // never tightens an EXISTING dir — chmod unconditionally so a pre-existing
+      // looser dir is locked down too.
+      hardenPerm(dir, SECRET_DIR_MODE);
     }
     // loadSqlite() throws its own (already-clear) MemoryIndexError on an old
     // Node — let it propagate; only the file-open below is "cannot open".
@@ -246,6 +284,14 @@ export class SqliteMemoryIndex implements MemoryIndex {
       this.db.exec(SCHEMA);
     } catch (error) {
       throw new MemoryIndexError(`cannot open memory index at ${path}`, { cause: error });
+    }
+    // Harden the db file AND its WAL sidecars to owner-only: opening the db (and
+    // running in WAL mode) creates them at the process umask default (typically
+    // 0644), which would leave the decrypted plaintext world-readable.
+    if (onDisk) {
+      hardenPerm(path, SECRET_FILE_MODE);
+      hardenPerm(`${path}-wal`, SECRET_FILE_MODE);
+      hardenPerm(`${path}-shm`, SECRET_FILE_MODE);
     }
   }
 
@@ -357,10 +403,14 @@ export class SqliteMemoryIndex implements MemoryIndex {
       .all(...params) as unknown as MemoryRow[];
     for (const row of rows) {
       const record = rowToRecord(row);
-      // Keep the freshest row per blob (rows are PK'd by id, but a blob could in
-      // principle be referenced more than once — newest wins).
+      // A blob can be referenced by more than one row (e.g. delete-then-re-add of
+      // identical plaintext deduped to the same blob_id). Pick a winner so search
+      // post-filtering sees a LIVE row whenever one exists:
+      //   1. a non-deleted row always beats a deleted one;
+      //   2. among rows of the same deleted-state, newest createdAt wins.
+      // A deleted row is only returned when NO live row references the blob.
       const prior = out.get(record.blobId);
-      if (!prior || record.createdAt >= prior.createdAt) out.set(record.blobId, record);
+      if (!prior || preferRecord(record, prior)) out.set(record.blobId, record);
     }
     return out;
   }

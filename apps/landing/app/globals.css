@@ -13,13 +13,13 @@ body {
   color: var(--ink) !important;
 }
 
-/* Verify "turns green" affordances (the trace page ships these; the landing
-   needs its own copy for the hero/demo cards). */
-.verified-glow {
+/* "Recalled" success affordances for the memory demo card — green glow + pulse
+   accent (the --verify / --signal tokens are just the success color). */
+.mem-glow {
   box-shadow: 0 0 0 1.5px var(--verify), 0 0 50px -10px var(--verify);
   transition: box-shadow 600ms ease;
 }
-@keyframes verify-pulse {
+@keyframes mem-pulse {
   0% {
     box-shadow: 0 0 0 0 var(--signal-soft);
   }
@@ -29,4 +29,18 @@ body {
   100% {
     box-shadow: 0 0 0 0 transparent;
   }
+}
+/* Success-accent button + badge for the recall demo (reuse the green tokens). */
+.btn-recall {
+  color: var(--on-primary);
+  background: linear-gradient(180deg, oklch(0.66 0.16 152) 0%, var(--signal) 60%, oklch(0.50 0.15 152) 100%);
+  border: 1px solid oklch(0.46 0.14 152);
+  box-shadow: 0 1px 0 oklch(1 0 0 / 0.22) inset, 0 6px 18px -6px oklch(0.58 0.15 152 / 0.45);
+}
+.btn-recall:hover {
+  transform: translateY(-1px);
+}
+.badge.badge-ok {
+  color: var(--on-primary);
+  background: var(--verify);
 }

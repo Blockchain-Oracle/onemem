@@ -36,6 +36,14 @@ Update the checkboxes as work lands. Pause for Abu at major phase transitions.
 - [ ] dashboard rebuild (readable feed, files view, alive SSE, cost meter); fix hydration error
 - [ ] real Claude Code + Codex sessions verified; Chrome DevTools UI/mobile → PR
 
+### Deferred from the pre-Phase-3 fix pass (review findings, intentionally NOT fixed yet)
+These were triaged during the pre-Phase-3 ultra-review fix pass and deferred on purpose; revisit during Phase 3 SDK/dashboard work:
+- [ ] **M1** — local SQLite index mirror sits OUTSIDE the MemWal failure boundary: a MemWal write can succeed while the index `put` fails (or vice versa), so the two can drift. Decide on a reconcile/repair path (or accept + document the eventual-consistency window).
+- [ ] **M5** — `getAll` with no `limit` caps at 200 rows with NO truncation signal: a caller can't tell a full list from a truncated one. Return/expose a "more available" marker or a total count.
+- [ ] **M6** — metadata `getAll` filtering is best-effort within a bounded over-fetch window (in-app JSON match after a SQL `LIMIT`). Push the predicate into SQL via `json_extract` so metadata filtering is exact, not windowed.
+- [ ] **M7** — a corrupt metadata cell is silently dropped to `undefined` in `parseMetadata`; consider surfacing/logging the corruption instead of swallowing it.
+- [ ] **L1–L6** — assorted low-severity polish items from the same review (track individually when picked up).
+
 ## Phase 4 — Docs (Mintlify, Mem0-quality, our identity)
 - [ ] IA + components + welcome thumbnail grid + images (MCP) + milestone section; fix `/verify`→`/share`; remove residual trace docs → PR
 

@@ -12,7 +12,6 @@ export const ICONS: Record<string, string> = {
   memory: `<svg ${V}><path ${S} d="M12 3c-2.2 0-4 1.6-4 3.6 0 .5.1 1 .3 1.4C7 8.7 6 10 6 11.6c0 1 .4 1.9 1.1 2.5-.3.5-.5 1.1-.5 1.7 0 2 1.8 3.6 4 3.6"/><path ${S} d="M12 3c2.2 0 4 1.6 4 3.6 0 .5-.1 1-.3 1.4 1.6.7 2.6 2 2.6 3.6 0 1-.4 1.9-1.1 2.5.3.5.5 1.1.5 1.7 0 2-1.8 3.6-4 3.6"/><path ${S} d="M12 3v16"/></svg>`,
   apps: `<svg ${V}><path ${S} d="M4 7l8-4 8 4-8 4z"/><path ${S} d="M4 7v10l8 4 8-4V7"/><path ${S} d="M12 11v10"/></svg>`,
   sessions: `<svg ${V}><path ${S} d="M3 6h13M3 12h13M3 18h13"/><circle cx="20" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="20" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="20" cy="18" r="1.3" fill="currentColor" stroke="none"/></svg>`,
-  trace: `<svg ${V}><circle cx="6" cy="6" r="2.4" ${S}/><circle cx="6" cy="18" r="2.4" ${S}/><circle cx="18" cy="12" r="2.4" ${S}/><path ${S} d="M6 8.4v7.2M8.4 6h4.6a2 2 0 0 1 2 2v2M8.2 17.4l5-3.6"/></svg>`,
   share: `<svg ${V}><circle cx="6" cy="12" r="2.6" ${S}/><circle cx="18" cy="6" r="2.6" ${S}/><circle cx="18" cy="18" r="2.6" ${S}/><path ${S} d="M8.3 10.8l7.4-3.6M8.3 13.2l7.4 3.6"/></svg>`,
   settings: `<svg ${V}><circle cx="12" cy="12" r="3" ${S}/><path ${S} d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6 17 17M7 7 5.4 5.4"/></svg>`,
   search: `<svg ${V}><circle cx="11" cy="11" r="6.5" ${S}/><path ${S} d="m20 20-3.6-3.6"/></svg>`,

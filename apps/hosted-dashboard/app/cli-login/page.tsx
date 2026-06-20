@@ -241,8 +241,8 @@ function CliLoginInner() {
                 register a MemWal delegate key, and send it back to your local CLI.
               </p>
 
-              <div className={`verify-mini ${canPair ? "ok" : ""}`}>
-                <span className="vm-ic">
+              <div className={`status-pill ${canPair ? "ok" : ""}`}>
+                <span className="sp-ic">
                   <Icon name={canPair ? "check" : "info"} size={16} />
                 </span>
                 <span>{statusMessage}</span>

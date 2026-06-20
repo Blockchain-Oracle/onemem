@@ -51,6 +51,27 @@ jobs:
       - name: Build
         run: pnpm turbo run build
 
+      # Real MemWal-testnet integration. NOT part of `pnpm test` — it runs only
+      # when the MemWal secrets are configured (e.g. on the canonical repo, not on
+      # forks/PRs without secrets), and prints a clear neutral skip otherwise so an
+      # absent-secrets run is honestly "skipped", never silently green.
+      - name: Integration (real MemWal testnet, gated on secrets)
+        env:
+          ONEMEM_DELEGATE_KEY: ${{ secrets.ONEMEM_DELEGATE_KEY }}
+          ONEMEM_ACCOUNT_ID: ${{ secrets.ONEMEM_ACCOUNT_ID }}
+          ONEMEM_EMBEDDING_API_KEY: ${{ secrets.ONEMEM_EMBEDDING_API_KEY }}
+          MEMWAL_PACKAGE_ID: ${{ secrets.MEMWAL_PACKAGE_ID }}
+          MEMWAL_RELAYER_URL: ${{ secrets.MEMWAL_RELAYER_URL }}
+          ONEMEM_PRIVATE_KEY: ${{ secrets.ONEMEM_PRIVATE_KEY }}
+          SUI_NETWORK: ${{ secrets.SUI_NETWORK }}
+          ONEMEM_INTEGRATION: "1"
+        run: |
+          if [ -z "$ONEMEM_DELEGATE_KEY" ] || [ -z "$ONEMEM_ACCOUNT_ID" ] || [ -z "$ONEMEM_EMBEDDING_API_KEY" ] || [ -z "$MEMWAL_PACKAGE_ID" ]; then
+            echo "::notice title=Integration skipped::MemWal secrets not configured — skipping the real testnet integration test (this is expected on forks/PRs without secrets)."
+            exit 0
+          fi
+          pnpm test:integration
+
       - name: Python lint
         run: uv run ruff check .
 

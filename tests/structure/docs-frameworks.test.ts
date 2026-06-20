@@ -207,12 +207,16 @@ describe("OneMem monorepo structure", () => {
     });
 
     test("CLI docs expose current namespace commands and local network", () => {
-      const docs = [
+      // The Phase-4 docs still carry the historical namespace-capability surface;
+      // they're cleaned in Phase 4 (docs). The published cli-ts README, by
+      // contrast, was reconciled to the LOCKED memory-only CLI surface, which has
+      // NO namespace-capability/sharing commands (those are the dropped on-chain
+      // cap product) — so it is checked against the real command set instead.
+      const namespaceDocs = [
         "docs/05-our-architecture/05-cli/command-surface.md",
-        "packages/cli-ts/README.md",
         "apps/docs/reference/cli.mdx",
       ];
-      for (const doc of docs) {
+      for (const doc of namespaceDocs) {
         const content = readFileSync(join(ROOT, doc), "utf8");
         for (const command of [
           "onemem namespace share",
@@ -224,6 +228,23 @@ describe("OneMem monorepo structure", () => {
         }
         assert.match(content, /local/, `${doc} must include the local network option`);
       }
+
+      const cliReadme = readFileSync(join(ROOT, "packages/cli-ts/README.md"), "utf8");
+      for (const command of [
+        "onemem add",
+        "onemem search",
+        "onemem list",
+        "onemem get",
+        "onemem delete",
+      ]) {
+        assert.match(cliReadme, new RegExp(command), `cli-ts README must document ${command}`);
+      }
+      assert.match(cliReadme, /local/, "cli-ts README must include the local network option");
+      assert.doesNotMatch(
+        cliReadme,
+        /onemem namespace|onemem verify|onemem trace/,
+        "cli-ts README must not document dropped namespace/verify/trace commands",
+      );
     });
 
     test("CLI historical design docs are clearly marked", () => {

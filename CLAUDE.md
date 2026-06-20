@@ -17,6 +17,7 @@ Decentralization is delivered by MemWal (`@mysten-incubation/memwal`); users con
 ## Rule enforcement
 - Every change ships via a **PR**. **No direct commits to `main`.**
 - Run the **PR review toolkit (5 pr-review agents)** + a completion audit before merge.
+- **Every 2 phases: run an ultra review** — a deep multi-agent review subagent over the new/changed code (best practices, security, correctness, tests) before continuing. (The cloud `/code-review ultra` is user-triggered; the agent runs the multi-agent equivalent.)
 - **Test for real, per feature, on testnet as you build** — never batch testing to the end. No `try/catch` masking; find where it breaks.
 - Build on MemWal/Walrus/Seal — never fake chain, Walrus, Seal, MCP, runtime, or browser verification.
 - `pnpm add` / `uv add` for versions — never hardcode from memory.

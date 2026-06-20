@@ -41,9 +41,12 @@ describe("OneMem monorepo structure", () => {
       );
       assert.equal(hooks.hooks?.SessionStart?.[0]?.matcher, "");
 
+      // LOCKED direction: the Codex plugin is decentralized MEMORY (+ a live
+      // local dashboard via hooks), NOT an on-chain trace/verify product. The
+      // README must not claim a verifiable on-chain trace / TraceSession / Merkle.
       const readme = readFileSync(join(ROOT, "packages/plugin-codex/README.md"), "utf8");
-      assert.doesNotMatch(readme, /SessionStart opens a OneMem `TraceSession`/);
-      assert.match(readme, /`codex exec` tests on Codex CLI 0\.140 still did not run hooks/);
+      assert.doesNotMatch(readme, /TraceSession|verifiable trace|verifiable on-chain|Merkle/i);
+      assert.match(readme, /decentralized, portable memory|memory tools/i);
     });
 
     test("Codex plugin marketplace exposes onemem-codex", () => {

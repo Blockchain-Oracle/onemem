@@ -22,7 +22,7 @@ export default function LoginPage() {
           OneMem
         </div>
         <p className="muted" style={{ textAlign: "center", marginBottom: 24 }}>
-          Verifiable agent memory + trace.
+          Decentralized agent memory you own.
         </p>
         <div className="card" style={{ padding: 26 }}>
           <h2 style={{ fontSize: "1.3rem", marginBottom: 6 }}>Sign in</h2>
@@ -45,10 +45,10 @@ export default function LoginPage() {
             ) : null}
           </div>
           <div
-            className={`verify-mini ${account ? "ok" : ""}`}
+            className={`status-pill ${account ? "ok" : ""}`}
             style={{ marginTop: 16, textAlign: "left" }}
           >
-            <span className="vm-ic">
+            <span className="sp-ic">
               <Icon name={account ? "check" : "info"} size={16} />
             </span>
             <span>
@@ -63,15 +63,15 @@ export default function LoginPage() {
             </span>
           </div>
           {authConfig.googleLoginEnabled ? (
-            <div className="verify-mini ok" style={{ textAlign: "left" }}>
-              <span className="vm-ic">
+            <div className="status-pill ok" style={{ textAlign: "left" }}>
+              <span className="sp-ic">
                 <Icon name="check" size={16} />
               </span>
               <span>Enoki Google wallets are registered for {authConfig.defaultNetwork}.</span>
             </div>
           ) : (
-            <div className="verify-mini" style={{ textAlign: "left" }}>
-              <span className="vm-ic">
+            <div className="status-pill" style={{ textAlign: "left" }}>
+              <span className="sp-ic">
                 <Icon name="info" size={16} />
               </span>
               <span>

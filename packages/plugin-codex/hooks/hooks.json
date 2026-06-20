@@ -32,7 +32,7 @@
           {
             "type": "command",
             "command": "node ${PLUGIN_ROOT}/scripts/summarize.js",
-            "statusMessage": "Finalizing OneMem trace",
+            "statusMessage": "Saving OneMem memory",
             "timeout": 120
           }
         ]

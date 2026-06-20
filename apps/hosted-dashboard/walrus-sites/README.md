@@ -1,29 +1,32 @@
 # Walrus Sites mirror — apps/hosted-dashboard
 
-Decentralized Walrus Sites deploy surface for `app.onemem.xyz` fallback work.
-The current checked-in artifact is a small public verifier shell, not the full
-hosted dashboard.
+Decentralized Walrus Sites deploy surface for `app.onemem.xyz` fallback work —
+so the OneMem dashboard can be served from Walrus even if the centralized host is
+unreachable.
 
 ## Why this exists
 
 Per `docs/05-our-architecture/06-dashboard/walrus-sites-mirror.md`:
-- Trust narrative — the verifiable-memory product should ship on verifiable infrastructure where possible
-- Resilience — `app.onemem.xyz` could go down (Vercel outage, DNS issue, account suspension); Walrus Sites URL still works
-- The public `/verify/[session_id]` page is the most important surface to mirror — anyone can verify chain integrity even if the centralized host is unreachable
+- Decentralization narrative — OneMem's owned-memory product should be able to
+  ship on decentralized infrastructure (Walrus Sites) where possible.
+- Resilience — `app.onemem.xyz` could go down (Vercel outage, DNS issue, account
+  suspension); a Walrus Sites URL still works.
+- The memory dashboard is the surface to mirror so users can reach their owned
+  memory even when the centralized host is down.
 
 ## Current boundary
 
-The deploy wrapper is real and now defaults to a checked-in static artifact:
-`apps/hosted-dashboard/walrus-sites/verifier`.
+The deploy wrapper is real. The full hosted dashboard is not yet a complete
+static Walrus mirror — it has server-backed API routes and force-dynamic hosted
+pages. Do not claim a full dashboard mirror until those routes have
+static/browser-side replacements and a live `site-builder` deployment returns a
+Walrus URL.
 
-That artifact verifies a OneMem `TraceSession` directly in the browser through
-public Sui JSON-RPC. It recomputes the Merkle root from
-`ActionCallEmittedEvent` rows and shows the proof boundary.
-
-The full hosted dashboard is still not a complete static Walrus mirror. It has
-server-backed API routes and force-dynamic hosted pages. Do not claim a full
-dashboard mirror until those routes have static/browser-side replacements and a
-live `site-builder` deployment returns a Walrus URL.
+> **Stale artifact (Phase 4/5):** the checked-in `walrus-sites/verifier/` static
+> shell is leftover from a dropped direction and does NOT reflect the product
+> (OneMem = decentralized memory, not a verifier). It is slated to be replaced by
+> a static dashboard mirror in the Phase 4/5 dashboard work; do not treat it as a
+> current OneMem surface or build on it.
 
 Do not use `next export -o out`; that command path is invalid for the current
 Next.js toolchain in this repo.
@@ -40,14 +43,8 @@ Or validate without deploying:
 bash scripts/deploy-walrus-sites.sh --check
 ```
 
-The GitHub Action has the same static-artifact preflight:
-
-```bash
-gh workflow run deploy-walrus-sites.yml \
-  --field epochs=26 \
-  --field context=mainnet \
-  --field dist=apps/hosted-dashboard/walrus-sites/verifier
-```
+The GitHub Action has the same static-artifact preflight (point `--field dist`
+at the static dashboard mirror once it exists).
 
 ## After deploy
 

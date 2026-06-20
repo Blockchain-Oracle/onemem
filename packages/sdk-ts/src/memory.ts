@@ -91,6 +91,13 @@ export interface GetAllMemoryArgs extends MemoryScopeArgs {
 }
 
 export interface Memory {
+  /**
+   * The stored-memory id when this hit is mirrored in the local index, else
+   * null. A null id means the hit is a fresh/cross-device write this client's
+   * index never saw — it has no local id to delete by. Threading the id here lets
+   * Mem0's `search → delete(id)` compose for indexed hits.
+   */
+  readonly id: string | null;
   readonly text: string;
   readonly walrusBlobId: string;
   /** Normalized relevance in [0,1] (1 − L2 distance). */
@@ -138,6 +145,34 @@ export class MemoryReadError extends Error {
   constructor(options?: { cause?: unknown }) {
     super("Memory search (MemWal recallManual) failed", options);
     this.name = "MemoryReadError";
+  }
+}
+
+/**
+ * Thrown when a caller passes invalid arguments to the memory API (empty text,
+ * non-positive topK, …). Validated at the SDK boundary so a misuse fails fast
+ * with a clear message instead of relying on the MCP/CLI layer's zod (the SDK is
+ * also used directly by providers + the bridge).
+ */
+export class MemoryArgumentError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MemoryArgumentError";
+  }
+}
+
+/** Require a non-empty, non-whitespace string for `label` (text/query). */
+function requireNonEmpty(value: string, label: string): void {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new MemoryArgumentError(`${label} must be a non-empty string`);
+  }
+}
+
+/** Require a positive integer for an optional `label` (topK/limit) when present. */
+function requirePositiveIntOpt(value: number | undefined, label: string): void {
+  if (value === undefined) return;
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new MemoryArgumentError(`${label} must be a positive integer`);
   }
 }
 
@@ -208,8 +243,22 @@ export class MemoryAPI {
   }
 
   /**
-   * Resolve the effective MemWal namespace:
+   * Resolve the effective MemWal namespace — the SINGLE source of truth for
+   * scope→namespace mapping, shared by add/search/getAll so identical scope args
+   * always resolve to the same namespace (e.g. `getAll({userId})` and
+   * `search(q,{userId})` both hit `user:<id>`):
    *   explicit namespace → `user:<userId>` → config.namespace → "default".
+   *
+   * ISOLATION HONESTY: the MemWal namespace is the REAL isolation boundary — Seal
+   * encryption keys are per-namespace. Per-user isolation therefore comes from
+   * `userId` → `user:<id>` namespacing here: each user gets a distinct,
+   * cryptographically-separate Seal scope. Putting MULTIPLE users inside ONE
+   * explicit namespace (e.g. `{namespace:'shared', userId}`) gives them a SHARED
+   * Seal scope — they are NOT cryptographically isolated from each other; the
+   * index userId/agentId/runId/metadata post-filter (in `search`) is convenience,
+   * not a security boundary. A memory written with an explicit
+   * `{namespace:'shared', userId}` is, by design, only reachable by reading with
+   * `namespace:'shared'` — the namespace is the boundary, not the userId.
    */
   private effectiveNamespace(opts: { namespace?: string; userId?: string }): string {
     return (
@@ -226,6 +275,7 @@ export class MemoryAPI {
    * into the local index so `get` / `getAll` / `delete` / scoped `search` work.
    */
   async add(text: string, opts: AddMemoryArgs = {}): Promise<AddMemoryResult> {
+    requireNonEmpty(text, "add(text)");
     const namespace = this.effectiveNamespace(opts);
     let remembered: { id: string; blob_id: string };
     try {
@@ -268,13 +318,20 @@ export class MemoryAPI {
   /**
    * List stored memories from the local index by scope filter, newest-first.
    * Excludes soft-deleted rows. Filters are AND-combined and account-scoped.
+   *
+   * The namespace is resolved through the SAME `effectiveNamespace` used by
+   * add/search, so `getAll({userId})` scopes to `user:<id>` and AGREES with
+   * `search(q,{userId})` (no longer namespace-blind on a bare userId). A memory
+   * written with an explicit `{namespace:'shared', userId}` is therefore only
+   * listed by reading with `namespace:'shared'` — the namespace is the boundary.
    */
   async getAll(filter: GetAllMemoryArgs = {}): Promise<StoredMemory[]> {
+    requirePositiveIntOpt(filter.limit, "getAll(limit)");
     const indexFilter: MemoryIndexFilter = {
       userId: filter.userId,
       agentId: filter.agentId,
       runId: filter.runId,
-      namespace: filter.namespace,
+      namespace: this.effectiveNamespace(filter),
       metadata: filter.metadata,
       limit: filter.limit,
     };
@@ -311,6 +368,8 @@ export class MemoryAPI {
    * ranked by relevance.
    */
   async search(query: string, opts: SearchMemoryArgs = {}): Promise<SearchMemoryResult> {
+    requireNonEmpty(query, "search(query)");
+    requirePositiveIntOpt(opts.topK, "search(topK)");
     const namespace = this.effectiveNamespace(opts);
     let recalled: { results: ({ blob_id: string; distance: number } & { text?: string })[] };
     try {
@@ -350,6 +409,10 @@ export class MemoryAPI {
         if (opts.metadata && !metadataMatches(record.metadata, opts.metadata)) continue;
       }
       results.push({
+        // The local-index id when this hit is mirrored, else null (a fresh /
+        // cross-device write this client's index never saw has no local id).
+        // Lets `search → delete(id)` compose for indexed hits.
+        id: record?.id ?? null,
         text: hit.text,
         walrusBlobId: hit.blob_id,
         relevance: Math.min(1, Math.max(0, 1 - hit.distance)),

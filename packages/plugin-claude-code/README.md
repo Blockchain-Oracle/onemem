@@ -1,34 +1,50 @@
 # @onemem/claude-code-plugin
 
-OneMem plugin for Claude Code — turns each Claude Code session's tool calls into
-a **verifiable on-chain trace** (Merkle-chained `ActionCall`s on Sui, content
-Seal-encrypted on Walrus). Coexists with claude-mem (semantic memory) — OneMem
-owns verifiable on-chain trace; claude-mem owns local conversation summary.
+OneMem plugin for Claude Code — **decentralized memory** for your coding agent,
+plus a live local dashboard of each session's activity. Memory is stored through
+MemWal (client-side Seal-encrypted blobs on Walrus — the relayer never sees
+plaintext) and is owned by you across runtimes. Coexists with claude-mem
+(local conversation summary); OneMem adds portable, owned memory you can store,
+search, and recall.
+
+**Publication note, 2026-06-19:** `@onemem/claude-code-plugin@0.1.1` is current on npm
+after `pnpm registry:status --strict`, and the repository marketplace path is current.
+Re-run that command before a fresh public install claim.
 
 ## How it works (hooks)
 
+The lifecycle hooks register each session with a **local OneMem worker** and
+stream readable tool-call observations to a **live local dashboard** — they keep
+the editor responsive and never block Claude.
+
 | Hook | Script | What it does |
 |---|---|---|
-| `SessionStart` | `inject.js` | Opens a OneMem `TraceSession`, persists the mapping |
-| `PostToolUse` | `observe.js` | Buffers the tool call locally — **instant**, never blocks Claude |
-| `Stop` | `summarize.js` | Flushes the buffer on-chain (one `ActionCall` per tool, Seal-encrypted -> Walrus) + closes the session |
+| `SessionStart` | `inject.js` | Registers the session with the local OneMem worker |
+| `PostToolUse` | `observe.js` | Posts each tool call to the worker instantly so the dashboard fills up live |
+| `Stop` | `summarize.js` | Marks the session ended so the dashboard shows it closed |
 
-Buffering keeps the editor responsive; the on-chain work happens once at session
-end, producing one tamper-evident trace you can verify or share.
+The dashboard view is local. Durable memory (add/search/recall) is the MCP +
+SDK surface below, encrypted on Walrus via MemWal.
 
 ## Configure (env)
 
-- `ONEMEM_NAMESPACE_ID` + `ONEMEM_RW_CAP_ID` — the OneMem namespace + ReadWrite
-  cap to record into (required; the plugin no-ops without them).
-- `ONEMEM_PRIVATE_KEY` — `suiprivkey1…` signer (else the sui keystore's first key).
-- `SUI_NETWORK` — `testnet` (default) | `mainnet` | …
+The hooks talk to the local worker — no on-chain config is required for the live
+dashboard:
+
+- `ONEMEM_WORKER_URL` — local worker URL (default `http://127.0.0.1:4041`).
+- `ONEMEM_WORKER_AUTOSTART` / `ONEMEM_WORKER_COMMAND` — control worker autostart.
+
+Memory tools (the durable layer) read MemWal config from `onemem login`
+credentials or env (`ONEMEM_ACCOUNT_ID`, `ONEMEM_DELEGATE_KEY`,
+`ONEMEM_EMBEDDING_API_KEY`, `MEMWAL_PACKAGE_ID`, `MEMWAL_RELAYER_URL`,
+`SUI_NETWORK`).
 
 ## Bundled MCP
 
-The plugin root includes `.mcp.json`, so Claude Code can expose the same OneMem
-MCP server alongside the lifecycle hooks. The MCP server is the dependable
-memory/search/replay/share/verify layer and works independently of hook trace
-capture.
+The plugin root includes `.mcp.json`, so Claude Code exposes the OneMem MCP
+server alongside the lifecycle hooks. The MCP server is the dependable
+memory layer — `add` / `search` / `get` / `list` / `delete` — and works
+independently of the dashboard hooks.
 
 ## Install From The Public Repository Marketplace
 
@@ -36,16 +52,6 @@ capture.
 claude plugin marketplace add Blockchain-Oracle/onemem
 claude plugin install onemem@onemem
 ```
-
-**Publication note, 2026-06-19:** this GitHub marketplace path is current, and
-`@onemem/claude-code-plugin@0.1.1` is current on npm after
-`pnpm registry:status --strict`. It contains the `Stop` hook fix plus bundled
-MCP config. A trusted live Claude Code session emitted testnet TraceSession
-`0x9c88993b6197a8460f4fbd4a886c6353505d36383bf35035e5305088b64825e7`;
-`onemem verify` returned `ok: true`, `callCount: 1`, and matching Merkle roots.
-The gated `tests/plugin.integration.test.ts` script remains available for
-simulated SessionStart -> PostToolUse -> Stop coverage when
-`ONEMEM_INTEGRATION=1`.
 
 This GitHub marketplace path requires `.claude-plugin/marketplace.json` and
 `packages/plugin-claude-code/` to be present on the repository branch Claude Code

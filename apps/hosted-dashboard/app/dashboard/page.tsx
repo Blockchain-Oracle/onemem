@@ -61,8 +61,8 @@ export default function HostedDashboardRoot() {
           <ConnectButton className="btn btn-primary" connectText="Connect" />
         </div>
       ) : (
-        <div className="verify-mini ok" style={{ marginBottom: 24 }}>
-          <span className="vm-ic">
+        <div className="status-pill ok" style={{ marginBottom: 24 }}>
+          <span className="sp-ic">
             <Icon name="check" size={16} />
           </span>
           <span>
@@ -72,8 +72,8 @@ export default function HostedDashboardRoot() {
       )}
 
       {!authConfig.enokiConfigured ? (
-        <div className="verify-mini" style={{ marginBottom: 24 }}>
-          <span className="vm-ic">
+        <div className="status-pill" style={{ marginBottom: 24 }}>
+          <span className="sp-ic">
             <Icon name="info" size={16} />
           </span>
           <span>Google sign-in is not enabled yet. Wallet connect remains available.</span>

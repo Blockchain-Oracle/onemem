@@ -67,11 +67,13 @@ export function searchCommand(query: string, opts: SearchOpts, command: Cmd) {
     }
     printTable(
       results.map((m) => ({
+        // null id = a fresh/cross-device hit not in the local index (can't delete by id).
+        id: m.id ? (m.id.length > 14 ? `${m.id.slice(0, 14)}…` : m.id) : "—",
         relevance: m.relevance.toFixed(3),
-        text: m.text.length > 60 ? `${m.text.slice(0, 60)}…` : m.text,
+        text: m.text.length > 56 ? `${m.text.slice(0, 56)}…` : m.text,
         blob: `${m.walrusBlobId.slice(0, 12)}…`,
       })),
-      ["relevance", "text", "blob"],
+      ["id", "relevance", "text", "blob"],
     );
   });
 }

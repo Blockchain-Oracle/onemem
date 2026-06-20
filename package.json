@@ -9,6 +9,7 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "test:structure": "node --import tsx --test tests/structure/*.test.ts",
+    "test:integration": "pnpm --filter @onemem/sdk-ts exec tsx scripts/memory-crud-itest.mts",
     "registry:status": "uv run python scripts/check-registry-status.py",
     "release:preflight": "uv run python scripts/check-release-preflight.py",
     "lint": "biome check .",

@@ -160,6 +160,37 @@ describe("SqliteMemoryIndex list metadata filter is order-insensitive", () => {
   });
 });
 
+describe("SqliteMemoryIndex getByBlobIds deleted-row tie-break", () => {
+  it("prefers a LIVE row over a deleted one for the same blob_id (delete-then-re-add)", () => {
+    // Identical plaintext deduped to one blob_id: first row added then deleted,
+    // a later re-add reuses the same blob_id under a new id.
+    index.put(rec({ id: "old", blobId: "dup-blob", createdAt: 100 }));
+    expect(index.softDelete("old")).toBe(true);
+    index.put(rec({ id: "new", blobId: "dup-blob", createdAt: 200, deleted: false }));
+
+    const byBlob = index.getByBlobIds(["dup-blob"]);
+    const hit = byBlob.get("dup-blob");
+    expect(hit?.id).toBe("new");
+    expect(hit?.deleted).toBe(false);
+  });
+
+  it("prefers a live row even when the deleted row is NEWER", () => {
+    // Live row is older; a deleted row for the same blob is newer. Live still wins.
+    index.put(rec({ id: "live", blobId: "dup2", createdAt: 100, deleted: false }));
+    index.put(rec({ id: "dead", blobId: "dup2", createdAt: 999, deleted: true }));
+    expect(index.getByBlobIds(["dup2"]).get("dup2")?.id).toBe("live");
+  });
+
+  it("returns a deleted row only when NO live row references the blob", () => {
+    index.put(rec({ id: "d1", blobId: "dup3", createdAt: 100, deleted: true }));
+    index.put(rec({ id: "d2", blobId: "dup3", createdAt: 200, deleted: true }));
+    const hit = index.getByBlobIds(["dup3"]).get("dup3");
+    // Both deleted → newest deleted row.
+    expect(hit?.id).toBe("d2");
+    expect(hit?.deleted).toBe(true);
+  });
+});
+
 describe("SqliteMemoryIndex getByBlobIds namespace scoping", () => {
   it("resolves a blob deduped across namespaces to the record for the given namespace", () => {
     // Same blob_id referenced under two namespaces (dedup of identical plaintext).

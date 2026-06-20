@@ -40,6 +40,10 @@ class Memory:
     walrus_blob_id: str
     #: Normalized relevance in [0, 1] (1 - L2 distance).
     relevance: float
+    #: The stored-memory id when this hit is mirrored in the local index, else
+    #: None (a fresh/cross-device write the index never saw has no local id).
+    #: Lets ``search`` then ``delete(id)`` compose for indexed hits.
+    id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -189,6 +193,7 @@ class MemoryClient:
                 text=str(r.get("text", "")),
                 walrus_blob_id=str(r.get("walrusBlobId", "")),
                 relevance=float(r.get("relevance", 0.0)),
+                id=str(r["id"]) if isinstance(r.get("id"), str) else None,
             )
             for r in rows
         ]

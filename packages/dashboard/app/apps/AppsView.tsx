@@ -33,7 +33,7 @@ const SECTIONS: { key: RuntimeSection; title: string; blurb: string }[] = [
     key: "environments",
     title: "Deployed & other environments",
     blurb:
-      "Seen on-chain, running off this machine (e.g. a deployed framework adapter). Read-only here — manage from the hosted dashboard.",
+      "Running off this machine (e.g. a deployed framework adapter). Read-only here — manage from the hosted dashboard.",
   },
 ];
 
