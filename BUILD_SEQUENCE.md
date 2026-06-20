@@ -47,12 +47,19 @@ Update the checkboxes as work lands. Pause for Abu at major phase transitions.
 - [x] real testnet round-trip proven: zero-key remember→recall (distance 0.48) + full worker e2e (observation → durable blob `ae37ce2a…`); 46 unit tests + tsc/lint green
 - [ ] (follow-up) recall round-trip in the worker's own `cm:<project>` namespace is eventually-consistent (Walrus index lag ~1-3 min) — mechanism proven by spike + unit-tested endpoint
 
-### 3C — Hooks rework (recall + prompts)
-- [ ] inject.js SessionStart recall injection; new UserPromptSubmit hook (semantic recall + prompt cards); thin observe/summarize → `/api/events` + `/api/prompts`; mirror plugin-codex; handle Codex quirks (session_id required, Stop re-entry, writeCodexOutput)
-- [ ] real Claude Code + Codex session end-to-end
+### 3C — Hooks rework (recall + prompts) ✅ (commit 00f8b83)
+- [x] observe.js → `/api/events` (both); inject.js SessionStart recall injection (local timeline); prompt.js (NEW UserPromptSubmit) prompt capture + semantic MemWal recall; hooks.json registers it; codex mirror (codexOutput generalized; session_id/Stop-reentry/writeCodexOutput handled)
+- [x] worker: context.ts (buildContextMarkdown/buildRecallMarkdown) + `/api/context` + `/api/recall` context + store.recentObservationsByProject
+- [x] plugin tests (5+7) + worker 51 + structure 168 + lint green; REAL hook e2e PASS — session 2's inject.js recalls session 1's compressed work ("JWT Auth Module Added") on SessionStart, zero key
+- [ ] full live Claude Code + Codex session (Abu-driven) — verify in 3E alongside the dashboard
+- NOTE: worker bin persists to `~/.onemem/worker.db` (env `ONEMEM_WORKER_DB`); `dist/` must be rebuilt before any integration run (unit tests run on `src/`)
 
-### 3D — Dashboard rebuild (alive card feed)
-- [ ] centered card feed (observation/summary/prompt), files view, facts↔narrative toggle, per-runtime pills, project selector, processing badge + spinning favicon, honest cost meter, theme; remove dead `proof_update` + "before proof settles" + unused deps; fix/verify hydration; Chrome DevTools UI/mobile
+### 3D — Dashboard rebuild (alive card feed) ✅ (commit c7a5949)
+- [x] centered card feed (observation/summary/prompt cards) on the new worker shapes; 8 type color accents + emoji; facts↔narrative toggle; files view (modified highlighted); concept chips; per-runtime label/logo; project selector; strong empty state
+- [x] alive SSE: new_observation/new_summary/new_prompt + processing_status ("compressing N…" + spinner) + observation_stored/summary_stored durable-badge backfill; honest "N stored on Walrus" meter (no invented cost)
+- [x] removed dead `proof_update` listener + "before proof settles" subtitle + trace.css; new `/api/worker/{summaries,prompts}` proxies
+- [x] dashboard tsc + 11 tests + next build green; Chrome DevTools browser-verified — cards render, ZERO console errors (no hydration error), mobile 390px responsive
+- [ ] (polish, deferred w/ reason) browser-favicon spin (in-feed badge spinner shipped); Sui-gas-RPC cost meter (honest blob-count meter shipped); remove unused deps (radix/react-query/swr/tailwind) — cleanup, no functional impact
 
 ### 3E — Phase 3 verification + completion audit + PR
 - [ ] full green; completion audit (no silent cuts); stacked PR on `reset/phase-0-foundation`. (Ultra review due after Phase 4.)
