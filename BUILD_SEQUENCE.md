@@ -30,11 +30,31 @@ Update the checkboxes as work lands. Pause for Abu at major phase transitions.
 - [ ] REMAINING (smaller): scope passthrough into providers (Vercel AI/OpenAI Agents/Python already recall+capture from Phase 1); explicit bring-your-own login affordance (env path already works); live MCP/Vercel round-trip with OpenAI key
 - [ ] follow-ups: publish `@onemem/worker` for end-user plugin install (Phase 6); `oc-memwal`→memwal 0.0.5 leftover (Phase 3); cli `init`/`health` minimal (rework if needed); replace global `/opt/homebrew/bin/onemem` shadow before demo
 
-## Phase 3 — Product A: claude-mem on MemWal
-- [ ] capture hooks → worker; observer LLM compression (8 types / 7 concepts / files view); summaries
-- [ ] store: SQLite cache + MemWal durable; recall (SessionStart + UserPromptSubmit + MCP 3-layer)
-- [ ] dashboard rebuild (readable feed, files view, alive SSE, cost meter); fix hydration error
-- [ ] real Claude Code + Codex sessions verified; Chrome DevTools UI/mobile → PR
+## Phase 3 — Product A: claude-mem on MemWal  (branch `reset/phase-3-product-a`)
+**Observer auth = ZERO key** (proven live 2026-06-20): rides the user's own coding CLI — `codex exec` for Codex, Claude Agent SDK for Claude. NOT ChatGPT-token spoofing. Spec: `.thoughts/research/2026-06-20-claude-mem-source-spec.md`.
+
+### 3A — Worker observer pipeline ✅ (commits 44402fa + 0891225)
+- [x] store: events (raw hot-path queue) → observations (8 types / 7 concepts / files view) + summaries + prompts; content-hash dedup; blob_id slot; findSessionNeedingSummary
+- [x] observer: prompt + tolerant JSON parser + classifier + loop (injectable backend)
+- [x] CodexBackend (zero-key `codex exec` + `--output-schema`) + KeyBackend fallback + auto-select
+- [x] summaries (5-section) + honest fallback; server hot-path `/api/events` + processing_status SSE; observer loop in index
+- [x] 44 unit tests + REAL e2e (observation + 5-section summary via codex, zero key); tsc + lint green
+- [ ] ClaudeBackend (Claude subscription via `@anthropic-ai/claude-agent-sdk`) — DEFERRED w/ reason: pipeline proven zero-key via Codex (Abu's runtime); isolated add that slots in without changing the pipeline
+
+### 3B — Durable MemWal write + recall
+- [ ] worker writes compressed observations + summaries to MemWal (namespace `cm:<project>`), backfills blob_id; `/api/recall`
+- [ ] VERIFY zero-config embedding: does the MemWal relayer embed server-side (no `ONEMEM_EMBEDDING_API_KEY` needed)? — Abu's zero-key requirement; don't assume
+- [ ] real testnet round-trip: session A writes → session B recalls; inspect recalled text
+
+### 3C — Hooks rework (recall + prompts)
+- [ ] inject.js SessionStart recall injection; new UserPromptSubmit hook (semantic recall + prompt cards); thin observe/summarize → `/api/events` + `/api/prompts`; mirror plugin-codex; handle Codex quirks (session_id required, Stop re-entry, writeCodexOutput)
+- [ ] real Claude Code + Codex session end-to-end
+
+### 3D — Dashboard rebuild (alive card feed)
+- [ ] centered card feed (observation/summary/prompt), files view, facts↔narrative toggle, per-runtime pills, project selector, processing badge + spinning favicon, honest cost meter, theme; remove dead `proof_update` + "before proof settles" + unused deps; fix/verify hydration; Chrome DevTools UI/mobile
+
+### 3E — Phase 3 verification + completion audit + PR
+- [ ] full green; completion audit (no silent cuts); stacked PR on `reset/phase-0-foundation`. (Ultra review due after Phase 4.)
 
 ### Deferred from the pre-Phase-3 fix pass (review findings, intentionally NOT fixed yet)
 These were triaged during the pre-Phase-3 ultra-review fix pass and deferred on purpose; revisit during Phase 3 SDK/dashboard work:
