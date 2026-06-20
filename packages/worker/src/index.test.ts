@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { DurableStore } from "./durable.js";
 import { type RunningWorker, startWorker } from "./index.js";
 import type { ObserverBackend } from "./observer.js";
 
@@ -20,6 +21,12 @@ const fakeBackend: ObserverBackend = {
         },
       ],
     }),
+};
+
+const fakeDurable: DurableStore = {
+  available: () => true,
+  write: async () => "job_fake_123",
+  recall: async () => [{ text: "Past work: built the observer", distance: 0.2, blobId: "b1" }],
 };
 
 async function waitFor<T>(
@@ -45,6 +52,7 @@ describe("startWorker", () => {
         port: 0,
         logger: { info: () => {}, warn: () => {} },
         observerBackend: fakeBackend,
+        durableStore: null,
         observerIntervalMs: 20,
       });
       const base = `http://${worker.host}:${worker.port}`;
@@ -85,6 +93,7 @@ describe("startWorker", () => {
         port: 0,
         logger: { info: () => {}, warn: () => {} },
         observerBackend: null,
+        durableStore: null,
       });
       const base = `http://${worker.host}:${worker.port}`;
       await fetch(`${base}/api/sessions/init`, {
@@ -97,6 +106,46 @@ describe("startWorker", () => {
       });
       const health = (await (await fetch(`${base}/health`)).json()) as { pendingEvents: number };
       expect(health.pendingEvents).toBe(1); // raw event kept; nothing compresses it
+    } finally {
+      await worker?.stop();
+    }
+  });
+
+  it("writes observations durably and serves recall from the durable store", async () => {
+    let worker: RunningWorker | null = null;
+    try {
+      worker = await startWorker({
+        port: 0,
+        logger: { info: () => {}, warn: () => {} },
+        observerBackend: fakeBackend,
+        durableStore: fakeDurable,
+        observerIntervalMs: 20,
+      });
+      const base = `http://${worker.host}:${worker.port}`;
+      await fetch(`${base}/api/sessions/init`, {
+        method: "POST",
+        body: JSON.stringify({ id: "s", runtime: "claude-code", projectPath: "/repo/onemem" }),
+      });
+      await fetch(`${base}/api/events`, {
+        method: "POST",
+        body: JSON.stringify({ sessionId: "s", toolName: "Bash", outputPreview: "x" }),
+      });
+
+      // observation compresses, then its durable blob ref is backfilled
+      const read = await waitFor(
+        async () =>
+          (await (await fetch(`${base}/api/observations?session=s`)).json()) as {
+            observations: { blobId: string | null }[];
+          },
+        (v) => v.observations.length >= 1 && v.observations[0]?.blobId === "job_fake_123",
+      );
+      expect(read.observations[0]?.blobId).toBe("job_fake_123");
+
+      // recall is served from the durable store, scoped to the project namespace
+      const recall = (await (
+        await fetch(`${base}/api/recall?q=observer&project=onemem&limit=3`)
+      ).json()) as { results: { text: string }[] };
+      expect(recall.results[0]?.text).toContain("built the observer");
     } finally {
       await worker?.stop();
     }

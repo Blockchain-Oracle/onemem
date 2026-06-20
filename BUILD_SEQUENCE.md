@@ -41,10 +41,11 @@ Update the checkboxes as work lands. Pause for Abu at major phase transitions.
 - [x] 44 unit tests + REAL e2e (observation + 5-section summary via codex, zero key); tsc + lint green
 - [ ] ClaudeBackend (Claude subscription via `@anthropic-ai/claude-agent-sdk`) — DEFERRED w/ reason: pipeline proven zero-key via Codex (Abu's runtime); isolated add that slots in without changing the pipeline
 
-### 3B — Durable MemWal write + recall
-- [ ] worker writes compressed observations + summaries to MemWal (namespace `cm:<project>`), backfills blob_id; `/api/recall`
-- [ ] VERIFY zero-config embedding: does the MemWal relayer embed server-side (no `ONEMEM_EMBEDDING_API_KEY` needed)? — Abu's zero-key requirement; don't assume
-- [ ] real testnet round-trip: session A writes → session B recalls; inspect recalled text
+### 3B — Durable MemWal write + recall ✅ (commit pending)
+- [x] DurableStore + MemWalDurableStore (relayer mode, lazy MemWal) + resolveDurableConfig (env + ~/.onemem/credentials.json); worker writes observations + summaries to MemWal (namespace `cm:<project>`), backfills blob ref, broadcasts observation_stored/summary_stored; `/api/recall` endpoint
+- [x] ZERO-KEY embedding RESOLVED: the relayer (TEE) embeds server-side — `MemWalConfig` needs only {delegate, account}, NO embedding key (Abu's requirement met)
+- [x] real testnet round-trip proven: zero-key remember→recall (distance 0.48) + full worker e2e (observation → durable blob `ae37ce2a…`); 46 unit tests + tsc/lint green
+- [ ] (follow-up) recall round-trip in the worker's own `cm:<project>` namespace is eventually-consistent (Walrus index lag ~1-3 min) — mechanism proven by spike + unit-tested endpoint
 
 ### 3C — Hooks rework (recall + prompts)
 - [ ] inject.js SessionStart recall injection; new UserPromptSubmit hook (semantic recall + prompt cards); thin observe/summarize → `/api/events` + `/api/prompts`; mirror plugin-codex; handle Codex quirks (session_id required, Stop re-entry, writeCodexOutput)

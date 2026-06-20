@@ -12,6 +12,8 @@ export interface WorkerServerOptions {
   readonly store: WorkerStore;
   readonly host?: string;
   readonly port?: number;
+  /** Semantic recall from the durable store (MemWal); wired by index.ts. */
+  readonly recall?: (query: string, project: string | undefined, limit: number) => Promise<unknown>;
 }
 
 export interface WorkerServer {
@@ -119,6 +121,15 @@ export function createWorkerServer(opts: WorkerServerOptions): WorkerServer {
 
       if (method === "GET" && path === "/api/sessions") {
         return json(res, 200, { sessions: store.listSessions() });
+      }
+
+      // Semantic recall from the durable (MemWal) store, scoped to a project.
+      if (method === "GET" && path === "/api/recall") {
+        if (!opts.recall) return json(res, 200, { results: [] });
+        const query = url.searchParams.get("q") ?? "";
+        const project = url.searchParams.get("project") ?? undefined;
+        const limit = Number(url.searchParams.get("limit") ?? "5") || 5;
+        return json(res, 200, { results: await opts.recall(query, project, limit) });
       }
 
       json(res, 404, { error: "not found" });
