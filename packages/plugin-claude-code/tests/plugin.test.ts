@@ -134,10 +134,9 @@ describe("Claude Code plugin hooks", () => {
     expect(result.status).toBe(0);
     expect(requests).toEqual([
       {
-        url: "/api/sessions/observations",
+        url: "/api/events",
         body: {
           sessionId: "claude-test",
-          type: "tool_use",
           toolName: "Bash",
           toolNamespace: "claude-code",
           inputPreview: '{"command":"pwd"}',
@@ -184,5 +183,26 @@ describe("Claude Code plugin hooks", () => {
         body: expect.objectContaining({ id: "claude-test" }),
       },
     ]);
+  });
+
+  it("UserPromptSubmit records the prompt with the local worker", async () => {
+    const { result, requests } = await captureRequests((baseUrl) =>
+      runScriptAsync(
+        "prompt.js",
+        {
+          hook_event_name: "UserPromptSubmit",
+          session_id: "claude-test",
+          cwd: "/tmp/project",
+          prompt: "do the thing",
+        },
+        { ONEMEM_WORKER_URL: baseUrl },
+      ),
+    );
+
+    expect(result.status).toBe(0);
+    const recorded = requests.find((r) => r.url === "/api/prompts");
+    expect(recorded?.body).toEqual(
+      expect.objectContaining({ sessionId: "claude-test", text: "do the thing" }),
+    );
   });
 });

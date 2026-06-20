@@ -577,6 +577,19 @@ export class WorkerStore {
     return rows.map(rowToObservation);
   }
 
+  /** Recent compressed observations across a whole project (for SessionStart recall). */
+  recentObservationsByProject(project: string, limit = 20): Observation[] {
+    const rows = this.db
+      .prepare(
+        `SELECT o.* FROM observations o
+         JOIN sessions s ON s.id = o.session_id
+         WHERE s.project = ?
+         ORDER BY o.created_at DESC, o.id DESC LIMIT ?`,
+      )
+      .all(project, limit) as unknown as ObservationRow[];
+    return rows.map(rowToObservation);
+  }
+
   /** Store a 5-section summary. Idempotent by content hash. */
   addSummary(input: AddSummaryInput): Summary {
     const contentHash = sha256([

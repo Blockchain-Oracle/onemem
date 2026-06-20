@@ -152,4 +152,24 @@ describe("worker HTTP daemon", () => {
     controller.abort();
     await reader.cancel().catch(() => {});
   });
+
+  it("serves a SessionStart recall context for a project", async () => {
+    const { base, store } = await start();
+    store.initSession({ id: "s1", runtime: "claude-code", projectPath: "/repo/onemem" });
+    store.addObservation({
+      sessionId: "s1",
+      type: "bugfix",
+      title: "Fixed the leak",
+      narrative: "released sockets",
+      facts: [],
+      concepts: [],
+      filesRead: [],
+      filesModified: [],
+    });
+    const r = (await (await fetch(`${base}/api/context?project=onemem`)).json()) as {
+      context: string;
+    };
+    expect(r.context).toContain("Fixed the leak");
+    expect(r.context).toContain("OneMem — recent context");
+  });
 });

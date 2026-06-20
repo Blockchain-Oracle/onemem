@@ -12,9 +12,10 @@ async function main() {
   if (!claudeSessionId || !input.tool_name) return;
   if (!(await captureEnabled("claude-code"))) return;
 
-  await postWorker("/api/sessions/observations", {
+  // Raw tool call → the worker's event queue (hot path). The observer compresses
+  // it into a readable observation card in the background.
+  await postWorker("/api/events", {
     sessionId: claudeSessionId,
-    type: "tool_use",
     toolName: input.tool_name,
     toolNamespace: "claude-code",
     inputPreview: preview(input.tool_input),

@@ -6,6 +6,8 @@
 // into readable observation cards and broadcasts `new_observation` as they land.
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { buildContextMarkdown, buildRecallMarkdown } from "./context.js";
+import type { DurableHit } from "./durable.js";
 import type { AddEventInput, AddPromptInput, InitSessionInput, WorkerStore } from "./store.js";
 
 export interface WorkerServerOptions {
@@ -13,7 +15,11 @@ export interface WorkerServerOptions {
   readonly host?: string;
   readonly port?: number;
   /** Semantic recall from the durable store (MemWal); wired by index.ts. */
-  readonly recall?: (query: string, project: string | undefined, limit: number) => Promise<unknown>;
+  readonly recall?: (
+    query: string,
+    project: string | undefined,
+    limit: number,
+  ) => Promise<DurableHit[]>;
 }
 
 export interface WorkerServer {
@@ -123,13 +129,27 @@ export function createWorkerServer(opts: WorkerServerOptions): WorkerServer {
         return json(res, 200, { sessions: store.listSessions() });
       }
 
+      // SessionStart recall: deterministic recent-timeline preamble (local, fast).
+      if (method === "GET" && path === "/api/context") {
+        const project = url.searchParams.get("project");
+        if (!project) return json(res, 200, { context: "" });
+        const limit = Number(url.searchParams.get("limit") ?? "15") || 15;
+        const observations = store.recentObservationsByProject(project, limit);
+        const summary = store.getLatestSummary(project);
+        return json(res, 200, {
+          context: buildContextMarkdown({ project, observations, summary }),
+        });
+      }
+
       // Semantic recall from the durable (MemWal) store, scoped to a project.
+      // Returns structured `results` (dashboard) + formatted `context` (hook injection).
       if (method === "GET" && path === "/api/recall") {
-        if (!opts.recall) return json(res, 200, { results: [] });
+        if (!opts.recall) return json(res, 200, { results: [], context: "" });
         const query = url.searchParams.get("q") ?? "";
         const project = url.searchParams.get("project") ?? undefined;
         const limit = Number(url.searchParams.get("limit") ?? "5") || 5;
-        return json(res, 200, { results: await opts.recall(query, project, limit) });
+        const results = await opts.recall(query, project, limit);
+        return json(res, 200, { results, context: buildRecallMarkdown(query, results) });
       }
 
       json(res, 404, { error: "not found" });
