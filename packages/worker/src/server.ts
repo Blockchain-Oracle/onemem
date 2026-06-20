@@ -1,10 +1,12 @@
 // The local worker's HTTP daemon. Binds 127.0.0.1 only — it serves your private
-// observations. Hooks POST tool calls here on the hot path; the worker writes
-// them to the local store synchronously and PUSHES them to any connected
-// dashboard over SSE (real push, not a poll).
+// memory. The hot path is POST /api/events: a hook posts a raw tool call, the
+// worker writes it to the local SQLite queue synchronously and broadcasts a
+// `processing_status` over SSE, so the dashboard's spinner reacts instantly.
+// The observer (see observer.ts, driven from index.ts) compresses those events
+// into readable observation cards and broadcasts `new_observation` as they land.
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import type { AddObservationInput, InitSessionInput, Observation, WorkerStore } from "./store.js";
+import type { AddEventInput, AddPromptInput, InitSessionInput, WorkerStore } from "./store.js";
 
 export interface WorkerServerOptions {
   readonly store: WorkerStore;
@@ -30,6 +32,11 @@ export function createWorkerServer(opts: WorkerServerOptions): WorkerServer {
     for (const res of sseClients) res.write(payload);
   }
 
+  function broadcastProcessingStatus(): void {
+    const queueDepth = store.pendingEventCount();
+    broadcast("processing_status", { isProcessing: queueDepth > 0, queueDepth });
+  }
+
   async function readJson<T>(req: IncomingMessage): Promise<T> {
     const chunks: Buffer[] = [];
     for await (const chunk of req) chunks.push(chunk as Buffer);
@@ -46,10 +53,15 @@ export function createWorkerServer(opts: WorkerServerOptions): WorkerServer {
     const url = new URL(req.url ?? "/", `http://${host}`);
     const path = url.pathname;
     const method = req.method ?? "GET";
+    const session = url.searchParams.get("session") ?? undefined;
 
     void (async () => {
       if (method === "GET" && path === "/health") {
-        return json(res, 200, { ok: true, sseClients: sseClients.size });
+        return json(res, 200, {
+          ok: true,
+          sseClients: sseClients.size,
+          pendingEvents: store.pendingEventCount(),
+        });
       }
 
       if (method === "GET" && path === "/stream") {
@@ -65,33 +77,44 @@ export function createWorkerServer(opts: WorkerServerOptions): WorkerServer {
       }
 
       if (method === "POST" && path === "/api/sessions/init") {
-        const session = store.initSession(await readJson<InitSessionInput>(req));
-        broadcast("session", session);
-        return json(res, 200, session);
+        const result = store.initSession(await readJson<InitSessionInput>(req));
+        broadcast("session", result);
+        return json(res, 200, result);
       }
 
       if (method === "POST" && path === "/api/sessions/end") {
         const input = await readJson<{ id?: string; endedAt?: number }>(req);
         if (!input.id) return json(res, 400, { error: "id is required" });
         store.endSession(input.id, input.endedAt);
-        const session = store.getSession(input.id);
-        if (!session) return json(res, 404, { error: "session not found" });
-        broadcast("session_ended", session);
-        return json(res, 200, session);
+        const ended = store.getSession(input.id);
+        if (!ended) return json(res, 404, { error: "session not found" });
+        broadcast("session_ended", ended);
+        return json(res, 200, ended);
       }
 
-      if (method === "POST" && path === "/api/sessions/observations") {
-        const observation: Observation = store.addObservation(
-          await readJson<AddObservationInput>(req),
-        );
-        // Hot path: pushed to the dashboard instantly.
-        broadcast("new_observation", observation);
-        return json(res, 200, observation);
+      // Hot path: a raw tool call. Written instantly; the observer compresses it.
+      if (method === "POST" && path === "/api/events") {
+        const event = store.addEvent(await readJson<AddEventInput>(req));
+        broadcastProcessingStatus();
+        return json(res, 200, event);
+      }
+
+      if (method === "POST" && path === "/api/prompts") {
+        const prompt = store.addPrompt(await readJson<AddPromptInput>(req));
+        broadcast("new_prompt", prompt);
+        return json(res, 200, prompt);
       }
 
       if (method === "GET" && path === "/api/observations") {
-        const sessionId = url.searchParams.get("session") ?? undefined;
-        return json(res, 200, { observations: store.listObservations(sessionId) });
+        return json(res, 200, { observations: store.listObservations(session) });
+      }
+
+      if (method === "GET" && path === "/api/summaries") {
+        return json(res, 200, { summaries: store.listSummaries(session) });
+      }
+
+      if (method === "GET" && path === "/api/prompts") {
+        return json(res, 200, { prompts: store.listPrompts(session) });
       }
 
       if (method === "GET" && path === "/api/sessions") {
