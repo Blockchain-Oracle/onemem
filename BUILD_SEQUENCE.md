@@ -30,11 +30,46 @@ Update the checkboxes as work lands. Pause for Abu at major phase transitions.
 - [ ] REMAINING (smaller): scope passthrough into providers (Vercel AI/OpenAI Agents/Python already recall+capture from Phase 1); explicit bring-your-own login affordance (env path already works); live MCP/Vercel round-trip with OpenAI key
 - [ ] follow-ups: publish `@onemem/worker` for end-user plugin install (Phase 6); `oc-memwal`→memwal 0.0.5 leftover (Phase 3); cli `init`/`health` minimal (rework if needed); replace global `/opt/homebrew/bin/onemem` shadow before demo
 
-## Phase 3 — Product A: claude-mem on MemWal
-- [ ] capture hooks → worker; observer LLM compression (8 types / 7 concepts / files view); summaries
-- [ ] store: SQLite cache + MemWal durable; recall (SessionStart + UserPromptSubmit + MCP 3-layer)
-- [ ] dashboard rebuild (readable feed, files view, alive SSE, cost meter); fix hydration error
-- [ ] real Claude Code + Codex sessions verified; Chrome DevTools UI/mobile → PR
+## Phase 3 — Product A: claude-mem on MemWal  (branch `reset/phase-3-product-a`)
+**Observer auth = ZERO key** (proven live 2026-06-20): rides the user's own coding CLI — `codex exec` for Codex, Claude Agent SDK for Claude. NOT ChatGPT-token spoofing. Spec: `.thoughts/research/2026-06-20-claude-mem-source-spec.md`.
+
+### 3A — Worker observer pipeline ✅ (commits 44402fa + 0891225)
+- [x] store: events (raw hot-path queue) → observations (8 types / 7 concepts / files view) + summaries + prompts; content-hash dedup; blob_id slot; findSessionNeedingSummary
+- [x] observer: prompt + tolerant JSON parser + classifier + loop (injectable backend)
+- [x] CodexBackend (zero-key `codex exec` + `--output-schema`) + KeyBackend fallback + auto-select
+- [x] summaries (5-section) + honest fallback; server hot-path `/api/events` + processing_status SSE; observer loop in index
+- [x] 44 unit tests + REAL e2e (observation + 5-section summary via codex, zero key); tsc + lint green
+- [ ] ClaudeBackend (Claude subscription via `@anthropic-ai/claude-agent-sdk`) — DEFERRED w/ reason: pipeline proven zero-key via Codex (Abu's runtime); isolated add that slots in without changing the pipeline
+
+### 3B — Durable MemWal write + recall ✅ (commit pending)
+- [x] DurableStore + MemWalDurableStore (relayer mode, lazy MemWal) + resolveDurableConfig (env + ~/.onemem/credentials.json); worker writes observations + summaries to MemWal (namespace `cm:<project>`), backfills blob ref, broadcasts observation_stored/summary_stored; `/api/recall` endpoint
+- [x] ZERO-KEY embedding RESOLVED: the relayer (TEE) embeds server-side — `MemWalConfig` needs only {delegate, account}, NO embedding key (Abu's requirement met)
+- [x] real testnet round-trip proven: zero-key remember→recall (distance 0.48) + full worker e2e (observation → durable blob `ae37ce2a…`); 46 unit tests + tsc/lint green
+- [ ] (follow-up) recall round-trip in the worker's own `cm:<project>` namespace is eventually-consistent (Walrus index lag ~1-3 min) — mechanism proven by spike + unit-tested endpoint
+
+### 3C — Hooks rework (recall + prompts) ✅ (commit 00f8b83)
+- [x] observe.js → `/api/events` (both); inject.js SessionStart recall injection (local timeline); prompt.js (NEW UserPromptSubmit) prompt capture + semantic MemWal recall; hooks.json registers it; codex mirror (codexOutput generalized; session_id/Stop-reentry/writeCodexOutput handled)
+- [x] worker: context.ts (buildContextMarkdown/buildRecallMarkdown) + `/api/context` + `/api/recall` context + store.recentObservationsByProject
+- [x] plugin tests (5+7) + worker 51 + structure 168 + lint green; REAL hook e2e PASS — session 2's inject.js recalls session 1's compressed work ("JWT Auth Module Added") on SessionStart, zero key
+- [ ] full live Claude Code + Codex session (Abu-driven) — verify in 3E alongside the dashboard
+- NOTE: worker bin persists to `~/.onemem/worker.db` (env `ONEMEM_WORKER_DB`); `dist/` must be rebuilt before any integration run (unit tests run on `src/`)
+
+### 3D — Dashboard rebuild (alive card feed) ✅ (commit c7a5949)
+- [x] centered card feed (observation/summary/prompt cards) on the new worker shapes; 8 type color accents + emoji; facts↔narrative toggle; files view (modified highlighted); concept chips; per-runtime label/logo; project selector; strong empty state
+- [x] alive SSE: new_observation/new_summary/new_prompt + processing_status ("compressing N…" + spinner) + observation_stored/summary_stored durable-badge backfill; honest "N stored on Walrus" meter (no invented cost)
+- [x] removed dead `proof_update` listener + "before proof settles" subtitle + trace.css; new `/api/worker/{summaries,prompts}` proxies
+- [x] dashboard tsc + 11 tests + next build green; Chrome DevTools browser-verified — cards render, ZERO console errors (no hydration error), mobile 390px responsive
+- [x] (Abu trust feedback, commit a1391c1) per-memory **Walrus explorer links** (walruscan.com/<network>/blob/<id>) + **honest 3-state badge** (◆ Walrus ↗ stored / ⋯ saving to Walrus / none) + **feed search**; worker resolves the REAL blob id via detached rememberAndWait + `/health` `durable` flag. Browser-verified.
+- [ ] (polish, deferred w/ reason) browser-favicon spin (in-feed badge spinner shipped); Sui-gas-RPC cost meter (honest blob-count meter shipped); remove unused deps (radix/react-query/swr/tailwind) — cleanup, no functional impact
+- [x] (Abu feedback, commit fcf14d1) topbar **project selector** replacing the dead "no namespace OWNER"; end-to-end honesty audit (Overview/Integrations/Settings all REAL — browser-verified, 0 console errors); trust-model copy fix
+- [x] **3F durable upload reconciler** (commit 75a12b8) — explorer links now resolve RELIABLY: `write()`→jobId persisted in SQLite → 15s reconcile loop polls `getRememberStatus` → backfills real Walrus blob id (survives slow uploads + restarts). Real e2e on the live relayer (blob QaQ_2HYR… resolved). Addresses the "stuck saving / no link" gap.
+- [ ] hosted dashboard (port 4050) is a stale placeholder — intentionally untouched now; address in Phase 6 (deploy)
+- [ ] NOTE for Abu: rebuild + restart your live worker (`pnpm --filter @onemem/worker build`) + dashboard so the new durable/explorer/reconciler code runs (the old running worker predates it)
+
+### 3E — Phase 3 verification + completion audit + PR ✅ (PR #3)
+- [x] full repo green: typecheck 12/12, tests 13/13, structure 168/0, build 10/10, lint clean; Python ruff/pyright/pytest(46) green
+- [x] completion audit in the PR body (delivered vs planned, deferrals named); stacked PR #3 on `reset/phase-0-foundation`
+- [ ] Abu spot-check: a true in-editor Claude Code / Codex live session (hooks were driven programmatically with real payloads + real Codex backend + real MemWal testnet). Ultra review due after Phase 4.
 
 ### Deferred from the pre-Phase-3 fix pass (review findings, intentionally NOT fixed yet)
 These were triaged during the pre-Phase-3 ultra-review fix pass and deferred on purpose; revisit during Phase 3 SDK/dashboard work:

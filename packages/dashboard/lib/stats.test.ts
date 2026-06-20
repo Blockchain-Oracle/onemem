@@ -16,6 +16,7 @@ function session(runtime: string, startedAt: number): LocalSession {
   return {
     id: `0x${runtime}-${startedAt}`,
     runtime,
+    project: null,
     projectPath: null,
     namespaceId: null,
     onememSessionId: null,

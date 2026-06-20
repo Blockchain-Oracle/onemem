@@ -18,9 +18,10 @@ async function main() {
   if (!sessionId || !toolName) return;
   if (!captureEnabled("codex")) return;
 
-  await postWorker("/api/sessions/observations", {
+  // Raw tool call → the worker's event queue (hot path). The observer compresses
+  // it into a readable observation card in the background.
+  await postWorker("/api/events", {
     sessionId,
-    type: "tool_use",
     toolName,
     toolNamespace: "codex",
     inputPreview: preview(input.tool_input),

@@ -135,7 +135,7 @@ export function SettingsView({
               k="Active namespace"
               v={namespaceId ? `${namespaceId.slice(0, 18)}…` : "none — run `onemem init`"}
             />
-            <Row k="Trust model" v="Seal /manual — relayer never sees plaintext" />
+            <Row k="Trust model" v="Encrypted with Seal · stored on Walrus" />
           </div>
         )}
 

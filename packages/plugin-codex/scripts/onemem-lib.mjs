@@ -23,15 +23,37 @@ export function writeCodexOutput(payload = { continue: true }) {
   process.stdout.write(JSON.stringify(payload));
 }
 
-export function codexOutput(additionalContext) {
+export function codexOutput(additionalContext, hookEventName = "SessionStart") {
   if (!additionalContext) return { continue: true };
   return {
     continue: true,
     hookSpecificOutput: {
-      hookEventName: "SessionStart",
+      hookEventName,
       additionalContext,
     },
   };
+}
+
+/** GET JSON from the local worker (recall/context). Defensive: returns null on any failure. */
+export async function getWorker(path) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1500);
+  try {
+    const res = await fetch(`${workerUrl()}${path}`, { signal: controller.signal });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/** Project basename from a path — the MemWal namespace scope (`cm:<project>`). */
+export function projectBasename(p) {
+  if (!p) return null;
+  const parts = String(p).split(/[\\/]/).filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : null;
 }
 
 export function sessionIdFromInput(input) {

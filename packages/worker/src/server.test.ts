@@ -13,43 +13,77 @@ describe("worker HTTP daemon", () => {
     store = null;
   });
 
-  async function start(): Promise<string> {
+  async function start(): Promise<{ base: string; store: WorkerStore }> {
     store = new WorkerStore(":memory:");
     server = createWorkerServer({ store, port: 0 });
     const { port } = await server.listen();
-    return `http://127.0.0.1:${port}`;
+    return { base: `http://127.0.0.1:${port}`, store };
   }
 
-  it("ingests tool calls over HTTP and reads them back", async () => {
-    const base = await start();
-    const init = (await (
-      await fetch(`${base}/api/sessions/init`, {
-        method: "POST",
-        body: JSON.stringify({ id: "s1", runtime: "claude-code" }),
-      })
-    ).json()) as { id: string };
-    expect(init.id).toBe("s1");
-
-    await fetch(`${base}/api/sessions/observations`, {
+  it("ingests a raw tool call on the hot path and reports queue depth", async () => {
+    const { base } = await start();
+    await fetch(`${base}/api/sessions/init`, {
       method: "POST",
-      body: JSON.stringify({
-        sessionId: "s1",
-        type: "tool_use",
-        toolName: "Bash",
-        inputPreview: "ls",
-      }),
+      body: JSON.stringify({ id: "s1", runtime: "claude-code" }),
+    });
+
+    const ev = (await (
+      await fetch(`${base}/api/events`, {
+        method: "POST",
+        body: JSON.stringify({ sessionId: "s1", toolName: "Bash", inputPreview: "ls" }),
+      })
+    ).json()) as { seq: number; status: string; toolName: string };
+    expect(ev.seq).toBe(1);
+    expect(ev.status).toBe("pending");
+    expect(ev.toolName).toBe("Bash");
+
+    const health = (await (await fetch(`${base}/health`)).json()) as { pendingEvents: number };
+    expect(health.pendingEvents).toBe(1);
+  });
+
+  it("serves the compressed observations the observer has stored", async () => {
+    const { base, store } = await start();
+    store.initSession({ id: "s1", runtime: "claude-code" });
+    store.addObservation({
+      sessionId: "s1",
+      type: "bugfix",
+      title: "Fixed the leak",
+      narrative: "released sockets",
+      facts: [],
+      concepts: [],
+      filesRead: [],
+      filesModified: [],
     });
 
     const read = (await (await fetch(`${base}/api/observations?session=s1`)).json()) as {
-      observations: { toolName: string }[];
+      observations: { title: string }[];
     };
     expect(read.observations).toHaveLength(1);
-    const first = read.observations[0];
-    expect(first?.toolName).toBe("Bash");
+    expect(read.observations[0]?.title).toBe("Fixed the leak");
+  });
+
+  it("records and reads back user prompts", async () => {
+    const { base } = await start();
+    await fetch(`${base}/api/sessions/init`, {
+      method: "POST",
+      body: JSON.stringify({ id: "s1", runtime: "claude-code" }),
+    });
+    const p = (await (
+      await fetch(`${base}/api/prompts`, {
+        method: "POST",
+        body: JSON.stringify({ sessionId: "s1", text: "do the thing" }),
+      })
+    ).json()) as { text: string };
+    expect(p.text).toBe("do the thing");
+
+    const read = (await (await fetch(`${base}/api/prompts?session=s1`)).json()) as {
+      prompts: { text: string }[];
+    };
+    expect(read.prompts).toHaveLength(1);
   });
 
   it("ends sessions over HTTP and broadcasts the session end", async () => {
-    const base = await start();
+    const { base } = await start();
     await fetch(`${base}/api/sessions/init`, {
       method: "POST",
       body: JSON.stringify({ id: "s1", runtime: "claude-code" }),
@@ -61,7 +95,6 @@ describe("worker HTTP daemon", () => {
     if (!body) throw new Error("no SSE body");
     const reader = body.getReader();
     const decoder = new TextDecoder();
-
     const first = await reader.read();
     expect(decoder.decode(first.value)).toContain("connected");
 
@@ -71,7 +104,6 @@ describe("worker HTTP daemon", () => {
         body: JSON.stringify({ id: "s1", endedAt: 1234 }),
       })
     ).json()) as { id: string; status: string; endedAt: number };
-
     expect(ended).toMatchObject({ id: "s1", status: "closed", endedAt: 1234 });
 
     let buf = "";
@@ -87,8 +119,8 @@ describe("worker HTTP daemon", () => {
     await reader.cancel().catch(() => {});
   });
 
-  it("pushes new observations to a connected SSE client in real time", async () => {
-    const base = await start();
+  it("pushes a processing_status update to a connected SSE client when a tool call lands", async () => {
+    const { base } = await start();
     await fetch(`${base}/api/sessions/init`, {
       method: "POST",
       body: JSON.stringify({ id: "s1", runtime: "claude-code" }),
@@ -100,26 +132,44 @@ describe("worker HTTP daemon", () => {
     if (!body) throw new Error("no SSE body");
     const reader = body.getReader();
     const decoder = new TextDecoder();
-
-    // Initial connection frame proves the client is registered before we POST.
     const first = await reader.read();
     expect(decoder.decode(first.value)).toContain("connected");
 
-    await fetch(`${base}/api/sessions/observations`, {
+    await fetch(`${base}/api/events`, {
       method: "POST",
-      body: JSON.stringify({ sessionId: "s1", type: "tool_use", toolName: "Read" }),
+      body: JSON.stringify({ sessionId: "s1", toolName: "Read" }),
     });
 
     let buf = "";
-    while (!buf.includes("new_observation")) {
+    while (!buf.includes("processing_status")) {
       const { value, done } = await reader.read();
       if (done) break;
       if (value) buf += decoder.decode(value);
     }
-    expect(buf).toContain("new_observation");
-    expect(buf).toContain("Read");
+    expect(buf).toContain("processing_status");
+    expect(buf).toContain("queueDepth");
 
     controller.abort();
     await reader.cancel().catch(() => {});
+  });
+
+  it("serves a SessionStart recall context for a project", async () => {
+    const { base, store } = await start();
+    store.initSession({ id: "s1", runtime: "claude-code", projectPath: "/repo/onemem" });
+    store.addObservation({
+      sessionId: "s1",
+      type: "bugfix",
+      title: "Fixed the leak",
+      narrative: "released sockets",
+      facts: [],
+      concepts: [],
+      filesRead: [],
+      filesModified: [],
+    });
+    const r = (await (await fetch(`${base}/api/context?project=onemem`)).json()) as {
+      context: string;
+    };
+    expect(r.context).toContain("Fixed the leak");
+    expect(r.context).toContain("OneMem — recent context");
   });
 });

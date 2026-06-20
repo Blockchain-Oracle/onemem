@@ -118,12 +118,17 @@ describe("Codex plugin hooks", () => {
     expect(hooks.hooks?.SessionStart?.[0]?.matcher).toBe("");
   });
 
-  it("SessionStart returns valid Codex JSON context", () => {
-    const result = runScript("inject.js", {
-      hook_event_name: "SessionStart",
-      session_id: "codex-test",
-      source: "startup",
-    });
+  it("SessionStart returns valid Codex JSON context (fallback when no worker)", () => {
+    // Point at a dead worker so recall is unavailable → deterministic fallback context.
+    const result = runScript(
+      "inject.js",
+      {
+        hook_event_name: "SessionStart",
+        session_id: "codex-test",
+        source: "startup",
+      },
+      { ONEMEM_WORKER_URL: "http://127.0.0.1:1" },
+    );
 
     expect(result.status).toBe(0);
     const out = JSON.parse(result.stdout) as {
@@ -173,10 +178,9 @@ describe("Codex plugin hooks", () => {
     expect(result.status).toBe(0);
     expect(requests).toEqual([
       {
-        url: "/api/sessions/observations",
+        url: "/api/events",
         body: {
           sessionId: "codex-test",
-          type: "tool_use",
           toolName: "Bash",
           toolNamespace: "codex",
           inputPreview: '{"command":"pwd"}',
@@ -224,5 +228,26 @@ describe("Codex plugin hooks", () => {
         body: expect.objectContaining({ id: "codex-test" }),
       },
     ]);
+  });
+
+  it("UserPromptSubmit records the prompt with the local worker", async () => {
+    const { result, requests } = await captureRequests((baseUrl) =>
+      runScriptAsync(
+        "prompt.js",
+        {
+          hook_event_name: "UserPromptSubmit",
+          session_id: "codex-test",
+          cwd: "/tmp/project",
+          prompt: "do the thing",
+        },
+        { ONEMEM_WORKER_URL: baseUrl },
+      ),
+    );
+
+    expect(result.status).toBe(0);
+    const recorded = requests.find((r) => r.url === "/api/prompts");
+    expect(recorded?.body).toEqual(
+      expect.objectContaining({ sessionId: "codex-test", text: "do the thing" }),
+    );
   });
 });

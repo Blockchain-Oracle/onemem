@@ -114,3 +114,31 @@ export function captureEnabled(runtime) {
     return false;
   }
 }
+
+/** GET JSON from the local worker (recall/context). Defensive: returns null on any failure. */
+export async function getWorker(path) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1500);
+  try {
+    const res = await fetch(`${workerUrl()}${path}`, { signal: controller.signal });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/** Emit context for Claude Code to inject (SessionStart / UserPromptSubmit additionalContext). */
+export function emitContext(hookEventName, additionalContext) {
+  if (!additionalContext) return;
+  process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName, additionalContext } }));
+}
+
+/** Project basename from a path — the MemWal namespace scope (`cm:<project>`). */
+export function projectBasename(p) {
+  if (!p) return null;
+  const parts = String(p).split(/[\\/]/).filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : null;
+}
