@@ -2,7 +2,7 @@
   "name": "@onemem/hosted-dashboard",
   "version": "0.0.4",
   "private": true,
-  "description": "app.onemem.xyz — hosted Enoki-authenticated wrapper around @onemem/dashboard + public /verify/[session_id] page",
+  "description": "app.onemem.xyz — hosted Enoki-authenticated login + CLI delegate-key pairing for OneMem",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
@@ -22,8 +22,6 @@
     "@mysten/enoki": "^0.6.0",
     "@mysten/sui": "^2.17.0",
     "@onemem/brand": "workspace:*",
-    "@onemem/dashboard": "workspace:*",
-    "@onemem/sdk-ts": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

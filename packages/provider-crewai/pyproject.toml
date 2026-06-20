@@ -1,13 +1,13 @@
 [project]
 name = "onemem-crewai"
 version = "0.1.1"
-description = "OneMem provider for CrewAI — record crew runs as verifiable on-chain action traces"
+description = "OneMem provider for CrewAI — decentralized memory for crew runs, stored on MemWal"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 authors = [{ name = "OneMem contributors" }]
-# Pure-stdlib: the tracer receives CrewAI's callback objects and shells out to
-# the `onemem-trace` Node CLI (@onemem/sdk-ts) for the on-chain write — no
-# Python Sui/Walrus/Seal deps. crewai is the host runtime (provided), not a dep.
+# Memory recall/capture via onemem-sdk-python's ProviderMemory, which shells out
+# to the `onemem-memory` Node CLI (@onemem/sdk-ts) for the MemWal round-trip.
+# crewai is the host runtime (provided at install), not a build dependency.
 dependencies = [
     "onemem-sdk-python>=0.2.0",
 ]

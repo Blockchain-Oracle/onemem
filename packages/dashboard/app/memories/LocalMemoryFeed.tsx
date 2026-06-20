@@ -160,8 +160,8 @@ export function LocalMemoryFeed() {
           </h3>
           <p>
             {state === "offline"
-              ? `The on-chain receipt table below still works. Worker detail: ${error ?? "not available"}.`
-              : "Agent hooks will stream readable tool input/output here before on-chain proof settles."}
+              ? `Connect the local worker to stream observations here. Worker detail: ${error ?? "not available"}.`
+              : "Agent hooks will stream readable tool input/output here as your session runs."}
           </p>
         </div>
       ) : (
@@ -202,7 +202,6 @@ function MemoryObservation({
               {project} · {formatTime(observation.createdAt)} · {shortId(observation.sessionId)}
             </div>
           </div>
-          <span className="badge badge-grey">{observation.proofStatus}</span>
         </div>
         <div className="local-feed-tags">
           <span>{observation.toolName ?? observation.type}</span>

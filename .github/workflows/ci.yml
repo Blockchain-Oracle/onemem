@@ -24,25 +24,11 @@ jobs:
         with:
           experimental: true
 
-      - name: Install Sui CLI (pinned prebuilt linux binary)
-        env:
-          SUI_VERSION: testnet-v1.72.2
-        run: |
-          set -euo pipefail
-          url="https://github.com/MystenLabs/sui/releases/download/${SUI_VERSION}/sui-${SUI_VERSION}-ubuntu-x86_64.tgz"
-          echo "Downloading $url"
-          curl -fsSL "$url" -o /tmp/sui.tgz
-          mkdir -p /tmp/sui-bin
-          tar -xzf /tmp/sui.tgz -C /tmp/sui-bin
-          install -m 0755 "$(find /tmp/sui-bin -name sui -type f | head -n1)" /usr/local/bin/sui
-          sui --version
-
       - name: Show toolchain
         run: |
           node --version
           pnpm --version
           uv --version
-          sui --version
 
       - name: Install TS deps
         run: pnpm install --frozen-lockfile
@@ -52,9 +38,6 @@ jobs:
 
       - name: Verify monorepo structure
         run: pnpm test:structure
-
-      - name: Verify deterministic demo matrix
-        run: pnpm test:demo-matrix
 
       - name: Lint
         run: pnpm turbo run lint
@@ -68,11 +51,26 @@ jobs:
       - name: Build
         run: pnpm turbo run build
 
-      - name: Move build + test
-        working-directory: contracts/onemem
+      # Real MemWal-testnet integration. NOT part of `pnpm test` — it runs only
+      # when the MemWal secrets are configured (e.g. on the canonical repo, not on
+      # forks/PRs without secrets), and prints a clear neutral skip otherwise so an
+      # absent-secrets run is honestly "skipped", never silently green.
+      - name: Integration (real MemWal testnet, gated on secrets)
+        env:
+          ONEMEM_DELEGATE_KEY: ${{ secrets.ONEMEM_DELEGATE_KEY }}
+          ONEMEM_ACCOUNT_ID: ${{ secrets.ONEMEM_ACCOUNT_ID }}
+          ONEMEM_EMBEDDING_API_KEY: ${{ secrets.ONEMEM_EMBEDDING_API_KEY }}
+          MEMWAL_PACKAGE_ID: ${{ secrets.MEMWAL_PACKAGE_ID }}
+          MEMWAL_RELAYER_URL: ${{ secrets.MEMWAL_RELAYER_URL }}
+          ONEMEM_PRIVATE_KEY: ${{ secrets.ONEMEM_PRIVATE_KEY }}
+          SUI_NETWORK: ${{ secrets.SUI_NETWORK }}
+          ONEMEM_INTEGRATION: "1"
         run: |
-          sui move build
-          sui move test
+          if [ -z "$ONEMEM_DELEGATE_KEY" ] || [ -z "$ONEMEM_ACCOUNT_ID" ] || [ -z "$ONEMEM_EMBEDDING_API_KEY" ] || [ -z "$MEMWAL_PACKAGE_ID" ]; then
+            echo "::notice title=Integration skipped::MemWal secrets not configured — skipping the real testnet integration test (this is expected on forks/PRs without secrets)."
+            exit 0
+          fi
+          pnpm test:integration
 
       - name: Python lint
         run: uv run ruff check .

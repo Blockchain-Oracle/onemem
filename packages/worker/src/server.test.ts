@@ -41,12 +41,11 @@ describe("worker HTTP daemon", () => {
     });
 
     const read = (await (await fetch(`${base}/api/observations?session=s1`)).json()) as {
-      observations: { toolName: string; proofStatus: string }[];
+      observations: { toolName: string }[];
     };
     expect(read.observations).toHaveLength(1);
     const first = read.observations[0];
     expect(first?.toolName).toBe("Bash");
-    expect(first?.proofStatus).toBe("local");
   });
 
   it("ends sessions over HTTP and broadcasts the session end", async () => {

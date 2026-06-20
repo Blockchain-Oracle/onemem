@@ -1,4 +1,4 @@
-// GET /api/overview — dashboard stats from real on-chain events.
+// GET /api/overview — dashboard stats from the local worker feed.
 import { NextResponse } from "next/server";
 import { fetchStats } from "@/lib/stats";
 

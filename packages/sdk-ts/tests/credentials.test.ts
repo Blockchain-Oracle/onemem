@@ -120,6 +120,7 @@ describe("resolveMemoryConfigFromSources", () => {
       "ONEMEM_DELEGATE_KEY",
       "ONEMEM_ACCOUNT_ID",
       "ONEMEM_EMBEDDING_API_KEY",
+      "MEMWAL_PACKAGE_ID",
     ]);
   });
 

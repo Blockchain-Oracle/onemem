@@ -1,7 +1,7 @@
 [project]
 name = "onemem-sdk-python"
 version = "0.2.0"
-description = "OneMem Python SDK — verifiable memory + trace SDK for AI agents on Sui + Walrus + Seal + MemWal"
+description = "OneMem Python SDK — decentralized memory for AI agents, stored on MemWal (Seal + Walrus)"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 authors = [{ name = "OneMem contributors" }]

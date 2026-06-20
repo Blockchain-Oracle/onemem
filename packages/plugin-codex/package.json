@@ -1,7 +1,7 @@
 {
   "name": "@onemem/codex-plugin",
   "version": "0.1.2",
-  "description": "OneMem plugin for Codex - bundles verifiable memory MCP tools and optional lifecycle trace hooks",
+  "description": "OneMem plugin for Codex - bundles memory MCP tools and lifecycle hooks that capture readable memory to the local OneMem dashboard",
   "license": "Apache-2.0",
   "type": "module",
   "homepage": "https://github.com/Blockchain-Oracle/onemem/tree/main/packages/plugin-codex",
@@ -30,7 +30,7 @@
     "lint": "biome check ."
   },
   "dependencies": {
-    "@onemem/worker": "workspace:*"
+    "@onemem/worker": "^0.1.0"
   },
   "devDependencies": {
     "@onemem/sdk-ts": "^0.6.3",

@@ -1,22 +1,22 @@
 #!/usr/bin/env node
-// @onemem/mcp — a stdio MCP server exposing OneMem's verifiable MEMORY surface
-// to any MCP runtime (Cursor, Codex, Claude Code, Windsurf, Cline, …).
+// @onemem/mcp — a stdio MCP server exposing OneMem's MEMORY surface to any MCP
+// runtime (Cursor, Codex, Claude Code, Windsurf, Cline, …).
 //
-// Memory-centric (Mem0-style): agents "remember" + "recall", and can verify the
-// on-chain trace. Tools are thin wrappers over @onemem/sdk-ts. Config via env:
-//   SUI_NETWORK              testnet | mainnet | devnet | local (default active)
+// Memory-centric (Mem0-style): agents "remember" + "recall". Memory is stored on
+// MemWal (Seal-encrypted blob on Walrus). Tools are thin wrappers over
+// @onemem/sdk-ts. Config via env:
+//   SUI_NETWORK              testnet | mainnet | devnet | local (default testnet)
 //   ONEMEM_PRIVATE_KEY       suiprivkey1... (else falls back to sui keystore)
 //   ONEMEM_ACCOUNT_ID        MemWal account (enables memory tools)
 //   ONEMEM_DELEGATE_KEY      MemWal delegate key (hex)
 //   ONEMEM_EMBEDDING_API_KEY OpenAI/OpenRouter key for /manual embeddings
 //   MEMWAL_PACKAGE_ID, MEMWAL_RELAYER_URL
 //
-// Tools: add_memory, search_memory, verify_trace, trace_session, replay_session,
-// share_namespace, revoke_namespace_capability (7). get/update/delete_memory are NOT exposed because MemWal
-// 0.0.5 has no get/update/delete primitive (verified) — they need a future
-// tombstone/versioning layer, not fakeable today.
-//
-// Spec: docs/05-our-architecture/03-runtimes/mcp-server.md
+// Tools: add_memory, search_memory, get_memory, list_memories, delete_memory.
+// MemWal 0.0.7 is append-only (no get/get_all/delete primitive), so get/list are
+// served from a LOCAL SQLite index that mirrors every write, and delete is a
+// soft-delete in that index (the encrypted Walrus blob persists until its epoch
+// expires — a true hard delete is not possible on append-only MemWal).
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -55,87 +55,42 @@ function errMessage(error: unknown): string {
   return message;
 }
 
-function hex(bytes: Uint8Array): string {
-  return `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
-}
-
-export function buildServer(onemem: OneMem, attest?: AttestConfig): McpServer {
+export function buildServer(onemem: OneMem): McpServer {
   const server = new McpServer({ name: "onemem", version: VERSION });
-  const me = onemem.senderAddress();
-
-  // Ambient attesting session for MCP memory writes. When ONEMEM_NAMESPACE_ID +
-  // ONEMEM_RW_CAP_ID are configured, the first attested write opens ONE
-  // TraceSession (environment="mcp") and every memory write appends a verifiable
-  // `memwal_write` ActionCall to it — so MCP memory writes are anchored on-chain,
-  // not just stored on Walrus (the BUG-3 fix). Without config, writes are
-  // stored-but-unattested and the response says so.
-  let ambientSessionId: string | null = null;
-  let ambientSessionPromise: Promise<string> | null = null;
-  async function ensureAttestingSession(cfg: AttestConfig): Promise<string> {
-    if (ambientSessionId) return ambientSessionId;
-    if (!ambientSessionPromise) {
-      ambientSessionPromise = onemem.traces
-        .startSession({
-          namespaceId: cfg.namespaceId,
-          rwCapId: cfg.rwCapId,
-          agentId: "mcp",
-          environment: "mcp",
-          sdkVersion: VERSION,
-        })
-        .then((s) => {
-          ambientSessionId = s.sessionId;
-          return s.sessionId;
-        })
-        .catch((error) => {
-          ambientSessionPromise = null; // allow a later call to retry
-          throw error;
-        });
-    }
-    return ambientSessionPromise;
-  }
 
   server.registerTool(
     "onemem_add_memory",
     {
       title: "Remember something (write a memory)",
       description:
-        "Store a memory: client-side encrypted (Seal) and saved to Walrus via MemWal — the relayer never sees plaintext. When ONEMEM_NAMESPACE_ID + ONEMEM_RW_CAP_ID are configured, also emits a verifiable on-chain ActionCall (returns callId + suiTxDigest); otherwise the write is stored-but-unattested and says so.",
+        "Store a memory: client-side encrypted (Seal) and saved to Walrus via MemWal — the relayer never sees plaintext.",
       inputSchema: {
         text: z.string().describe("The memory text to remember"),
         namespace: z
           .string()
           .optional()
           .describe("Memory namespace for isolation (default 'default')"),
+        userId: z
+          .string()
+          .optional()
+          .describe("Scope to a user (derives namespace user:<id> when no namespace)"),
+        agentId: z.string().optional().describe("Scope to an agent"),
+        runId: z.string().optional().describe("Scope to a run/session"),
+        metadata: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("Arbitrary JSON metadata stored with the memory"),
       },
     },
-    async ({ text, namespace }) => {
+    async ({ text, namespace, userId, agentId, runId, metadata }) => {
       try {
-        const addOpts: {
-          namespace?: string;
-          sessionId?: string;
-          onememNamespaceId?: string;
-          rwCapId?: string;
-        } = { namespace };
-        if (attest) {
-          addOpts.sessionId = await ensureAttestingSession(attest);
-          addOpts.onememNamespaceId = attest.namespaceId;
-          addOpts.rwCapId = attest.rwCapId;
-        }
-        const r = await onemem.requireMemory().add(text, addOpts);
-        const attested = Boolean(r.callId);
+        const r = await onemem
+          .requireMemory()
+          .add(text, { namespace, userId, agentId, runId, metadata });
         return ok({
           memoryId: r.memoryId,
           walrusBlobId: r.walrusBlobId,
-          attested,
-          callId: r.callId ?? null,
-          suiTxDigest: r.suiTxDigest ?? null,
-          sessionId: attested ? ambientSessionId : null,
-          attestation: r.attestation,
-          ...(attested
-            ? {}
-            : {
-                note: "Stored encrypted on Walrus but NOT anchored on-chain. Set ONEMEM_NAMESPACE_ID + ONEMEM_RW_CAP_ID so this MCP server emits a verifiable on-chain ActionCall per memory.",
-              }),
+          inputHashHex: r.inputHashHex,
         });
       } catch (error) {
         return fail(errMessage(error));
@@ -153,11 +108,20 @@ export function buildServer(onemem: OneMem, attest?: AttestConfig): McpServer {
         query: z.string().describe("What to recall"),
         namespace: z.string().optional(),
         topK: z.number().int().positive().optional().describe("Max results (default 10)"),
+        userId: z.string().optional().describe("Scope to a user (derives namespace user:<id>)"),
+        agentId: z.string().optional().describe("Filter to an agent"),
+        runId: z.string().optional().describe("Filter to a run/session"),
+        metadata: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("Metadata filter (returned memory must contain these key/values)"),
       },
     },
-    async ({ query, namespace, topK }) => {
+    async ({ query, namespace, topK, userId, agentId, runId, metadata }) => {
       try {
-        const r = await onemem.requireMemory().search(query, { namespace, topK });
+        const r = await onemem
+          .requireMemory()
+          .search(query, { namespace, topK, userId, agentId, runId, metadata });
         return ok({ results: r.results });
       } catch (error) {
         return fail(errMessage(error));
@@ -166,105 +130,19 @@ export function buildServer(onemem: OneMem, attest?: AttestConfig): McpServer {
   );
 
   server.registerTool(
-    "onemem_verify_trace",
+    "onemem_get_memory",
     {
-      title: "Verify a trace session on-chain",
+      title: "Get a memory by id",
       description:
-        "Off-chain Merkle verification of a TraceSession: confirms no recorded call was inserted, dropped, reordered, or tampered. Read-only.",
-      inputSchema: { sessionId: z.string().describe("0x… TraceSession object id") },
-    },
-    async ({ sessionId }) => {
-      try {
-        const r = await onemem.traces.verifySession(sessionId);
-        return ok({
-          ok: r.ok,
-          callCount: r.callCount,
-          brokenAt: r.brokenAt,
-          merkleRoot: hex(r.expectedMerkleRoot),
-          computedRoot: hex(r.computedMerkleRoot),
-        });
-      } catch (error) {
-        return fail(errMessage(error));
-      }
-    },
-  );
-
-  server.registerTool(
-    "onemem_trace_session",
-    {
-      title: "List the calls in a trace session",
-      description:
-        "Return the ActionCalls recorded in a session (ascending), so an agent or user can inspect what happened.",
-      inputSchema: { sessionId: z.string() },
-    },
-    async ({ sessionId }) => {
-      try {
-        const calls = await onemem.traces.getCalls(sessionId);
-        return ok({
-          sessionId,
-          callCount: calls.length,
-          calls: calls.map((c) => ({
-            callId: c.callId,
-            parentCallId: c.parentCallId,
-            contentHash: hex(c.contentHash),
-            timestampMs: Number(c.timestampMs),
-          })),
-        });
-      } catch (error) {
-        return fail(errMessage(error));
-      }
-    },
-  );
-
-  server.registerTool(
-    "onemem_replay_session",
-    {
-      title: "Replay a trace session from chain",
-      description:
-        "Reconstruct a TraceSession from on-chain data: session metadata + ActionCalls in execution order. Per-call plaintext stays Seal-encrypted (decrypt is client-side). Read-only.",
-      inputSchema: { sessionId: z.string().describe("0x… TraceSession object id") },
-    },
-    async ({ sessionId }) => {
-      try {
-        const { session, calls } = await onemem.traces.replaySession(sessionId);
-        return ok({
-          sessionId,
-          status: session.status,
-          callCount: calls.length,
-          calls: calls.map((c, i) => ({
-            sequence: i,
-            callId: c.callId,
-            parentCallId: c.parentCallId,
-            contentHash: hex(c.contentHash),
-            timestampMs: Number(c.timestampMs),
-          })),
-        });
-      } catch (error) {
-        return fail(errMessage(error));
-      }
-    },
-  );
-
-  server.registerTool(
-    "onemem_share_namespace",
-    {
-      title: "Share a namespace (mint + transfer a capability)",
-      description:
-        "Mint a ReadWrite (or ReadOnly) NamespaceCapability and transfer it to an address — on-chain memory sharing. Requires the namespace's Admin cap.",
+        "Fetch one stored memory by id from the local index (excludes soft-deleted). Returns its text + scope + metadata.",
       inputSchema: {
-        namespaceId: z.string(),
-        adminCapId: z.string(),
-        recipient: z.string().optional().describe("0x… address (default: this server)"),
-        readOnly: z.boolean().optional().describe("Share ReadOnly instead of ReadWrite"),
+        id: z.string().describe("The memory id (from add)"),
       },
     },
-    async ({ namespaceId, adminCapId, recipient, readOnly }) => {
+    async ({ id }) => {
       try {
-        const args = { namespaceId, adminCapId, recipient: recipient ?? me };
-        const r = readOnly
-          ? await onemem.namespaces.shareReadOnly(args)
-          : await onemem.namespaces.shareReadWrite(args);
-        return ok({ capabilityId: r.capId, kind: readOnly ? "ReadOnly" : "ReadWrite" });
+        const memory = await onemem.requireMemory().get(id);
+        return ok({ memory });
       } catch (error) {
         return fail(errMessage(error));
       }
@@ -272,36 +150,29 @@ export function buildServer(onemem: OneMem, attest?: AttestConfig): McpServer {
   );
 
   server.registerTool(
-    "onemem_revoke_namespace_capability",
+    "onemem_list_memories",
     {
-      title: "Admin-revoke a namespace capability",
+      title: "List memories (scope-filtered)",
       description:
-        "Mark a NamespaceCapability ID revoked under its namespace. The cap object remains owned by the holder, but future OneMem write/decrypt gates reject it. Requires the namespace's Admin cap.",
+        "List stored memories from the local index, newest-first, filtered by user/agent/run/namespace/metadata. Excludes soft-deleted.",
       inputSchema: {
-        namespaceId: z.string(),
-        adminCapId: z.string(),
-        capabilityId: z.string(),
-        allowAdmin: z.boolean().optional().describe("Allow revoking an Admin capability"),
+        userId: z.string().optional().describe("Filter by user id"),
+        agentId: z.string().optional().describe("Filter by agent id"),
+        runId: z.string().optional().describe("Filter by run/session id"),
+        namespace: z.string().optional().describe("Filter by namespace"),
+        metadata: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("Metadata filter (memory must contain these key/values)"),
+        limit: z.number().int().positive().optional().describe("Max rows"),
       },
     },
-    async ({ namespaceId, adminCapId, capabilityId, allowAdmin }) => {
+    async ({ userId, agentId, runId, namespace, metadata, limit }) => {
       try {
-        const kind = await onemem.namespaces.getCapabilityKind(capabilityId);
-        if (kind === "Admin" && allowAdmin !== true) {
-          return fail("refusing to admin-revoke Admin capability without allowAdmin=true");
-        }
-        const r = await onemem.namespaces.adminRevokeCapability({
-          namespaceId,
-          adminCapId,
-          capId: capabilityId,
-        });
-        return ok({
-          namespaceId,
-          capabilityId,
-          kind,
-          txDigest: r.txDigest,
-          scope: "admin marker-revoke; object not deleted",
-        });
+        const memories = await onemem
+          .requireMemory()
+          .getAll({ userId, agentId, runId, namespace, metadata, limit });
+        return ok({ memories });
       } catch (error) {
         return fail(errMessage(error));
       }
@@ -309,36 +180,26 @@ export function buildServer(onemem: OneMem, attest?: AttestConfig): McpServer {
   );
 
   server.registerTool(
-    "onemem_session_status",
+    "onemem_delete_memory",
     {
-      title: "MCP attestation status",
+      title: "Delete a memory (soft delete)",
       description:
-        "Report whether this MCP server anchors memory writes on-chain, and the ambient TraceSession id (if one is open).",
-      inputSchema: {},
+        "Soft-delete a memory by id: it stops appearing in get/list/search. The encrypted blob persists on Walrus until its storage epoch expires — a true hard delete is not possible on append-only MemWal.",
+      inputSchema: {
+        id: z.string().describe("The memory id to delete"),
+      },
     },
-    async () => {
-      return ok({
-        attestationConfigured: Boolean(attest),
-        namespaceId: attest?.namespaceId ?? null,
-        ambientSessionId,
-        address: me,
-        network: onemem.network,
-      });
+    async ({ id }) => {
+      try {
+        const deleted = await onemem.requireMemory().delete(id);
+        return ok({ id, deleted });
+      } catch (error) {
+        return fail(errMessage(error));
+      }
     },
   );
 
   return server;
-}
-
-interface AttestConfig {
-  readonly namespaceId: string;
-  readonly rwCapId: string;
-}
-
-function attestConfigFromEnv(): AttestConfig | undefined {
-  const namespaceId = process.env.ONEMEM_NAMESPACE_ID;
-  const rwCapId = process.env.ONEMEM_RW_CAP_ID;
-  return namespaceId && rwCapId ? { namespaceId, rwCapId } : undefined;
 }
 
 function memoryConfigFromEnv(): MemoryConfig | undefined {
@@ -352,14 +213,11 @@ async function main(): Promise<void> {
     signer: resolveSigner(),
     memory: memoryConfigFromEnv(),
   });
-  const server = buildServer(onemem, attestConfigFromEnv());
+  const server = buildServer(onemem);
   await server.connect(new StdioServerTransport());
   const memoryStatus = onemem.memory ? "memory ON" : "memory OFF (set MemWal env)";
-  const attestStatus = attestConfigFromEnv()
-    ? "attest ON"
-    : "attest OFF (set ONEMEM_NAMESPACE_ID+ONEMEM_RW_CAP_ID)";
   process.stderr.write(
-    `onemem-mcp ${VERSION} ready on ${onemem.network} (${onemem.senderAddress()}) — ${memoryStatus}, ${attestStatus}\n`,
+    `onemem-mcp ${VERSION} ready on ${onemem.network} (${onemem.senderAddress()}) — ${memoryStatus}\n`,
   );
 }
 

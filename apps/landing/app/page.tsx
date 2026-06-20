@@ -1,5 +1,5 @@
 import { Icon } from "@/components/Icon";
-import { VerifyDemo } from "@/components/VerifyDemo";
+import { MemoryDemo } from "@/components/MemoryDemo";
 import { INTEGRATION_TIERS, PILLARS, PROBLEMS, STEPS } from "./landing-content";
 
 const appUrl = process.env.NEXT_PUBLIC_ONEMEM_APP_URL ?? "https://app.onemem.xyz";
@@ -16,7 +16,7 @@ export default function LandingPage() {
         <div className="lp-nav-links">
           <a href={appUrl}>Dashboard</a>
           <a href="#integrations">Integrations</a>
-          <a href="#demo">Live proof</a>
+          <a href="#demo">Live demo</a>
         </div>
         <a className="btn btn-primary btn-sm" href={appUrl} style={{ marginLeft: 8 }}>
           Get started <Icon name="arrowRight" size={16} />
@@ -29,17 +29,16 @@ export default function LandingPage() {
           <div>
             <span className="hero-kicker">
               <Icon name="shield" size={14} />
-              Verifiable action traces + memory you own.
+              Decentralized memory you own.
             </span>
             <h1>
-              See exactly what your <span className="em">agent did</span> — and{" "}
-              <span className="em">prove it</span>.
+              Memory your <span className="em">agent owns</span> — across{" "}
+              <span className="em">every tool</span>.
             </h1>
             <p className="sub">
-              Every tool, MCP, and skill call your agent makes is recorded as a Merkle-chained node
-              on Sui; its memory is encrypted on Walrus and owned by you. Open one dashboard, replay
-              what happened, and{" "}
-              <strong>hand anyone a public link to verify it — no login, no vendor trust</strong>.
+              Store, search, and recall what your agent learns. Memory is encrypted on Walrus with
+              Seal via MemWal — the relayer never sees plaintext — and{" "}
+              <strong>it travels with you across runtimes and devices, owned by you</strong>.
             </p>
             <div className="hero-cta">
               <a className="btn btn-primary" href={appUrl}>
@@ -48,7 +47,7 @@ export default function LandingPage() {
               </a>
               <a className="btn btn-ghost" href="#demo">
                 <Icon name="play" size={16} />
-                Watch the proof demo
+                See the memory demo
               </a>
             </div>
             <div className="hero-meta">
@@ -57,16 +56,16 @@ export default function LandingPage() {
                 <span className="l">encrypted at rest</span>
               </div>
               <div className="hm">
-                <span className="n">Sui</span>
-                <span className="l">merkle-chained</span>
+                <span className="n">Seal</span>
+                <span className="l">you hold the keys</span>
               </div>
               <div className="hm">
-                <span className="n">Public</span>
-                <span className="l">verify, no login</span>
+                <span className="n">Portable</span>
+                <span className="l">across runtimes</span>
               </div>
             </div>
           </div>
-          <VerifyDemo />
+          <MemoryDemo />
         </div>
       </header>
 
@@ -104,10 +103,10 @@ export default function LandingPage() {
             <span className="eyebrow">
               <span className="tick">▚</span>The problem
             </span>
-            <h2>Agents are powerful, stateless, and impossible to audit.</h2>
+            <h2>Agents are powerful, stateless, and forgetful.</h2>
             <p>
               Your agent's useful context gets scattered across tools, logs, and local machines.
-              OneMem gives that context a portable memory namespace with a verifiable history.
+              OneMem gives that context a portable memory namespace you own and can search anywhere.
             </p>
           </div>
           <div className="steps">
@@ -181,14 +180,14 @@ export default function LandingPage() {
             <span className="eyebrow">
               <span className="tick">✦</span>The signature moment
             </span>
-            <h2>Proof turns the page green.</h2>
+            <h2>Store once, recall anywhere.</h2>
             <p>
-              Click Verify and OneMem walks every call, recomputes each hash, and compares it to the
-              on-chain root. Memory stays encrypted; integrity is public.
+              Save a memory and search it back in seconds. It's encrypted on Walrus with Seal — the
+              relayer never sees plaintext — and it follows you across tools.
             </p>
           </div>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <VerifyDemo />
+            <MemoryDemo />
           </div>
         </div>
       </section>
@@ -244,9 +243,9 @@ export default function LandingPage() {
           <span className="eyebrow" style={{ justifyContent: "center" }}>
             <span className="tick">✦</span>Get started
           </span>
-          <h2 style={{ marginTop: 16 }}>Make every agent accountable.</h2>
+          <h2 style={{ marginTop: 16 }}>Give every agent memory it owns.</h2>
           <p className="sub">
-            Install in under a minute. Store a memory, run a trace, and prove it.
+            Install in under a minute. Store a memory, search it back, and carry it anywhere.
           </p>
           <div className="cta" style={{ marginTop: 24 }}>
             <a className="btn btn-primary" href={appUrl}>
@@ -254,7 +253,7 @@ export default function LandingPage() {
               Get started
             </a>
             <a className="btn btn-ghost" href={appUrl}>
-              See a live trace
+              Open the dashboard
             </a>
           </div>
         </div>

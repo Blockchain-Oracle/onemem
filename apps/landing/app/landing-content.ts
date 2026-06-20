@@ -1,18 +1,18 @@
 export const PROBLEMS = [
   [
-    "search",
-    "What did it actually do?",
-    '"It sent money / made a video / did research" — but which skill, which model, what inputs? The trace is gone the moment the run ends.',
-  ],
-  [
-    "shield",
-    "Nothing is provable",
-    "No way to show a teammate, an auditor, or a skeptic that the agent did exactly what it claims — untampered.",
-  ],
-  [
     "memory",
     "Memory is trapped",
     "Every app keeps its own silo. Switch tools and your agent forgets everything — there's no portable, owned memory.",
+  ],
+  [
+    "shield",
+    "You don't own it",
+    "Your agent's context lives on someone else's server, behind someone else's API. Lose access and you lose the memory.",
+  ],
+  [
+    "search",
+    "Recall is shallow",
+    "Without durable, searchable memory across sessions, your agent re-asks what it already knew and repeats work you already did.",
   ],
 ] as const;
 
@@ -25,49 +25,50 @@ export const STEPS = [
   ],
   [
     "2",
-    "Use your agent normally",
-    "Native-hook runtimes record automatically once installed and trusted. MCP clients call OneMem tools explicitly.",
-    'agent.run("send 5 USDC to Maya")',
+    "Store + recall",
+    "Save what matters and search it back later. Native-hook runtimes also stream a live local dashboard once installed.",
+    'agent.run("remember: ships at night")',
   ],
   [
     "3",
-    "Verify & share",
-    "Open the dashboard or CLI, walk the chain, and watch it turn green. Share a public proof link anyone can check — no login.",
-    "$ onemem verify 0x7a3f…d201",
+    "Carry it anywhere",
+    "Open the dashboard or CLI. Your memory is encrypted on Walrus and travels with you across tools and devices.",
+    "$ onemem search 'deploy steps'",
   ],
 ] as const;
 
 export const PILLARS = [
   [
     "01",
-    "trace",
-    "Action trace + replay",
-    "See exactly what your agent did — every tool, MCP, and skill call recorded as a Merkle-chained node on Sui. Replay it from chain, and verify it independently with no vendor in the loop.",
+    "memory",
+    "Memory you own",
+    "Encrypted Walrus blobs, threshold-encrypted with Seal, scoped by MemWal namespaces. Portable across devices and tools without trusting a vendor.",
   ],
   [
     "02",
-    "memory",
-    "Memory you own",
-    "Encrypted Walrus blobs, threshold-encrypted with Seal, access-controlled by on-chain namespaces. Portable across devices and tools without trusting a vendor.",
+    "recall",
+    "Add, search, recall",
+    "A Mem0-style memory layer — store a memory, vector-search it back, get/list/delete by scope. The relayer never sees your plaintext.",
   ],
   [
     "03",
     "everywhere",
     "Cross-runtime",
-    "The same namespace and trace format across supported native runtimes, MCP clients, and framework adapters — read from one dashboard.",
+    "The same memory namespace across supported native runtimes, MCP clients, and framework adapters — read from one dashboard.",
   ],
 ] as const;
 
-// Honest capability tiers — what OneMem can actually do depends on where the code
-// runs. Native runtimes auto-capture; MCP clients are explicit-tools-only;
-// framework adapters trace a deployed app and are viewed on the hosted dashboard.
+// Honest capability tiers — what OneMem does depends on where the code runs.
+// Native runtimes expose memory tools AND stream a live local dashboard via
+// hooks; MCP clients call OneMem memory tools explicitly; framework adapters add
+// owned memory to a deployed app, viewed on the hosted dashboard.
 // First tuple element is the vendor logo file under /public/logos (real brand
 // marks from packages/brand/vendor-logos, used only for truthful integration
 // identification — no endorsement implied, per that package's manifest).
 export const INTEGRATION_TIERS = [
   {
     tier: "Native runtimes",
-    note: "Automatic trace capture on your machine.",
+    note: "Memory tools + a live local dashboard.",
     items: [
       ["claude-code.svg", "Claude Code"],
       ["codex.svg", "Codex"],
@@ -77,7 +78,7 @@ export const INTEGRATION_TIERS = [
   },
   {
     tier: "MCP clients",
-    note: "Explicit OneMem tools — no automatic capture.",
+    note: "Explicit OneMem memory tools.",
     items: [
       ["cursor.svg", "Cursor"],
       ["windsurf.svg", "Windsurf"],
@@ -87,7 +88,7 @@ export const INTEGRATION_TIERS = [
   },
   {
     tier: "Framework adapters",
-    note: "Trace your deployed app; view it on the hosted dashboard.",
+    note: "Owned memory for your deployed app; view it on the hosted dashboard.",
     items: [
       ["vercel-ai-sdk.svg", "Vercel AI SDK"],
       ["openai.svg", "OpenAI Agents"],

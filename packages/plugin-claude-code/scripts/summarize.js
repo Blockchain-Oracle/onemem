@@ -1,80 +1,15 @@
 #!/usr/bin/env node
 // OneMem Claude Code plugin — Stop hook.
-// Flushes the buffered tool calls into the OneMem TraceSession (each as a
-// Seal-encrypted, Walrus-stored, Merkle-chained ActionCall) and closes the
-// session — producing one verifiable on-chain trace per Claude session.
-// Defensive: always exits 0.
+// Marks the session ended on the local OneMem worker so the dashboard shows it
+// closed. Defensive: always exits 0.
 
-import {
-  clearBufferedToolCalls,
-  clearSessionState,
-  loadClient,
-  loadConfig,
-  postWorker,
-  readBufferedToolCalls,
-  readHookInput,
-  readSessionState,
-  traceCaptureEnabled,
-} from "./onemem-lib.mjs";
-
-const enc = (v) => new TextEncoder().encode(typeof v === "string" ? v : JSON.stringify(v ?? ""));
+import { postWorker, readHookInput } from "./onemem-lib.mjs";
 
 async function main() {
   const input = await readHookInput();
   const claudeSessionId = input.session_id;
   if (!claudeSessionId) return;
   await postWorker("/api/sessions/end", { id: claudeSessionId, endedAt: Date.now() });
-
-  const config = loadConfig();
-  if (!config) return;
-
-  const state = readSessionState(claudeSessionId);
-  if (!state) return;
-  const calls = readBufferedToolCalls(claudeSessionId);
-  if (!(await traceCaptureEnabled("claude-code"))) {
-    clearBufferedToolCalls(claudeSessionId);
-    clearSessionState(claudeSessionId);
-    return;
-  }
-
-  const onemem = await loadClient(config);
-  if (!onemem) return;
-
-  // Flush each buffered tool call as a verifiable ActionCall.
-  const { CallStatus, SessionStatus } = await import("@onemem/sdk-ts");
-  let parentCallId = null;
-  for (const call of calls) {
-    const emitted = await onemem.traces.appendCall({
-      sessionId: state.onememSessionId,
-      namespaceId: state.namespaceId,
-      rwCapId: state.rwCapId,
-      parentCallId,
-      toolName: call.toolName,
-      toolNamespace: "claude-code",
-      input: { content: enc(call.toolInput), encrypt: true },
-    });
-    await onemem.traces.closeCall({
-      sessionId: state.onememSessionId,
-      rwCapId: state.rwCapId,
-      namespaceId: state.namespaceId,
-      callId: emitted.callId,
-      output: { content: enc(call.toolResponse), encrypt: true },
-      status: CallStatus.Success,
-    });
-    parentCallId = emitted.callId;
-  }
-
-  await onemem.traces.endSession({
-    sessionId: state.onememSessionId,
-    namespaceId: state.namespaceId,
-    rwCapId: state.rwCapId,
-    status: SessionStatus.Completed,
-  });
-  process.stderr.write(
-    `[onemem] flushed ${calls.length} call(s) → verifiable session ${state.onememSessionId}\n`,
-  );
-  clearBufferedToolCalls(claudeSessionId);
-  clearSessionState(claudeSessionId);
 }
 
 main()

@@ -1,23 +1,15 @@
 # `@onemem/sdk-ts` — Coding Agent Context
 
-Active repo routing lives in `AGENTS.md`; active Context Engineering artifacts
-live under `.thoughts/`.
+Root routing: `AGENTS.md`. Context: `.thoughts/`.
 
-THIN wrapper over `@mysten-incubation/memwal`. We add verifiable-trace primitives on top of MemWal's account/capability model — we do NOT reimplement MemWal's primitives.
-
-## Read before editing
-- `docs/05-our-architecture/02-sdks/shared-api-surface.md` — the canonical API the SDK exposes
-- `docs/05-our-architecture/01-protocol/` — Move types this SDK serializes/deserializes
-- `docs/02-inspirations/memwal-incubation/` — what MemWal already provides; don't re-do
+The core memory SDK (Product B — Mem0, decentralized). Wraps **MemWal** (`@mysten-incubation/memwal`), which does its own Seal encryption + Walrus storage internally. `OneMem.create(config)` → `requireMemory().add()` / `.search()`. The Mem0-gap index layer (`get` / `get_all` / `delete` / metadata / multi-scope) lands in Phase 2.
 
 ## Non-negotiables
-- **Always use the Seal `/manual` flow.** Not `/auto`. Per `docs/01-sui-ecosystem/seal-deep-dive.md`. Manual flow keeps the delegate-key model honest — `seal_approve` runs against on-chain policy.
-- **Move types come from codegen.** Don't hand-write Move struct types in TS. Run `pnpm exec tsx scripts/codegen-move-types.ts` after Move contract changes.
-- **No singletons.** The SDK exposes a `OneMem.create(config)` factory — every consumer (dashboard, CLI, MCP server) instantiates its own client with its own delegate key + namespace.
-- **TDD per `superpowers:test-driven-development`.** Failing Vitest first, then implementation.
+- **Memory is stored via MemWal `/manual`** — the client does Seal encryption; the relayer never sees plaintext. We do NOT reimplement Walrus/Seal here (those modules were removed).
+- **No trace / no verify / no custom Move contract.** Decentralization is delivered through MemWal.
+- **No singletons** — `OneMem.create(config)` factory; every consumer (CLI, MCP, providers, worker) instantiates its own client with its own delegate key + account id.
+- **`pnpm add` for versions**, never hardcode. **TDD** (Vitest unit) + real MemWal-testnet integration per feature.
 
-## Build
-- `tsup` (per `TOOLING_DECISIONS.md`) — ESM+CJS dual output for both Node CLI consumers and browser dashboard consumers.
-
-## Tests
-- Vitest. Unit tests in `tests/`. Integration tests against a local Sui devnet live in `tests/integration/` and are gated behind `ONEMEM_INTEGRATION=1` env var.
+## Build / test
+- `tsup` (ESM+CJS). Node-only runtime helpers live in `@onemem/sdk-ts/runtime`.
+- Vitest in `tests/`; real integration against MemWal testnet (per the per-feature testing rule).

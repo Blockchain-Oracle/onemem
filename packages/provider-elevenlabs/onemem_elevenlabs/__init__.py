@@ -1,15 +1,12 @@
-"""onemem-elevenlabs — record ElevenLabs Conversational AI voice sessions as
-verifiable on-chain OneMem traces.
+"""onemem-elevenlabs — decentralized memory for ElevenLabs Conversational AI
+voice sessions (stored on MemWal).
 
-    from elevenlabs.conversational_ai.conversation import Conversation, ClientTools
-    from onemem_elevenlabs import OneMemTracer
+    from onemem_elevenlabs import create_onemem_memory
 
-    tracer = OneMemTracer(agent_id="voice-bot")
-    conv = Conversation(
-        client, agent_id, requires_auth=True,
-        client_tools=tracer.wrap_tools(ClientTools()),
-        **tracer.callbacks(),                 # captures transcripts; flushes on end
-    )
+    mem = create_onemem_memory(namespace="voice-bot")
+    context = mem.recall_context(user_turn)   # search -> inject
+    # ... run the conversation with `context` ...
+    mem.capture(exchange)                      # store the exchange
 
 Spec: docs/05-our-architecture/04-frameworks/elevenlabs-voice-provider.md
 """
@@ -17,7 +14,6 @@ Spec: docs/05-our-architecture/04-frameworks/elevenlabs-voice-provider.md
 from __future__ import annotations
 
 from .memory import create_onemem_memory
-from .tracer import OneMemTracer
 
 __version__ = "0.1.1"
-__all__ = ["OneMemTracer", "create_onemem_memory"]
+__all__ = ["create_onemem_memory"]

@@ -357,6 +357,12 @@ wheels = [
 name = "hermes-onemem"
 version = "0.2.0"
 source = { editable = "packages/plugin-hermes" }
+dependencies = [
+    { name = "onemem-sdk-python" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "onemem-sdk-python", editable = "packages/sdk-python" }]
 
 [[package]]
 name = "httpcore"

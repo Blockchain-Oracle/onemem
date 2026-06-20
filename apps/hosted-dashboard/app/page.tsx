@@ -13,11 +13,11 @@ export default function HostedRoot() {
         </span>
       </div>
       <h1 style={{ fontSize: "2.4rem", lineHeight: 1.1 }}>
-        Verify any agent trace. <span style={{ color: "var(--primary)" }}>No login required.</span>
+        Decentralized memory for your agents.{" "}
+        <span style={{ color: "var(--primary)" }}>Stored on MemWal.</span>
       </h1>
       <p className="muted" style={{ fontSize: "1.05rem", margin: "16px auto 0", maxWidth: 560 }}>
-        OneMem's hosted surface: onboard a new account, accept a shared namespace, or publicly
-        verify any session's Merkle chain on Sui.
+        OneMem's hosted surface: connect an account and pair a terminal with a MemWal delegate key.
       </p>
       <div
         className="cta"
@@ -31,10 +31,6 @@ export default function HostedRoot() {
           Sign in
         </a>
       </div>
-      <p className="faint" style={{ marginTop: 28, fontSize: ".9rem" }}>
-        Have a session id? Visit <span className="mono">/verify/&lt;session-id&gt;</span> to verify
-        it — no account needed.
-      </p>
     </main>
   );
 }

@@ -1,7 +1,7 @@
 {
   "name": "@onemem/cli",
   "version": "0.6.3",
-  "description": "OneMem CLI — verify, inspect, and provision verifiable agent memory + traces from the terminal",
+  "description": "OneMem CLI — store and recall decentralized agent memory from the terminal",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",

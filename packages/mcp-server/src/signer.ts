@@ -1,8 +1,8 @@
 // Signer resolution for the MCP server.
 //
 // Order: ONEMEM_PRIVATE_KEY (a `suiprivkey1...` bech32 secret) → the active
-// sui CLI keystore's first Ed25519 key. The MCP server records traces on the
-// user's behalf, so it needs a delegate key with a NamespaceCapability.
+// sui CLI keystore's first Ed25519 key. The MCP server signs MemWal Seal +
+// Walrus operations on the user's behalf.
 
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";

@@ -1,70 +1,45 @@
 # onemem-crewai
 
-Record **CrewAI** crew runs as **verifiable on-chain OneMem TraceSessions**
-(Sui + Walrus + Seal) — every agent step + task captured as Merkle-chained
-`ActionCall`s anyone can verify.
+Decentralized memory for **CrewAI** crews — recall prior context and capture
+outcomes. Memory is stored on MemWal (client-side Seal-encrypted blob on Walrus —
+the relayer never sees plaintext) and is owned by you.
 
-**Publication note, 2026-06-18:** `onemem-crewai@0.1.1` is current on PyPI
-after `pnpm registry:status --strict` and includes
-`create_onemem_memory(...)`. Re-run that command before making a fresh public
+**Publication note, 2026-06-18:** `onemem-crewai@0.1.1` is current on PyPI after
+`pnpm registry:status --strict`. Re-run that command before a fresh public
 install claim.
 
 ## Usage
 
 ```python
 from crewai import Crew
-from onemem_crewai import OneMemTracer
-
-tracer = OneMemTracer(agent_id="my-crew")
-crew = Crew(
-    agents=[...],
-    tasks=[...],
-    step_callback=tracer.step,   # each agent step
-    task_callback=tracer.task,   # each completed task
-)
-crew.kickoff()
-tracer.flush()   # → one verifiable TraceSession
-```
-
-Optional explicit memory helper:
-
-```python
 from onemem_crewai import create_onemem_memory
 
-memory = create_onemem_memory(namespace="crew-namespace")
-prompt = memory.recall_context("Plan the research task")
-result = crew.kickoff(inputs={"topic": prompt})
-memory.capture(f"Crew result: {result}")
+memory = create_onemem_memory(namespace="my-crew")
+
+context = memory.recall_context("Plan the research task")  # search → inject
+result = Crew(agents=[...], tasks=[...]).kickoff(inputs={"topic": context})
+memory.capture(f"Crew result: {result}")                   # store the outcome
 ```
 
 ## How it works
 
-`OneMemTracer` buffers CrewAI's `step_callback`/`task_callback` events and, on
-`flush()`, writes one TraceSession via the `onemem-trace` Node CLI
-(`@onemem/sdk-ts`) — CrewAI is Python and OneMem's trace stack (Walrus/Seal) is
-JS-only, so the on-chain write + **zero-config** provisioning of
-namespace/cap/signer happen in the bridge. Defensive: a OneMem failure never
-breaks the crew; a failed flush keeps the buffer so a later `flush()` can retry.
-
-`create_onemem_memory(...)` uses `onemem-sdk-python`'s `MemoryClient` bridge for
-explicit recall/capture. `recall_context(...)` returns the original input when
+`create_onemem_memory(...)` uses the `onemem` Python SDK's `MemoryClient`, which
+shells out to the `onemem-memory` Node bridge (`@onemem/sdk-ts`) for the full
+MemWal round-trip (client-side Seal encryption + Walrus + embeddings), since the
+MemWal stack is JS-only. `recall_context(...)` returns the original input when
 memory is disabled, empty, or failing; `capture(...)` returns `False` instead of
-raising when the bridge is unavailable.
+raising when the bridge is unavailable. A OneMem failure never breaks the crew.
 
 ## Prerequisite
 
-**Node 20+ with `npx` on `PATH`** (the on-chain bridge; `npx` fetches the CLI on
+**Node 20+ with `npx` on `PATH`** (the memory bridge; `npx` fetches the CLI on
 first use).
 
 ## Config (env, read by the bridge)
 
-`SUI_NETWORK` (default `testnet`), `ONEMEM_PRIVATE_KEY` (else sui keystore, else a
-generated+persisted wallet), `ONEMEM_NAMESPACE_ID` + `ONEMEM_RW_CAP_ID` (else
-auto-provisioned), `ONEMEM_TRACE_CMD` (override the CLI invocation).
+`SUI_NETWORK` (default `testnet`), `ONEMEM_ACCOUNT_ID`, `ONEMEM_DELEGATE_KEY`,
+`ONEMEM_EMBEDDING_API_KEY`, `MEMWAL_PACKAGE_ID`, `MEMWAL_RELAYER_URL`,
+`ONEMEM_PRIVATE_KEY` (else sui keystore, else a generated+persisted wallet),
+`ONEMEM_MEMORY_CMD` (override the bridge invocation).
 
-## Scope (v0.1)
-
-Trace capture and explicit memory recall/capture are shipped in repo-local
-source. The Mem0-style `memory_config={"provider": "onemem"}` automatic memory
-integration is a tracked follow-up. Spec:
-`docs/05-our-architecture/04-frameworks/crewai-provider.md`.
+Spec: `docs/05-our-architecture/04-frameworks/crewai-provider.md`.

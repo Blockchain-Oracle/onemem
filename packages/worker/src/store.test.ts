@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { WorkerStore } from "./store.js";
 
 describe("WorkerStore", () => {
-  it("captures tool calls instantly and reconciles proof status asynchronously", () => {
+  it("captures tool calls instantly on the hot path", () => {
     const store = new WorkerStore(":memory:");
     store.initSession({ id: "cc-1", runtime: "claude-code", namespaceId: "0xns" });
 
-    // Hot path: each tool call lands immediately with proof_status 'local'.
+    // Hot path: each tool call lands immediately.
     const o1 = store.addObservation({
       sessionId: "cc-1",
       type: "tool_use",
@@ -21,30 +21,9 @@ describe("WorkerStore", () => {
     });
     expect(o1.seq).toBe(1);
     expect(o2.seq).toBe(2);
-    expect(o1.proofStatus).toBe("local");
 
     // Live read — the order the dashboard would render mid-session.
     expect(store.listObservations("cc-1").map((o) => o.toolName)).toEqual(["Bash", "Read"]);
-
-    // Both await anchoring; the reconciler picks them up.
-    expect(store.pendingProof().map((o) => o.id)).toEqual([o1.id, o2.id]);
-
-    // Async on-chain settlement flips the badge local → anchored → verified.
-    const anchored = store.setProofStatus(o1.id, "anchored", {
-      callId: "0xcall",
-      txDigest: "0xtx",
-    });
-    expect(anchored?.proofStatus).toBe("anchored");
-    expect(anchored?.callId).toBe("0xcall");
-    expect(anchored?.txDigest).toBe("0xtx");
-
-    store.setProofStatus(o1.id, "verified");
-    expect(store.getObservation(o1.id)?.proofStatus).toBe("verified");
-    // setting verified without meta must NOT wipe the earlier callId/txDigest
-    expect(store.getObservation(o1.id)?.callId).toBe("0xcall");
-
-    // o2 is still pending; o1 is done.
-    expect(store.pendingProof().map((o) => o.id)).toEqual([o2.id]);
 
     // Closing the session is durable.
     store.endSession("cc-1");

@@ -1,34 +1,27 @@
 // @onemem/oc-onemem — OpenClaw plugin.
 //
-// Strict superset of Mysten's oc-memwal: delegates to it for Walrus-backed
-// memory (recall/capture), then ADDS a verifiable on-chain trace — each agent
-// run becomes a OneMem TraceSession with Merkle-chained ActionCalls.
+// Delegates to Mysten's oc-memwal for Walrus-backed memory (recall/capture) when
+// installed, and captures each agent run's tool/LLM calls as readable
+// observations posted to the local OneMem worker (127.0.0.1:4041) — the same
+// alive local feed the Claude Code / Codex plugins write to. The worker streams
+// them to the local dashboard over SSE.
 //
-// Config: `api.pluginConfig` (namespaceId, rwCapId, network, privateKey) takes
-// precedence, then env (ONEMEM_NAMESPACE_ID, ONEMEM_RW_CAP_ID, SUI_NETWORK,
-// ONEMEM_PRIVATE_KEY); the signer falls back to the sui keystore. Without a
-// namespace + cap, trace recording is inert (memory still works).
+// Capture is best-effort and never on the host's critical path: a worker that's
+// down just means the observation isn't recorded, never a broken agent run.
 //
-// Hook surface verified against openclaw 2026.6.6 plugin-sdk + the
-// verifiable-execution reference plugin: register typed lifecycle hooks via
-// `api.on(name, (event, ctx) => …)`. We capture on every run, not just on tool
-// use:
-//   after_tool_call  → buffer the OpenClaw-dispatched tool call
-//   llm_output       → buffer the model response when present (the usual path to
-//                      ≥1 entry when the agent uses no OpenClaw tools — many
-//                      providers run tools internally and never hit
-//                      after_tool_call)
-//   agent_end        → flush the buffer as one on-chain TraceSession + close it
-// `session_start` is intentionally NOT relied upon — it isn't reliably exposed,
-// so all on-chain work is deferred to the agent_end flush.
+// Hook surface verified against openclaw 2026.6.6 plugin-sdk:
+//   after_tool_call  → post the OpenClaw-dispatched tool call as an observation
+//   llm_output       → post the model response as an observation
+//   agent_end        → mark the worker session ended
 //
 // Spec: docs/05-our-architecture/03-runtimes/openclaw-plugin.md
 
-import { loadConfig, type PluginConfigOverrides, TraceRecorder } from "./onemem-trace.js";
+const DEFAULT_WORKER_URL = "http://127.0.0.1:4041";
+const POST_TIMEOUT_MS = 800;
+const PREVIEW_LIMIT = 2_000;
 
 // oc-memwal is an OPTIONAL peer: when installed, we delegate to it for
-// Walrus-backed memory; when absent, OneMem still provides the verifiable trace
-// layer standalone. Loaded dynamically so a missing dep never breaks load.
+// Walrus-backed memory. Loaded dynamically so a missing dep never breaks load.
 async function delegateToOcMemwal(api: unknown): Promise<void> {
   try {
     const mod = (await import("@mysten-incubation/oc-memwal")) as {
@@ -36,7 +29,7 @@ async function delegateToOcMemwal(api: unknown): Promise<void> {
     };
     mod.default?.register?.(api);
   } catch {
-    // oc-memwal not present — trace layer works without it.
+    // oc-memwal not present — capture works without it.
   }
 }
 
@@ -46,7 +39,6 @@ type HookEvent = Record<string, unknown>;
 type HookCtx = { sessionKey?: string; sessionId?: string };
 interface OpenClawApi {
   logger?: { info?: (msg: string) => void; warn?: (msg: string) => void };
-  pluginConfig?: PluginConfigOverrides;
   on?: (hookName: string, handler: (event: HookEvent, ctx: HookCtx) => unknown) => void;
   [k: string]: unknown;
 }
@@ -63,22 +55,66 @@ export function sessionKeyOf(event: HookEvent, ctx: HookCtx): string {
   );
 }
 
+function workerUrl(): string {
+  return (process.env.ONEMEM_WORKER_URL || DEFAULT_WORKER_URL).replace(/\/+$/, "");
+}
+
+export function preview(value: unknown): string | null {
+  if (value == null) return null;
+  const text = typeof value === "string" ? value : JSON.stringify(value);
+  return text.length > PREVIEW_LIMIT ? `${text.slice(0, PREVIEW_LIMIT)}…` : text;
+}
+
+async function postWorker(path: string, body: unknown): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), POST_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${workerUrl()}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const plugin = {
   id: "oc-onemem",
   name: "OneMem",
-  description: "Verifiable on-chain memory + action traces for OpenClaw (superset of oc-memwal).",
+  description:
+    "Decentralized memory + a live local capture feed for OpenClaw (superset of oc-memwal).",
   register(api: OpenClawApi): void {
     // 1) Delegate to oc-memwal (optional) — Walrus-backed memory when present.
     void delegateToOcMemwal(api);
 
-    // 2) Add the OneMem verifiable trace layer via the typed lifecycle hooks.
-    // Zero-config: namespace/cap/signer auto-provision at first flush (see
-    // provision.ts), so the only hard requirement is the hook surface.
+    // 2) Capture readable observations to the local OneMem worker.
     if (!api.on) {
-      api.logger?.info?.("[oc-onemem] trace inert (host provided no hook surface)");
+      api.logger?.info?.("[oc-onemem] capture inert (host provided no hook surface)");
       return;
     }
-    const recorder = new TraceRecorder(loadConfig(api.pluginConfig), api.logger);
+
+    // Track which worker sessions we've opened so each gets one init. Returns
+    // whether the session is open (so callers can skip a dropped observation).
+    const opened = new Set<string>();
+    async function ensureSession(sessionKey: string): Promise<boolean> {
+      if (opened.has(sessionKey)) return true;
+      // Await the init BEFORE marking opened so a transient worker failure
+      // doesn't poison the key — a later hook retries the init.
+      const ok = await postWorker("/api/sessions/init", { id: sessionKey, runtime: "openclaw" });
+      if (!ok) {
+        api.logger?.warn?.(
+          `[oc-onemem] worker session init failed for ${sessionKey} — observations will not be captured`,
+        );
+        return false;
+      }
+      opened.add(sessionKey);
+      return true;
+    }
 
     // All hooks run inside the host's dispatch and api.on is fire-and-forget
     // (returns void), so an uncaught throw/rejection in a handler could crash
@@ -97,33 +133,49 @@ const plugin = {
 
     api.on(
       "after_tool_call",
-      safe("after_tool_call", (event, ctx) => {
-        recorder.record(sessionKeyOf(event, ctx), {
+      safe("after_tool_call", async (event, ctx) => {
+        const sessionKey = sessionKeyOf(event, ctx);
+        if (!(await ensureSession(sessionKey))) return;
+        const ok = await postWorker("/api/sessions/observations", {
+          sessionId: sessionKey,
+          type: "tool_use",
           toolName: (event.toolName as string) ?? "tool",
-          input: event.params ?? null,
-          output: event.result ?? event.error ?? null,
+          toolNamespace: "openclaw",
+          inputPreview: preview(event.params ?? null),
+          outputPreview: preview(event.result ?? event.error ?? null),
         });
+        if (!ok)
+          api.logger?.warn?.("[oc-onemem] after_tool_call observation dropped (worker down)");
       }),
     );
 
     api.on(
       "llm_output",
-      safe("llm_output", (event, ctx) => {
+      safe("llm_output", async (event, ctx) => {
         const output = event.lastAssistant ?? event.assistantTexts ?? null;
         if (output === null) return;
-        recorder.record(sessionKeyOf(event, ctx), {
+        const sessionKey = sessionKeyOf(event, ctx);
+        if (!(await ensureSession(sessionKey))) return;
+        const ok = await postWorker("/api/sessions/observations", {
+          sessionId: sessionKey,
+          type: "llm_output",
           toolName: "llm_call",
-          input: { provider: event.provider, model: event.model, runId: event.runId },
-          output,
+          toolNamespace: "openclaw",
+          inputPreview: preview({ provider: event.provider, model: event.model }),
+          outputPreview: preview(output),
         });
+        if (!ok) api.logger?.warn?.("[oc-onemem] llm_output observation dropped (worker down)");
       }),
     );
 
     api.on(
       "agent_end",
       safe("agent_end", async (event, ctx) => {
-        const sessionId = await recorder.end(sessionKeyOf(event, ctx));
-        if (sessionId) api.logger?.info?.(`[oc-onemem] verifiable trace ${sessionId}`);
+        const sessionKey = sessionKeyOf(event, ctx);
+        if (!opened.has(sessionKey)) return;
+        opened.delete(sessionKey);
+        const ok = await postWorker("/api/sessions/end", { id: sessionKey });
+        if (!ok) api.logger?.warn?.(`[oc-onemem] worker session end failed for ${sessionKey}`);
       }),
     );
   },

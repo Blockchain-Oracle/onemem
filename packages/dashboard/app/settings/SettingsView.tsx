@@ -145,8 +145,8 @@ export function SettingsView({
               Local credentials come from <span className="mono">onemem login</span> or env
               overrides. Secret values stay server-side and are never rendered here.
             </p>
-            <div className={`verify-mini ${credentialOk ? "ok" : credentialProblem ? "bad" : ""}`}>
-              <span className="vm-ic">
+            <div className={`status-pill ${credentialOk ? "ok" : credentialProblem ? "bad" : ""}`}>
+              <span className="sp-ic">
                 <Icon name={credentialOk ? "check" : credentialProblem ? "x" : "info"} size={16} />
               </span>
               <span>
@@ -179,8 +179,8 @@ export function SettingsView({
             />
             <Row k="SDK version" v={credentials.sdkVersion ?? "unknown"} />
             {credentials.delegateStatus === "expired" ? (
-              <div className="verify-mini bad">
-                <span className="vm-ic">
+              <div className="status-pill bad">
+                <span className="sp-ic">
                   <Icon name="x" size={16} />
                 </span>
                 <span>
@@ -223,13 +223,13 @@ export function SettingsView({
 
         {tab === "Advanced" && (
           <div>
-            <Row k="Trace capture" v="per-runtime — native-hook runtimes only" />
+            <Row k="Activity capture" v="per-runtime — native-hook runtimes only" />
             <Row k="MCP clients" v="explicit tools only · no auto-capture" />
             <Row k="Decrypt" v="client-side (Seal SessionKey)" />
             <p className="muted" style={{ fontSize: ".85rem", marginTop: 14 }}>
-              <Icon name="info" size={14} /> Capture is not global: it runs only for a trace-capable
-              runtime that is installed and (for Codex) trusted. MCP-only clients record nothing
-              automatically. Manage per-runtime policy on the{" "}
+              <Icon name="info" size={14} /> Capture is not global: it runs only for a
+              capture-capable runtime that is installed and (for Codex) trusted. MCP-only clients
+              record nothing automatically. Manage per-runtime policy on the{" "}
               <a className="xlink" href="/apps">
                 Integrations
               </a>{" "}

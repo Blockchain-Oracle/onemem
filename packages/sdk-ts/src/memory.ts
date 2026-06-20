@@ -1,22 +1,32 @@
-// Memory API — the Mem0-mirror surface, wrapping MemWal's `/manual` flow.
+// Memory API — the Mem0-mirror surface, wrapping MemWal's `/manual` flow plus a
+// local SQLite index for the CRUD + scoping primitives MemWal lacks.
 //
 // MemWal stores each memory as a client-side-Seal-encrypted Walrus blob (the
-// relayer never sees plaintext). OneMem's value-add: every memory write also
-// emits an on-chain `ActionCall` (tool_name="memwal_write") referencing that
-// blob — the verifiable, Merkle-chained attestation MemWal itself doesn't ship.
+// relayer never sees plaintext) and does its own Seal + Walrus internally.
 //
-// Surface (per docs/.../shared-api-surface.md):
-//   add(text, opts?)    → rememberManual + optional ActionCall + attestation
-//   search(query, opts?)→ recallManual, mapped to Memory[] (relevance=1-distance)
+// MemWal 0.0.7 is append-only: no get-by-id / get-all / update / delete /
+// history. So `add` ALSO mirrors each write into a local SQLite index
+// (`memory-index.ts`), and `get` / `getAll` / `delete` are served from that
+// index. `search` still vector-recalls via MemWal, then post-filters against the
+// index (soft-deletes + agent/run/metadata scoping the namespace didn't capture).
 //
-// MemWal 0.0.5 has no get-by-id / update / delete / history primitives, so
-// those are intentionally not exposed at v0.1 (tracked as OneMem-side
-// bookkeeping / v0.2 — see PILLAR2_AUDIT_AND_CORRECTION.md).
+// Surface:
+//   add(text, opts?)       → rememberManual + index mirror
+//   search(query, opts?)   → recallManual, mapped + index post-filter
+//   get(id)                → index lookup (excludes soft-deleted)
+//   getAll(filter)         → index query (scope filters, newest-first)
+//   delete(id)             → index soft-delete (honest semantics — see below)
 
 import type { MemWalManual } from "@mysten-incubation/memwal/manual";
 import { sha256 } from "@noble/hashes/sha2.js";
 
 import type { OneMem } from "./client.js";
+import {
+  type MemoryIndex,
+  type MemoryIndexFilter,
+  metadataMatches,
+  SqliteMemoryIndex,
+} from "./memory-index.js";
 
 /** Config for the memory layer — MemWal `/manual` credentials + relayer. */
 export interface MemoryConfig {
@@ -34,18 +44,28 @@ export interface MemoryConfig {
   readonly suiPrivateKey?: string;
   /** Default MemWal namespace for memory isolation. */
   readonly namespace?: string;
+  /**
+   * Local index db path (the listing/scoping/soft-delete mirror). Defaults to
+   * ~/.onemem/memory-index.db. Use ":memory:" for an ephemeral index.
+   */
+  readonly indexPath?: string;
 }
 
-export interface AddMemoryArgs {
+/** Mem0-style multi-scope fields, applied to writes/queries/searches. */
+export interface MemoryScopeArgs {
+  /** Caller's user id. When set (and no explicit namespace), derives `user:<id>`. */
+  readonly userId?: string;
+  /** Agent id for agent-scoped memory. */
+  readonly agentId?: string;
+  /** Run/session id for run-scoped memory. */
+  readonly runId?: string;
+  /** Arbitrary JSON-serializable metadata stored alongside the memory. */
+  readonly metadata?: Record<string, unknown>;
+}
+
+export interface AddMemoryArgs extends MemoryScopeArgs {
   /** MemWal namespace override. */
   readonly namespace?: string;
-  /**
-   * When all three are present, the memory write also emits a verifiable
-   * on-chain ActionCall into the session (the OneMem differentiator).
-   */
-  readonly sessionId?: string;
-  readonly onememNamespaceId?: string;
-  readonly rwCapId?: string;
 }
 
 export interface AddMemoryResult {
@@ -53,26 +73,31 @@ export interface AddMemoryResult {
   readonly memoryId: string;
   /** Walrus blob id holding the Seal-encrypted memory. */
   readonly walrusBlobId: string;
-  /** ActionCall tx digest, when a verifiable trace was emitted. */
-  readonly suiTxDigest?: string;
-  /** ActionCall id, when emitted. */
-  readonly callId?: string;
-  /** Verifiability receipt the host app can surface. */
-  readonly attestation: {
-    readonly walrusBlobId: string;
-    readonly memoryId: string;
-    readonly inputHashHex: string;
-    readonly suiTxDigest?: string;
-    readonly callId?: string;
-  };
+  /**
+   * Client-side SHA-256 of the plaintext, for local dedup — NOT a chain
+   * attestation.
+   */
+  readonly inputHashHex?: string;
 }
 
-export interface SearchMemoryArgs {
+export interface SearchMemoryArgs extends MemoryScopeArgs {
   readonly namespace?: string;
   readonly topK?: number;
 }
 
+export interface GetAllMemoryArgs extends MemoryScopeArgs {
+  readonly namespace?: string;
+  readonly limit?: number;
+}
+
 export interface Memory {
+  /**
+   * The stored-memory id when this hit is mirrored in the local index, else
+   * null. A null id means the hit is a fresh/cross-device write this client's
+   * index never saw — it has no local id to delete by. Threading the id here lets
+   * Mem0's `search → delete(id)` compose for indexed hits.
+   */
+  readonly id: string | null;
   readonly text: string;
   readonly walrusBlobId: string;
   /** Normalized relevance in [0,1] (1 − L2 distance). */
@@ -81,6 +106,19 @@ export interface Memory {
 
 export interface SearchMemoryResult {
   readonly results: Memory[];
+}
+
+/** A memory as stored in the local index — the CRUD/listing shape. */
+export interface StoredMemory {
+  readonly id: string;
+  readonly text: string;
+  readonly walrusBlobId: string;
+  readonly namespace: string;
+  readonly userId?: string;
+  readonly agentId?: string;
+  readonly runId?: string;
+  readonly metadata?: Record<string, unknown>;
+  readonly createdAt: number;
 }
 
 /** Thrown when the memory layer is used without MemWal config. */
@@ -111,21 +149,30 @@ export class MemoryReadError extends Error {
 }
 
 /**
- * Thrown when the memory blob WAS written to MemWal but the on-chain ActionCall
- * attestation failed. The memory exists (carries its ids) but is unattested —
- * retry the attestation with `walrusBlobId`/`memoryId` rather than re-adding.
+ * Thrown when a caller passes invalid arguments to the memory API (empty text,
+ * non-positive topK, …). Validated at the SDK boundary so a misuse fails fast
+ * with a clear message instead of relying on the MCP/CLI layer's zod (the SDK is
+ * also used directly by providers + the bridge).
  */
-export class MemoryAttestationError extends Error {
-  constructor(
-    readonly memoryId: string,
-    readonly walrusBlobId: string,
-    options?: { cause?: unknown },
-  ) {
-    super(
-      `Memory ${memoryId} written to Walrus (${walrusBlobId}) but the on-chain ActionCall failed — memory is unattested, retry the attestation`,
-      options,
-    );
-    this.name = "MemoryAttestationError";
+export class MemoryArgumentError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MemoryArgumentError";
+  }
+}
+
+/** Require a non-empty, non-whitespace string for `label` (text/query). */
+function requireNonEmpty(value: string, label: string): void {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new MemoryArgumentError(`${label} must be a non-empty string`);
+  }
+}
+
+/** Require a positive integer for an optional `label` (topK/limit) when present. */
+function requirePositiveIntOpt(value: number | undefined, label: string): void {
+  if (value === undefined) return;
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new MemoryArgumentError(`${label} must be a positive integer`);
   }
 }
 
@@ -133,9 +180,34 @@ function hex(bytes: Uint8Array): string {
   return `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
 }
 
-/** Mem0-style memory operations backed by MemWal `/manual` + OneMem traces. */
+function recordToStored(record: {
+  id: string;
+  text: string;
+  blobId: string;
+  namespace: string;
+  userId?: string;
+  agentId?: string;
+  runId?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: number;
+}): StoredMemory {
+  return {
+    id: record.id,
+    text: record.text,
+    walrusBlobId: record.blobId,
+    namespace: record.namespace,
+    userId: record.userId,
+    agentId: record.agentId,
+    runId: record.runId,
+    metadata: record.metadata,
+    createdAt: record.createdAt,
+  };
+}
+
+/** Mem0-style memory operations backed by MemWal `/manual` + a local index. */
 export class MemoryAPI {
   private memwal: MemWalManual | null = null;
+  private index: MemoryIndex | null = null;
 
   constructor(
     private readonly client: OneMem,
@@ -162,134 +234,198 @@ export class MemoryAPI {
     return this.memwal;
   }
 
+  /** Lazily open the local index (same lazy pattern as getMemWal). */
+  private getIndex(): MemoryIndex {
+    if (!this.index) {
+      this.index = new SqliteMemoryIndex(this.config.accountId, this.config.indexPath);
+    }
+    return this.index;
+  }
+
   /**
-   * Write a memory: MemWal stores the Seal-encrypted blob; if session +
-   * namespace + cap are supplied, OneMem also emits a verifiable ActionCall
-   * referencing the blob (hash taken over the plaintext).
+   * Resolve the effective MemWal namespace — the SINGLE source of truth for
+   * scope→namespace mapping, shared by add/search/getAll so identical scope args
+   * always resolve to the same namespace (e.g. `getAll({userId})` and
+   * `search(q,{userId})` both hit `user:<id>`):
+   *   explicit namespace → `user:<userId>` → config.namespace → "default".
+   *
+   * ISOLATION HONESTY: the MemWal namespace is the REAL isolation boundary — Seal
+   * encryption keys are per-namespace. Per-user isolation therefore comes from
+   * `userId` → `user:<id>` namespacing here: each user gets a distinct,
+   * cryptographically-separate Seal scope. Putting MULTIPLE users inside ONE
+   * explicit namespace (e.g. `{namespace:'shared', userId}`) gives them a SHARED
+   * Seal scope — they are NOT cryptographically isolated from each other; the
+   * index userId/agentId/runId/metadata post-filter (in `search`) is convenience,
+   * not a security boundary. A memory written with an explicit
+   * `{namespace:'shared', userId}` is, by design, only reachable by reading with
+   * `namespace:'shared'` — the namespace is the boundary, not the userId.
+   */
+  private effectiveNamespace(opts: { namespace?: string; userId?: string }): string {
+    return (
+      opts.namespace ??
+      (opts.userId ? `user:${opts.userId}` : undefined) ??
+      this.config.namespace ??
+      "default"
+    );
+  }
+
+  /**
+   * Write a memory: MemWal stores the Seal-encrypted blob on Walrus, then we
+   * mirror the row (id, blob id, account, namespace, scope, metadata, plaintext)
+   * into the local index so `get` / `getAll` / `delete` / scoped `search` work.
    */
   async add(text: string, opts: AddMemoryArgs = {}): Promise<AddMemoryResult> {
+    requireNonEmpty(text, "add(text)");
+    const namespace = this.effectiveNamespace(opts);
     let remembered: { id: string; blob_id: string };
     try {
       const memwal = await this.getMemWal();
-      remembered = await memwal.rememberManual(text, opts.namespace);
+      remembered = await memwal.rememberManual(text, namespace);
     } catch (error) {
       throw new MemoryWriteError({ cause: error });
     }
     const inputHash = sha256(new TextEncoder().encode(text));
+    const inputHashHex = hex(inputHash);
 
-    let suiTxDigest: string | undefined;
-    let callId: string | undefined;
-    if (opts.sessionId && opts.onememNamespaceId && opts.rwCapId) {
-      try {
-        const emitted = await this.client.traces.appendCall({
-          sessionId: opts.sessionId,
-          namespaceId: opts.onememNamespaceId,
-          rwCapId: opts.rwCapId,
-          toolName: "memwal_write",
-          toolNamespace: "@onemem/sdk-ts",
-          input: { walrusBlob: remembered.blob_id, hash: inputHash },
-          label: "memory",
-        });
-        callId = emitted.callId;
-        suiTxDigest = emitted.txDigest;
-      } catch (error) {
-        // The memory IS written to MemWal; only the on-chain attestation
-        // failed. Surface a recoverable typed error carrying the ids.
-        throw new MemoryAttestationError(remembered.id, remembered.blob_id, { cause: error });
-      }
-    }
+    this.getIndex().put({
+      id: remembered.id,
+      blobId: remembered.blob_id,
+      accountId: this.config.accountId,
+      namespace,
+      userId: opts.userId,
+      agentId: opts.agentId,
+      runId: opts.runId,
+      metadata: opts.metadata,
+      text,
+      inputHashHex,
+      createdAt: Date.now(),
+      deleted: false,
+    });
 
     return {
       memoryId: remembered.id,
       walrusBlobId: remembered.blob_id,
-      suiTxDigest,
-      callId,
-      attestation: {
-        walrusBlobId: remembered.blob_id,
-        memoryId: remembered.id,
-        inputHashHex: hex(inputHash),
-        suiTxDigest,
-        callId,
-      },
+      inputHashHex,
     };
   }
 
-  /** Vector search via MemWal recall; returns decrypted memories ranked by relevance. */
+  /** Fetch one stored memory by id from the local index (excludes soft-deleted). */
+  async get(id: string): Promise<StoredMemory | null> {
+    const record = this.getIndex().get(id);
+    return record ? recordToStored(record) : null;
+  }
+
+  /**
+   * List stored memories from the local index by scope filter, newest-first.
+   * Excludes soft-deleted rows. Filters are AND-combined and account-scoped.
+   *
+   * The namespace is resolved through the SAME `effectiveNamespace` used by
+   * add/search, so `getAll({userId})` scopes to `user:<id>` and AGREES with
+   * `search(q,{userId})` (no longer namespace-blind on a bare userId). A memory
+   * written with an explicit `{namespace:'shared', userId}` is therefore only
+   * listed by reading with `namespace:'shared'` — the namespace is the boundary.
+   */
+  async getAll(filter: GetAllMemoryArgs = {}): Promise<StoredMemory[]> {
+    requirePositiveIntOpt(filter.limit, "getAll(limit)");
+    const indexFilter: MemoryIndexFilter = {
+      userId: filter.userId,
+      agentId: filter.agentId,
+      runId: filter.runId,
+      namespace: this.effectiveNamespace(filter),
+      metadata: filter.metadata,
+      limit: filter.limit,
+    };
+    return this.getIndex().list(indexFilter).map(recordToStored);
+  }
+
+  /**
+   * Remove a memory by id.
+   *
+   * This is a SOFT delete: the row is flagged deleted in the local index, which
+   * removes it from `get` / `getAll` and excludes its blob from `search`
+   * results. The Seal-encrypted blob itself PERSISTS on Walrus until its storage
+   * epoch expires — a true hard delete is not possible on append-only MemWal
+   * 0.0.7 (no delete primitive). Returns true if a row was flipped to deleted.
+   */
+  async delete(id: string): Promise<boolean> {
+    return this.getIndex().softDelete(id);
+  }
+
+  /**
+   * Vector search via MemWal recall, then post-filtered against the local index:
+   *
+   *   - A hit whose index record is soft-deleted (`deleted=1`) is ALWAYS dropped.
+   *   - When ANY scope/metadata filter is requested (userId/agentId/runId/
+   *     metadata), a hit with NO matching index record is EXCLUDED — we can't
+   *     verify the filter against an absent record, so we must not leak it. This
+   *     also means a cross-machine write whose index row this client never saw
+   *     won't bypass the requested scope.
+   *   - When NO filter is requested, an unindexed hit is KEPT, so fresh/cross-
+   *     device writes still surface.
+   *
+   * The index lookup is scoped to the effective namespace so deduped-across-
+   * namespace blobs resolve to the right record. Returns decrypted memories
+   * ranked by relevance.
+   */
   async search(query: string, opts: SearchMemoryArgs = {}): Promise<SearchMemoryResult> {
+    requireNonEmpty(query, "search(query)");
+    requirePositiveIntOpt(opts.topK, "search(topK)");
+    const namespace = this.effectiveNamespace(opts);
     let recalled: { results: ({ blob_id: string; distance: number } & { text?: string })[] };
     try {
       const memwal = await this.getMemWal();
-      recalled = await memwal.recallManual(query, opts.topK ?? 10, opts.namespace);
+      recalled = await memwal.recallManual(query, opts.topK ?? 10, namespace);
     } catch (error) {
       throw new MemoryReadError({ cause: error });
     }
     // The /manual full-recall variant returns decrypted `text`. Hits without it
     // are vector-only (or a decrypt that was denied) — excluded from results.
-    const results: Memory[] = recalled.results
-      .filter((hit): hit is { blob_id: string; text: string; distance: number } => "text" in hit)
-      .map((hit) => ({
+    const hits = recalled.results.filter(
+      (hit): hit is { blob_id: string; text: string; distance: number } => "text" in hit,
+    );
+
+    const byBlobId = this.getIndex().getByBlobIds(
+      hits.map((h) => h.blob_id),
+      namespace,
+    );
+    const hasScopeFilter =
+      opts.userId !== undefined ||
+      opts.agentId !== undefined ||
+      opts.runId !== undefined ||
+      (opts.metadata !== undefined && Object.keys(opts.metadata).length > 0);
+
+    const results: Memory[] = [];
+    for (const hit of hits) {
+      const record = byBlobId.get(hit.blob_id);
+      // Drop soft-deleted blobs.
+      if (record?.deleted) continue;
+      if (hasScopeFilter) {
+        // Can't verify the requested filter without an index record — exclude it
+        // rather than leak a hit that may belong to another scope.
+        if (!record) continue;
+        if (opts.userId !== undefined && record.userId !== opts.userId) continue;
+        if (opts.agentId !== undefined && record.agentId !== opts.agentId) continue;
+        if (opts.runId !== undefined && record.runId !== opts.runId) continue;
+        if (opts.metadata && !metadataMatches(record.metadata, opts.metadata)) continue;
+      }
+      results.push({
+        // The local-index id when this hit is mirrored, else null (a fresh /
+        // cross-device write this client's index never saw has no local id).
+        // Lets `search → delete(id)` compose for indexed hits.
+        id: record?.id ?? null,
         text: hit.text,
         walrusBlobId: hit.blob_id,
-        relevance: Math.max(0, 1 - hit.distance),
-      }));
+        relevance: Math.min(1, Math.max(0, 1 - hit.distance)),
+      });
+    }
     return { results };
   }
 
-  /**
-   * List memory references from chain. MemWal 0.0.5 has no list endpoint, so the
-   * inventory is derived from on-chain `memwal_write` ActionCalls — a verifiable
-   * list of memory blobs (metadata only; plaintext stays Seal-encrypted on Walrus
-   * and decrypts client-side). Optionally scope by OneMem namespace.
-   */
-  async getAll(opts: { namespaceId?: string; limit?: number } = {}): Promise<
-    Array<{
-      walrusBlobId: string | null;
-      contentHash: string;
-      namespaceId: string;
-      callId: string;
-      capturedAt: number;
-    }>
-  > {
-    const packageId = this.client.addresses.originalPackageId || this.client.addresses.packageId;
-    const out: Array<{
-      walrusBlobId: string | null;
-      contentHash: string;
-      namespaceId: string;
-      callId: string;
-      capturedAt: number;
-    }> = [];
-    const limit = opts.limit ?? 100;
-    // biome-ignore lint/suspicious/noExplicitAny: opaque cursor type
-    let cursor: any = null;
-    while (true) {
-      const page = await this.client.client.queryEvents({
-        query: { MoveEventType: `${packageId}::events::ActionCallEmittedEvent` },
-        cursor,
-        order: "descending",
-        limit: 50,
-      });
-      for (const e of page.data) {
-        const f = e.parsedJson as Record<string, unknown> | undefined;
-        if (!f || f.tool_name !== "memwal_write") continue;
-        if (opts.namespaceId && f.namespace_id !== opts.namespaceId) continue;
-        out.push({
-          walrusBlobId: (f.walrus_input_blob as string) || null,
-          contentHash: `0x${Buffer.from((f.content_hash as number[]) ?? []).toString("hex")}`,
-          namespaceId: String(f.namespace_id ?? ""),
-          callId: String(f.call_id ?? ""),
-          capturedAt: Number(f.captured_at ?? 0),
-        });
-        if (out.length >= limit) return out;
-      }
-      if (!page.hasNextPage || !page.nextCursor) break;
-      cursor = page.nextCursor;
-    }
-    return out;
-  }
-
-  /** Wipe MemWal key material from memory. Call when done with the client. */
+  /** Wipe MemWal key material from memory + close the index. Call when done. */
   dispose(): void {
     this.memwal?.destroy();
     this.memwal = null;
+    this.index?.close();
+    this.index = null;
   }
 }

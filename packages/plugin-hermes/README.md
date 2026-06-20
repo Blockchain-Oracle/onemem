@@ -1,32 +1,33 @@
 # hermes-onemem
 
 OneMem **memory provider** for [Hermes](https://pypi.org/project/hermes-agent/).
-Records each Hermes agent session as a **verifiable on-chain TraceSession** on
-Sui — Merkle-chained `ActionCall`s with content stored on Walrus and encrypted
-with Seal.
+Gives Hermes agents decentralized memory stored on MemWal (client-side
+Seal-encrypted blobs on Walrus — the relayer never sees plaintext) and owned by
+you. It recalls relevant past memories before a turn and captures the exchange
+after it.
 
-**Publication note, 2026-06-18:** `hermes-onemem@0.2.0` is current on PyPI
-after `pnpm registry:status --strict`. Re-run that command before making a
-fresh public install claim.
+**Publication note, 2026-06-18:** `hermes-onemem@0.2.0` is current on PyPI after
+`pnpm registry:status --strict`. Re-run that command before a fresh public
+install claim.
 
 ## How it works
 
 `OneMemProvider` implements Hermes's `agent.memory_provider.MemoryProvider`. It
-observes the agent from outside the decision loop (no tools exposed) and buffers
-each turn (`sync_turn`), built-in memory write (`on_memory_write`), and subagent
-delegation (`on_delegation`). At `on_session_end` it flushes the buffer as one
-TraceSession.
+observes the agent from outside the decision loop and:
 
-Hermes (Python) can't drive Walrus/Seal natively, so the on-chain write — and
-the **zero-config** auto-provisioning of the namespace, ReadWrite cap, and signer
-— is delegated to the `onemem-trace` Node CLI (`@onemem/sdk-ts`). Full fidelity,
-no Python Sui deps.
+- `recall_context` — searches prior memories to inject before a turn;
+- `sync_turn` — captures the user/assistant exchange as a memory;
+- `on_memory_write` — captures an explicit memory write.
+
+Hermes (Python) can't drive Walrus/Seal natively, so the MemWal round-trip
+(client-side Seal encryption + Walrus + embeddings) is delegated to the
+`onemem-memory` Node bridge (`@onemem/sdk-ts`). No Python Sui deps.
 
 ## Prerequisite
 
-**Node 20+ with `npx` on `PATH`** — the on-chain write goes through the
-`onemem-trace` Node CLI (Walrus/Seal are JS-only). Without it the provider is
-**silently inactive** (`is_available()` returns False) and nothing is traced.
+**Node 20+ with `npx` on `PATH`** — the memory write goes through the
+`onemem-memory` Node bridge (Walrus/Seal are JS-only). Without it the provider is
+**silently inactive** (`is_available()` returns False).
 
 ## Install
 
@@ -38,16 +39,16 @@ hermes-onemem install
 `hermes-onemem install` copies the provider into `$HERMES_HOME/plugins/onemem/`
 (Hermes discovers providers by directory, not from site-packages) and sets
 `memory.provider: onemem` in your config.yaml. Pass `--no-config` to copy only.
-Restart Hermes — the first session auto-provisions the namespace/cap/signer and
-persists them under `~/.onemem/` (a generated signer, if no key/keystore exists,
-lands at `~/.onemem/wallet.key`).
+Restart Hermes — memory config resolves lazily from `onemem login` credentials or
+env (a generated signer, if no key/keystore exists, lands at
+`~/.onemem/wallet.key`).
 
-## Config (all optional — overrides auto-provisioning)
+## Config (env, read by the bridge)
 
-Env, read by the Node bridge: `SUI_NETWORK` (default `testnet`),
-`ONEMEM_PRIVATE_KEY` (else sui keystore, else a generated+persisted wallet),
-`ONEMEM_NAMESPACE_ID` + `ONEMEM_RW_CAP_ID` (else auto-provisioned).
-`ONEMEM_TRACE_CMD` overrides how the CLI is invoked (default
-`npx -y -p @onemem/sdk-ts@latest onemem-trace`).
+`SUI_NETWORK` (default `testnet`), `ONEMEM_ACCOUNT_ID`, `ONEMEM_DELEGATE_KEY`,
+`ONEMEM_EMBEDDING_API_KEY`, `MEMWAL_PACKAGE_ID`, `MEMWAL_RELAYER_URL`,
+`ONEMEM_PRIVATE_KEY` (else sui keystore, else a generated+persisted wallet).
+`ONEMEM_MEMORY_CMD` overrides how the bridge is invoked (default
+`npx -y -p @onemem/sdk-ts@latest onemem-memory`).
 
 Spec: `docs/05-our-architecture/03-runtimes/hermes-plugin.md`.

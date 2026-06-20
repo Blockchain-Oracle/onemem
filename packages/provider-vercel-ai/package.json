@@ -1,7 +1,7 @@
 {
   "name": "@onemem/vercel-ai-provider",
   "version": "0.1.4",
-  "description": "OneMem provider for the Vercel AI SDK — wrap any model to record verifiable on-chain action traces",
+  "description": "OneMem provider for the Vercel AI SDK — wrap any model with decentralized memory (recall + capture) you own, encrypted on Walrus via MemWal",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.cjs",

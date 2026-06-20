@@ -3,6 +3,12 @@
 Use this brief when asking a designer or another AI agent to create OneMem
 identity, social, banner, video, or launch assets.
 
+> ⚠️ STALE (2026-06-20): this brief still describes the removed **trace/verify**
+> product. OneMem is now **claude-mem + Mem0, decentralized** — memory only, on
+> MemWal / Walrus / Seal, no trace/verify. Ignore every trace/verify/ActionCall/
+> Merkle/`onemem-trace`/replay reference below. Full rewrite is tracked under
+> Phase 5 (landing/brand) in `BUILD_SEQUENCE.md`.
+
 ## Canonical Identity
 
 - Product: OneMem

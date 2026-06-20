@@ -13,11 +13,7 @@ const providedBaseUrl = process.env.ONEMEM_HOSTED_SMOKE_BASE_URL;
 const baseUrl = providedBaseUrl || `http://127.0.0.1:${defaultPort}`;
 const headless = process.env.ONEMEM_HOSTED_SMOKE_HEADLESS !== "0";
 const artifactsDir = join(root, ".browser-smoke");
-const screenshotPath = join(artifactsDir, "hosted-sponsored-provisioning.png");
-const verifySmokeSession =
-  process.env.ONEMEM_HOSTED_VERIFY_SMOKE_SESSION ||
-  "0x6ceaab0fe2961043d490326960dfd192e43c25ed655772d42c04c265ad3ec080";
-const missingShareCapability = `0x${"5".repeat(64)}`;
+const screenshotPath = join(artifactsDir, "hosted-login.png");
 
 const checks = [];
 const consoleErrors = [];
@@ -29,8 +25,6 @@ try {
   if (!providedBaseUrl) {
     server = startServer(defaultPort);
     await waitForServer(baseUrl, 45_000);
-    await expectMissingSponsorshipConfig(baseUrl);
-    await expectMissingShareSponsorshipConfig(baseUrl);
   }
   const authUi = await readAuthUiConfig(baseUrl);
 
@@ -51,11 +45,6 @@ try {
     await expectText(page, "No account connected yet", "login disconnected state");
     await expectText(page, authUi.statusText, "login enoki config state");
 
-    await page.goto(`${baseUrl}/onboarding`, { waitUntil: "networkidle" });
-    await expectText(page, "Connect an account", "onboarding account step");
-    await expectText(page, "No account connected yet", "onboarding disconnected state");
-    await expectText(page, "Connect before continuing", "onboarding gate copy");
-
     await expectCliLoginLookup(baseUrl);
     await page.goto(`${baseUrl}/cli-login?nonce=smoke-nonce&port=12345`, {
       waitUntil: "networkidle",
@@ -65,42 +54,13 @@ try {
     await expectText(page, "Device nonce", "cli-login nonce row");
     await expectText(page, "smoke-nonce", "cli-login nonce value");
     await expectText(page, "localhost:12345", "cli-login callback port");
-    await expectText(page, "Connect the wallet", "cli-login disconnected gate");
-    await expectText(page, "not stored in this hosted app", "cli-login private key copy");
 
     await page.goto(`${baseUrl}/dashboard`, { waitUntil: "networkidle" });
     await expectText(page, "OneMem Dashboard", "dashboard title");
     await expectText(page, "Connect an account", "dashboard account gate");
-    await expectText(page, "public verification work without an account", "dashboard public verify copy");
     if (!authUi.publicEnvConfigured) {
       await expectText(page, "Google sign-in is not enabled", "dashboard enoki config state");
     }
-
-    await page.goto(`${baseUrl}/share`, { waitUntil: "networkidle" });
-    await expectText(page, "Share", "share title");
-    await expectText(page, "Public verification link", "share public verify card");
-    await expectText(page, "Sponsored capability mint", "share sponsored mint card");
-    await expectText(page, "Connect an account before minting", "share account gate");
-    await expectText(page, "Mint sponsored capability", "share mint button");
-    await expectText(page, "Capability history", "share capability history panel");
-    await expectText(page, "event-backed share history", "share history empty state");
-    await expectText(page, "Boundary", "share proof boundary");
-    await expectText(page, "Recipient capability links", "share recipient link boundary");
-    await expectText(page, "no separate claim transaction", "share no-claim boundary");
-
-    await page.goto(`${baseUrl}/share/${missingShareCapability}`, { waitUntil: "networkidle" });
-    await expectText(page, "share capability", "share capability public badge");
-    await expectText(page, "Capability not found", "share capability missing title");
-    await expectText(page, "No NamespaceCapability", "share capability missing reason");
-    await expectText(page, "Open share tools", "share capability fallback link");
-
-    await page.goto(`${baseUrl}/verify/${verifySmokeSession}`, { waitUntil: "networkidle" });
-    await expectText(page, "public verifier", "verify public badge");
-    await expectText(page, "What this proves, and what it does not", "verify proof boundary");
-    await expectText(page, "Proven", "verify proven panel");
-    await expectText(page, "Not proven", "verify not-proven panel");
-    await expectText(page, "Call Evidence", "verify call evidence");
-    await expectText(page, "View TraceSession on Suiscan", "verify suiscan link");
 
     await page.screenshot({ fullPage: true, path: screenshotPath });
     check(resourceErrors.length === 0, "browser emitted no failed resource responses");
@@ -220,63 +180,6 @@ async function readAuthUiConfig(url) {
       ? "Enoki Google wallets are registered"
       : "Google sign-in is not enabled",
   };
-}
-
-async function expectMissingSponsorshipConfig(url) {
-  const sender = `0x${"1".padStart(64, "0")}`;
-  const res = await fetch(`${url}/api/onboarding/sponsored/prepare`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "namespace-create", sender }),
-  });
-  const body = await res.json();
-  check(res.status === 503, "sponsored prepare reports missing private key");
-  check(body?.code === "not_configured", "sponsored prepare missing-config code");
-  check(!JSON.stringify(body).includes("ENOKI_SECRET_KEY="), "sponsored prepare does not leak key");
-}
-
-async function expectMissingShareSponsorshipConfig(url) {
-  const sender = `0x${"1".padStart(64, "0")}`;
-  const recipient = `0x${"2".padStart(64, "0")}`;
-  const namespaceId = `0x${"3".padStart(64, "0")}`;
-  const adminCapId = `0x${"4".padStart(64, "0")}`;
-  const capId = `0x${"5".padStart(64, "0")}`;
-  const shareRes = await fetch(`${url}/api/share/sponsored/prepare`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "ro-cap-share",
-      sender,
-      recipient,
-      namespaceId,
-      adminCapId,
-    }),
-  });
-  const shareBody = await shareRes.json();
-  check(shareRes.status === 503, "share prepare reports missing private key");
-  check(shareBody?.code === "not_configured", "share prepare missing-config code");
-  check(
-    !JSON.stringify(shareBody).includes("ENOKI_SECRET_KEY="),
-    "share prepare does not leak key",
-  );
-
-  const revokeRes = await fetch(`${url}/api/share/sponsored/prepare`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "cap-self-revoke",
-      sender,
-      capId,
-      capKind: "ReadOnly",
-    }),
-  });
-  const revokeBody = await revokeRes.json();
-  check(revokeRes.status === 503, "share self-revoke prepare reports missing private key");
-  check(revokeBody?.code === "not_configured", "share self-revoke missing-config code");
-  check(
-    !JSON.stringify(revokeBody).includes("ENOKI_SECRET_KEY="),
-    "share self-revoke does not leak key",
-  );
 }
 
 async function expectCliLoginLookup(url) {

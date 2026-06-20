@@ -1,5 +1,5 @@
 import { localCredentialSummary } from "@/lib/local-credentials";
-import { NETWORK } from "@/lib/trace";
+import { NETWORK } from "@/lib/network";
 import { SettingsView } from "./SettingsView";
 
 export const dynamic = "force-dynamic";

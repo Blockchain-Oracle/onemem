@@ -6,19 +6,14 @@
 //   const onemem = await OneMem.create({
 //     network: "testnet",
 //     signer: Ed25519Keypair.fromSecretKey(env.PRIVATE_KEY),
+//     memory: { delegateKey, accountId, embeddingApiKey, memwalPackageId, relayerUrl },
 //   });
 //
-//   const { namespaceId, adminCapId } = await onemem.namespaces.create({
-//     name: "my-agent-memory",
-//     kind: NamespaceKind.User,
-//     sealPackageId: "0x...",
-//   });
+//   await onemem.requireMemory().add("user prefers dark mode");
 //
-// Reads deployed addresses from the codegen-emitted manifest in
-// `src/generated/addresses.ts`. Switch networks with `network: "mainnet"`
-// (throws a clean "OneMem is not deployed on mainnet" error until the
-// mainnet deploy populates the manifest — by design, per
-// feedback_config_portability_empty_then_populate).
+// Memory is stored via MemWal (`@mysten-incubation/memwal`), which does its own
+// Seal encryption + Walrus storage internally. OneMem holds the Sui signer +
+// MemWal credentials and exposes the Mem0-style `add`/`search` surface.
 
 import type { Signer } from "@mysten/sui/cryptography";
 import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
@@ -26,25 +21,21 @@ import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
 type SignArgs = Parameters<SuiJsonRpcClient["signAndExecuteTransaction"]>[0];
 type ExecResult = Awaited<ReturnType<SuiJsonRpcClient["signAndExecuteTransaction"]>>;
 
-import {
-  ACTIVE_NETWORK,
-  addressesFor,
-  type OneMemAddresses,
-  type SuiNetwork,
-} from "./generated/addresses.js";
 import { MemoryAPI, type MemoryConfig, MemoryNotConfiguredError } from "./memory.js";
-import { NamespacesAPI } from "./namespaces.js";
-import { createSealClient, type SealConfig, SealNotConfiguredError, SealStore } from "./seal.js";
-import { TracesAPI } from "./traces.js";
-import {
-  extendWithWalrus,
-  type WalrusConfig,
-  WalrusNotConfiguredError,
-  WalrusStore,
-} from "./walrus.js";
+
+/** Sui networks OneMem understands. */
+export type SuiNetwork = "testnet" | "mainnet" | "devnet" | "local";
+
+/** Default JSON-RPC fullnode per network. Override with `rpcUrl`. */
+const RPC_URL_BY_NETWORK: Record<SuiNetwork, string> = {
+  testnet: "https://fullnode.testnet.sui.io:443",
+  mainnet: "https://fullnode.mainnet.sui.io:443",
+  devnet: "https://fullnode.devnet.sui.io:443",
+  local: "http://127.0.0.1:9000",
+};
 
 export interface OneMemConfig {
-  /** Sui network. Defaults to ACTIVE_NETWORK from the manifest. */
+  /** Sui network. Defaults to testnet. */
   readonly network?: SuiNetwork;
   /**
    * Signer for transactions. Any `@mysten/sui` Signer works
@@ -52,29 +43,10 @@ export interface OneMemConfig {
    */
   readonly signer: Signer;
   /**
-   * Optional override of the RPC URL from the manifest. Useful for
-   * pointing at a local fullnode in dev (`http://127.0.0.1:9000`) or
-   * a paid provider (Triton, Blockdaemon) in production.
+   * Optional override of the per-network RPC URL. Useful for pointing at a local
+   * fullnode in dev (`http://127.0.0.1:9000`) or a paid provider in production.
    */
   readonly rpcUrl?: string;
-  /**
-   * Optional override of the manifest addresses block. Almost never
-   * needed — exists for tests + edge cases (e.g., a fork environment).
-   */
-  readonly addresses?: OneMemAddresses;
-  /**
-   * Walrus blob-storage settings. When a relay host is available for the
-   * network (testnet/mainnet by default), `onemem.walrus` is wired up so
-   * trace payloads can be stored on Walrus. Pass `{ uploadRelayHost }` to
-   * enable other networks.
-   */
-  readonly walrus?: WalrusConfig;
-  /**
-   * Seal encryption settings. When key servers are available for the network
-   * (testnet by default), `onemem.seal` is wired up so trace payloads can be
-   * encrypted before Walrus upload and decrypted by capability holders.
-   */
-  readonly seal?: SealConfig;
   /**
    * Memory layer (Mem0-mirror) config — MemWal `/manual` credentials. When
    * present, `onemem.memory` is wired up so `add`/`search` work. Needs a
@@ -87,35 +59,20 @@ export interface OneMemConfig {
 export class OneMem {
   readonly network: SuiNetwork;
   readonly client: SuiJsonRpcClient;
-  readonly addresses: OneMemAddresses;
   readonly signer: Signer;
-  readonly namespaces: NamespacesAPI;
-  readonly traces: TracesAPI;
-  /** Walrus blob store — present when a relay host is configured for the network. */
-  readonly walrus?: WalrusStore;
-  /** Seal encrypt/decrypt — present when key servers are configured for the network. */
-  readonly seal?: SealStore;
   /** Memory layer (Mem0-mirror) — present when MemWal config is supplied. */
   readonly memory?: MemoryAPI;
 
   private constructor(params: {
     network: SuiNetwork;
     client: SuiJsonRpcClient;
-    addresses: OneMemAddresses;
     signer: Signer;
-    walrus?: WalrusStore;
-    seal?: SealStore;
     memory?: MemoryConfig;
     suiPrivateKey?: string;
   }) {
     this.network = params.network;
     this.client = params.client;
-    this.addresses = params.addresses;
     this.signer = params.signer;
-    this.walrus = params.walrus;
-    this.seal = params.seal;
-    this.namespaces = new NamespacesAPI(this);
-    this.traces = new TracesAPI(this);
     this.memory =
       params.memory && params.suiPrivateKey
         ? new MemoryAPI(this, params.memory, params.suiPrivateKey)
@@ -123,34 +80,9 @@ export class OneMem {
   }
 
   static async create(config: OneMemConfig): Promise<OneMem> {
-    const network = config.network ?? ACTIVE_NETWORK;
-    const addresses = config.addresses ?? addressesFor(network);
-    const url = config.rpcUrl ?? addresses.rpcUrl;
-    const base = new SuiJsonRpcClient({ network, url });
-
-    // Extend the SAME client with Walrus so Move txs + Walrus writes share one
-    // object/coin cache (avoids stale-gas-coin "object unavailable" errors).
-    const walrusClient = extendWithWalrus(base, network, config.walrus ?? {});
-    const client = walrusClient ?? base;
-    const walrusStore = walrusClient
-      ? new WalrusStore(walrusClient, config.signer, config.walrus ?? {})
-      : undefined;
-
-    const sealClient = createSealClient(client, network, config.seal ?? {});
-    const typePackageId = addresses.originalPackageId || addresses.packageId;
-    const sealStore = sealClient
-      ? new SealStore(
-          sealClient,
-          client,
-          config.signer,
-          {
-            sealPackageId: typePackageId,
-            policyPackageId: addresses.packageId,
-            typePackageId,
-          },
-          config.seal ?? {},
-        )
-      : undefined;
+    const network = config.network ?? "testnet";
+    const url = config.rpcUrl ?? RPC_URL_BY_NETWORK[network];
+    const client = new SuiJsonRpcClient({ network, url });
 
     // MemWal `/manual` needs a bech32 Sui key for Seal + Walrus signing;
     // default to the signer's own key when it exposes getSecretKey (keypairs do).
@@ -166,10 +98,7 @@ export class OneMem {
     return new OneMem({
       network,
       client,
-      addresses,
       signer: config.signer,
-      walrus: walrusStore,
-      seal: sealStore,
       memory: config.memory,
       suiPrivateKey,
     });
@@ -197,22 +126,6 @@ export class OneMem {
     });
     await this.client.waitForTransaction({ digest: result.digest });
     return result;
-  }
-
-  /** Return the Walrus store or throw a clear error if it isn't configured for this network. */
-  requireWalrus(): WalrusStore {
-    if (!this.walrus) {
-      throw new WalrusNotConfiguredError(this.network);
-    }
-    return this.walrus;
-  }
-
-  /** Return the Seal store or throw if it isn't configured for this network. */
-  requireSeal(): SealStore {
-    if (!this.seal) {
-      throw new SealNotConfiguredError(this.network);
-    }
-    return this.seal;
   }
 
   /** Return the Memory API or throw if MemWal config wasn't supplied. */

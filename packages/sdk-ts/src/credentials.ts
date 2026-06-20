@@ -125,14 +125,19 @@ export function resolveMemoryConfigFromSources(
     stringValue(env.ONEMEM_ACCOUNT_ID) ?? credString(usableCredentials, "accountId");
   const embeddingApiKey =
     stringValue(env.ONEMEM_EMBEDDING_API_KEY) ?? credString(usableCredentials, "embeddingApiKey");
+  // MemWal requires a real package id. Treat it as a required secret so config
+  // fails at this boundary with a clear message — not deep inside MemWal.
+  const memwalPackageId =
+    stringValue(env.MEMWAL_PACKAGE_ID) ?? credString(usableCredentials, "memwalPackageId");
 
   const missing = [
     !delegateKey ? "ONEMEM_DELEGATE_KEY" : null,
     !accountId ? "ONEMEM_ACCOUNT_ID" : null,
     !embeddingApiKey ? "ONEMEM_EMBEDDING_API_KEY" : null,
+    !memwalPackageId ? "MEMWAL_PACKAGE_ID" : null,
   ].filter((key): key is string => key !== null);
 
-  if (!delegateKey || !accountId || !embeddingApiKey) {
+  if (!delegateKey || !accountId || !embeddingApiKey || !memwalPackageId) {
     return {
       missing,
       credentialsFile: credentialsPath(env),
@@ -147,10 +152,7 @@ export function resolveMemoryConfigFromSources(
       delegateKey,
       accountId,
       embeddingApiKey,
-      memwalPackageId:
-        stringValue(env.MEMWAL_PACKAGE_ID) ??
-        credString(usableCredentials, "memwalPackageId") ??
-        "",
+      memwalPackageId,
       relayerUrl:
         stringValue(env.MEMWAL_RELAYER_URL) ??
         credString(usableCredentials, "relayerUrl", "serverUrl") ??

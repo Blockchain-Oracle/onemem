@@ -1,4 +1,4 @@
-// PATCH /api/runtimes/:id — update local runtime pause/trace policy.
+// PATCH /api/runtimes/:id — update local runtime pause/capture policy.
 
 import { RuntimeControlsValidationError } from "@onemem/sdk-ts/runtime";
 import { type NextRequest, NextResponse } from "next/server";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 interface RuntimePatchBody {
   readonly paused?: unknown;
   readonly permissions?: {
-    readonly traceCapture?: unknown;
+    readonly captureEnabled?: unknown;
   };
 }
 
@@ -19,20 +19,20 @@ export async function PATCH(_req: NextRequest, ctx: { params: Promise<{ id: stri
     const { id } = await ctx.params;
     const body = (await _req.json()) as RuntimePatchBody;
     const paused = typeof body.paused === "boolean" ? body.paused : undefined;
-    const traceCapture =
-      typeof body.permissions?.traceCapture === "boolean"
-        ? body.permissions.traceCapture
+    const captureEnabled =
+      typeof body.permissions?.captureEnabled === "boolean"
+        ? body.permissions.captureEnabled
         : undefined;
 
-    if (paused === undefined && traceCapture === undefined) {
+    if (paused === undefined && captureEnabled === undefined) {
       return NextResponse.json(
-        { ok: false, error: "paused or permissions.traceCapture is required" },
+        { ok: false, error: "paused or permissions.captureEnabled is required" },
         { status: 400 },
       );
     }
 
     // Honesty guard: only location-A laptop runtimes read the local controls file.
-    // Refuse to write a pause/trace policy for an MCP client or deployed adapter —
+    // Refuse to write a pause/capture policy for an MCP client or deployed adapter —
     // that file would never be read by their code (the old "enforcement theater").
     if (!isRuntimeControllable(id)) {
       return NextResponse.json(
@@ -46,7 +46,7 @@ export async function PATCH(_req: NextRequest, ctx: { params: Promise<{ id: stri
 
     const control = updateRuntimeControl(id, {
       paused,
-      permissions: traceCapture === undefined ? undefined : { traceCapture },
+      permissions: captureEnabled === undefined ? undefined : { captureEnabled },
     });
     return NextResponse.json({ ok: true, control });
   } catch (err) {

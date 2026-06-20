@@ -1,21 +1,26 @@
 [project]
 name = "hermes-onemem"
 version = "0.2.0"
-description = "OneMem memory provider for Hermes — records each agent session as a verifiable on-chain TraceSession (Sui + Walrus + Seal)"
+description = "OneMem memory provider for Hermes — decentralized memory for each agent session, stored on MemWal"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 authors = [{ name = "OneMem contributors" }]
-# Pure-stdlib: the provider buffers turns and shells out to the `onemem-trace`
-# Node CLI (@onemem/sdk-ts) for the full-fidelity on-chain write — no Python
-# Sui/Walrus/Seal deps. hermes-agent is the host runtime (provided at install),
+# The provider recalls/captures memory through onemem-sdk-python's ProviderMemory,
+# which shells out to the `onemem-memory` Node bridge (@onemem/sdk-ts) for the
+# full MemWal round-trip. hermes-agent is the host runtime (provided at install),
 # not a build dependency.
-dependencies = []
+dependencies = [
+    "onemem-sdk-python>=0.2.0",
+]
 
 [project.scripts]
 hermes-onemem = "hermes_onemem.install:main"
 
 [project.urls]
 Homepage = "https://onemem.xyz"
+
+[tool.uv.sources]
+onemem-sdk-python = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

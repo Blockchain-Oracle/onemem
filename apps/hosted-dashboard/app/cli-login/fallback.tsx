@@ -9,8 +9,8 @@ export function CliLoginFallback() {
           <p className="muted" style={{ fontSize: ".9rem", marginBottom: 16 }}>
             Loading the local CLI pairing request.
           </p>
-          <div className="verify-mini">
-            <span className="vm-ic">i</span>
+          <div className="status-pill">
+            <span className="sp-ic">i</span>
             <span>Preparing wallet connection and callback details.</span>
           </div>
         </div>

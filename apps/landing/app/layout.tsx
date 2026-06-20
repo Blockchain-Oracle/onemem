@@ -4,9 +4,9 @@ import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OneMem — See what your agent did, and prove it",
+  title: "OneMem — Decentralized memory your agent owns",
   description:
-    "The verifiable action-trace + owned-memory layer for AI agents. Every tool, MCP, and skill call is Merkle-chained on Sui; memory is encrypted on Walrus. Replay it and verify it independently — no login, no vendor trust.",
+    "The owned-memory layer for AI agents. Store, search, and recall across every tool — encrypted on Walrus with Seal via MemWal, portable across runtimes, owned by you. No vendor lock-in.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

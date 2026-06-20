@@ -5,11 +5,7 @@ shared dashboard packages where appropriate and owns the hosted routes below:
 
 - `/login` — Enoki Google OAuth + dApp Kit
 - `/cli-login` — callback target for `onemem login` from the CLI
-- `/onboarding` — first-time MemWalAccount mint via sponsored tx
-- `/share` — owner-initiated sponsored ReadOnly/ReadWrite capability minting plus read-only event-backed history
-- `/share/[capability_id]` — public recipient capability object view with hosted holder self-revoke; no claim tx
-- `/verify/[session_id]` — **PUBLIC chain verifier** (no login; see `route-verify-public.md`)
-- `/dashboard` — hosted account hub and route index
+- `/dashboard` — hosted account hub and route index for your owned memory
 
 **Read first:** `docs/05-our-architecture/06-dashboard/purpose-local-vs-hosted.md` for what hosted does that local does NOT (and what we deliberately reject from Mem0 cloud's SaaS pattern).
 
@@ -37,6 +33,6 @@ Add `--strict` in CI or release checks when Google sign-in must be fully live.
 The command sanitizes secrets and reports provider/origin/env gaps without
 printing API keys.
 
-Walrus Sites currently has a checked-in static public-verifier shell and deploy
-preflight; a live Walrus URL and full dashboard mirror remain unclaimed. See
+A Walrus Sites deploy preflight is checked in for hosting the dashboard on
+Walrus; a live Walrus URL and full dashboard mirror remain unclaimed. See
 `walrus-sites/README.md`.

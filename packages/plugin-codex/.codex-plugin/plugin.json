@@ -1,21 +1,21 @@
 {
   "name": "onemem-codex",
   "version": "0.1.2",
-  "description": "OneMem for Codex - verifiable memory tools plus optional Sui/Walrus trace hooks",
+  "description": "OneMem for Codex - decentralized memory tools (store/search/recall) encrypted on Walrus via MemWal",
   "author": {
     "name": "OneMem"
   },
   "homepage": "https://onemem.ai",
   "repository": "https://github.com/Blockchain-Oracle/onemem",
   "license": "Apache-2.0",
-  "keywords": ["memory", "trace", "codex", "mcp", "sui", "walrus", "seal", "memwal"],
+  "keywords": ["memory", "decentralized", "codex", "mcp", "sui", "walrus", "seal", "memwal"],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "OneMem",
-    "shortDescription": "Verifiable memory and trace tools for Codex",
-    "longDescription": "Save, search, and verify portable OneMem memories through MCP. Optional lifecycle hooks can buffer Codex tool calls into verifiable Sui/Walrus traces when configured and trusted.",
+    "shortDescription": "Decentralized memory tools for Codex",
+    "longDescription": "Save, search, and recall portable OneMem memories through MCP. Memories are client-side encrypted (Seal) and stored on Walrus via MemWal — the relayer never sees plaintext, and the memory is owned by you across runtimes. Optional lifecycle hooks stream readable session observations to a live local dashboard.",
     "developerName": "OneMem",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
@@ -23,7 +23,7 @@
     "defaultPrompt": [
       "Search OneMem for prior context before implementing this.",
       "Save this decision to OneMem memory.",
-      "Verify this OneMem trace session."
+      "Recall what we decided about this from OneMem."
     ],
     "brandColor": "#4F46E5"
   }

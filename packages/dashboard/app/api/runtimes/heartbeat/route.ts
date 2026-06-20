@@ -1,12 +1,12 @@
 // Runtime heartbeats.
-//   GET  → per-runtime status, merging (a) last on-chain trace activity with
-//          (b) any live process heartbeats POSTed by running plugins.
+//   GET  → per-runtime status, merging (a) last captured local-worker session
+//          activity with (b) any live process heartbeats POSTed by running plugins.
 //   POST { runtime } → record a live heartbeat (in-memory; process-local).
 //
 // Status is derived from REAL recency — never a hardcoded "online".
 
 import { type NextRequest, NextResponse } from "next/server";
-import { fetchRecentSessions } from "@/lib/trace";
+import { fetchLocalWorker, type LocalSession } from "@/lib/local-worker";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,21 +27,28 @@ function statusFor(lastMs: number, now: number): string {
 
 export async function GET() {
   const now = Date.now();
-  const onChain = new Map<string, number>();
+  const captured = new Map<string, number>();
   try {
-    for (const s of await fetchRecentSessions(100)) {
-      const name = s.environment || s.agentId || "unknown";
-      onChain.set(name, Math.max(onChain.get(name) ?? 0, s.openedAtMs));
+    const res = await fetchLocalWorker("/api/sessions");
+    if (res.ok) {
+      const data = (await res.json()) as { sessions?: LocalSession[] };
+      for (const s of data.sessions ?? []) {
+        const name = s.runtime || "unknown";
+        captured.set(name, Math.max(captured.get(name) ?? 0, s.startedAt));
+      }
     }
-  } catch {
-    // chain read failed — still report any live beats below
+  } catch (error) {
+    // worker read failed — still report any live beats below
+    console.warn(
+      `[onemem/heartbeat] local-worker sessions read failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
-  const names = new Set<string>([...onChain.keys(), ...beats.keys()]);
+  const names = new Set<string>([...captured.keys(), ...beats.keys()]);
   const runtimes = [...names].map((name) => {
-    const lastTraceMs = onChain.get(name) ?? 0;
+    const lastCaptureMs = captured.get(name) ?? 0;
     const lastBeatMs = beats.get(name) ?? 0;
-    const lastMs = Math.max(lastTraceMs, lastBeatMs);
-    return { name, lastTraceMs, lastBeatMs, lastMs, status: statusFor(lastMs, now) };
+    const lastMs = Math.max(lastCaptureMs, lastBeatMs);
+    return { name, lastCaptureMs, lastBeatMs, lastMs, status: statusFor(lastMs, now) };
   });
   return NextResponse.json({ ok: true, now, runtimes });
 }

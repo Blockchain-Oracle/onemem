@@ -1,9 +1,14 @@
 packages:
   - "packages/*"
   - "apps/*"
-  - "demos/*"
 
 onlyBuiltDependencies:
   - "@biomejs/biome"
   - "lefthook"
   - "esbuild"
+
+# Link local workspace packages even for plain version ranges (^x.y.z), so the
+# published plugins keep registry-resolvable deps (required by the structure
+# test "installable outside pnpm") while still resolving @onemem/worker +
+# @onemem/sdk-ts from the monorepo during development.
+linkWorkspacePackages: true

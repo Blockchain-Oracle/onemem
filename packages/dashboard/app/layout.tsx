@@ -5,8 +5,8 @@ import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OneMem — verifiable agent memory + trace",
-  description: "Independently verifiable on-chain traces for AI agents on Sui + Walrus + Seal.",
+  title: "OneMem — decentralized memory for your agents",
+  description: "Readable, owned memory for AI agents — stored on Walrus + Seal via MemWal.",
   icons: [{ rel: "icon", url: "/favicon.svg", type: "image/svg+xml" }],
 };
 

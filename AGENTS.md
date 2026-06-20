@@ -1,140 +1,44 @@
-# AGENTS.md
+# AGENTS.md — OneMem repo router
 
-## Project Snapshot
+## What OneMem is
+**OneMem = claude-mem + Mem0, but decentralized. Nothing else. NO trace, NO verify-as-product.**
+- **Product A — claude-mem, decentralized:** drop-in memory for coding agents (Claude Code / Codex) + a readable, *alive* local dashboard.
+- **Product B — Mem0, decentralized:** an embeddable memory SDK (`add`/`search`/…) + framework providers (Vercel AI, OpenAI Agents, CrewAI, LiveKit, ElevenLabs).
+- Decentralization = **MemWal** (`@mysten-incubation/memwal`) = Seal-encrypted blobs on Walrus + a Sui account/delegate ownership model. Users configure their own MemWal account id + delegate key.
 
-OneMem is a verifiable cross-runtime AI agent memory and action-trace layer for
-Sui, Walrus, Seal, and MemWal.
+> A reset is in progress. The agent action-trace + on-chain verify product and OneMem's custom Move contract are being **removed**; memory is stored via MemWal. Track it in `BUILD_SEQUENCE.md`.
 
-The repo is a mixed monorepo:
+## Monorepo (target after cleanup)
+- `packages/sdk-ts` — core memory SDK (MemWal + an index for CRUD/scoping); `packages/sdk-python` — Python SDK.
+- `packages/cli-ts` (`onemem`) · `packages/mcp-server` — memory CLI + stdio MCP.
+- `packages/worker` — local `127.0.0.1` daemon (SQLite + SSE) powering the live dashboard.
+- `packages/dashboard` — local Next.js dashboard (cdr-kit design system).
+- `packages/plugin-claude-code` · `plugin-codex` · `plugin-openclaw` — runtime capture.
+- `packages/provider-vercel-ai` · `provider-openai-agents` · Python providers — framework memory.
+- `apps/landing` · `apps/hosted-dashboard` · `apps/docs` (Mintlify).
+- **Removed by the reset:** `contracts/onemem/`, `services/nautilus-relayer/`, `demos/*`, and sdk-ts `traces.ts`/`seal.ts`/`walrus.ts`/namespaces (MemWal does its own Seal+Walrus).
 
-- `contracts/onemem/` — Sui Move protocol.
-- `packages/sdk-ts/` and `packages/sdk-python/` — SDKs.
-- `packages/cli-ts/` and `packages/cli-python/` — CLI surfaces.
-- `packages/mcp-server/` — stdio MCP server.
-- `packages/dashboard/` — local Next.js dashboard.
-- `apps/hosted-dashboard/` and `apps/landing/` — deployed surfaces;
-  `apps/docs/` — docs source, pending hosted-domain proof.
-- `packages/plugin-*` and `packages/provider-*` — runtime and framework integrations.
+## Working rules
+- **No improvising / no patch-patch.** Architecture-first; no dead code; full cleanup over surgical strips.
+- **PR discipline:** branch → PR → PR review toolkit (5 agents) + completion audit → merge. **No commits to `main`.**
+- **Real per-feature testing on testnet, as you build** (CLI→test CLI, SDK→test SDK, MCP→test it, Vercel→test with the real OpenAI key). Chrome DevTools for UI/mobile. **No `try/catch` masking** — find where it breaks.
+- Build on MemWal/Walrus/Seal; never fake verification. Use `ctx7` for library docs. `pnpm add`/`uv add` for versions.
+- Keep `AGENTS.md` / `CLAUDE.md` lean; detail belongs in `.thoughts/`.
 
-Before deciding what is next, read the Context Engineering wiki at
-`.thoughts/wiki/index.md`. Use
-`docs/05-our-architecture/00-overview/BUILD_SEQUENCE.md` as historical sequence
-context, not as the sole current tracker.
-
-## Working Rules
-
-- Treat the working tree as user-owned. Do not revert or delete existing changes
-  unless Abu explicitly asks.
-- Use repo patterns and package-local docs before inventing new structure.
-- For library, framework, SDK, API, CLI, or cloud-service questions, fetch current
-  docs with `ctx7` first per the parent workspace instructions.
-- For UI work, treat `/Users/abu/Downloads/One Mem 2` as prototype evidence, not
-  source code to copy blindly.
-- Keep `AGENTS.md` short. Detailed research, plans, audits, and discoveries belong
-  in `.thoughts/`.
+## Context (`.thoughts/`)
+- `plans/2026-06-19-onemem-reset-plan.md` — the approved plan.
+- `research/2026-06-19-reality-brief.md` + `research/2026-06-19-*` — grounding (decentralization stack, Mem0↔MemWal gap, claude-mem architecture, cleanup audit, docs/UX).
+- `SALVAGE-2026-06-19.md` — live deployments + operational facts; the full pre-reset history is in git commit `8a50980`.
 
 ## Commands
+`pnpm build` · `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm test:structure`
+Python: `uv run ruff check .` · `uv run pyright` · `uv run pytest -q`
 
-Core repo checks:
-
-```bash
-pnpm test:structure
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-```
-
-Python checks:
-
-```bash
-uv run ruff check .
-uv run pyright
-uv run pytest packages/sdk-python -q
-```
-
-Move checks:
-
-```bash
-cd contracts/onemem
-sui move build
-sui move test
-```
-
-## Quality Gates
-
-- Structure integrity is enforced by `pnpm test:structure`.
-- TS/JS formatting and linting use Biome.
-- TS packages typecheck with `tsc --noEmit` and build with `tsup` or Next.js.
-- Python uses Ruff, Pyright, and Pytest.
-- Move uses `sui move build` and `sui move test`.
-- Source files have a current hard cap of 400 lines in
-  `tests/structure/protocol.test.ts`.
-  Prefer refactoring before 300 lines when touching a file that is already large.
-- Product trust-path work needs real-system verification against the relevant
-  runtime, Sui testnet, Walrus, Seal, or MCP protocol, not only unit tests.
-- On Codex, UI/browser verification for local routes should use the `@chrome`
-  plugin first. A separate repo-owned browser harness is only for committed
-  regression coverage or a recorded fallback when the Chrome plugin is
-  unavailable.
-
-## Context Workflow
-
-Use Abu Context Engineering artifacts under:
-
-```text
-.thoughts/
-```
-
-Important current artifacts:
-
-- `wiki/context-engineering-status.md`
-- `quality/2026-06-17-project-quality-profile.md`
-- `prototype-discovery/2026-06-17-one-mem-2.md`
-- `plans/2026-06-17-docs-alignment-cleanup.md`
-- `plans/2026-06-17-context-engineering-setup.md`
-- `wiki/index.md`
-- `wiki/project-map.md`
-
-Use these skills when the task matches:
-
-- `abu-context-engineering:project-quality-profile` for guardrails and checks.
-- `abu-context-engineering:prototype-discovery` before implementing from a UI prototype.
-- `abu-context-engineering:research-backed-plan` before large implementation passes.
-- `abu-context-engineering:verification-audit` before claiming a feature is done.
-- `abu-context-engineering:agents-md-author` when changing instruction files.
-- `abu-context-engineering:handoff-compaction` before long pauses or handoffs.
-
-## Subagent Lanes
-
-Subagents are useful when the work can be split into independent lanes:
-
-- Protocol and SDK verification.
-- Dashboard/prototype gap audit.
-- Docs and landing copy audit.
-- Runtime/provider smoke testing.
-- CI and package release checks.
-
-Give each subagent a narrow question or disjoint file ownership. Do not have two
-agents edit the same package at the same time.
-
-## Directory-Specific Context
-
-Read the closest specialized context before editing:
-
-- `contracts/onemem/CLAUDE.md`
-- `packages/sdk-ts/CLAUDE.md`
-- `packages/dashboard/CLAUDE.md`
-- `packages/plugin-claude-code/skills/onemem-claude-code/SKILL.md`
-
-## Do Not
-
-- Do not put long specs, research, or plans into `AGENTS.md`.
-- Do not copy static prototype HTML/CSS into Next.js without translating it into
-  the target package architecture.
-- Do not fake chain, Walrus, Seal, MCP, or runtime verification.
-- Do not hardcode dependency versions from memory.
-
+## Do not
+- Re-add trace / verify-as-product (Abu rejected it).
+- Fake chain, Walrus, Seal, MCP, runtime, or browser verification.
+- Batch testing to the end; swallow errors in `try/catch`.
+- Commit to `main`; hardcode dependency versions.
 
 <claude-mem-context>
 # Memory Context

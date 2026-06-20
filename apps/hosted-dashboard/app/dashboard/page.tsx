@@ -1,36 +1,18 @@
 "use client";
 
-// /dashboard — the hosted hub. Public verify remains accountless; account-owned
-// actions are gated on the real wallet/Enoki account exposed by dApp Kit.
+// /dashboard — the hosted hub. Account-owned actions are gated on the real
+// wallet/Enoki account exposed by dApp Kit.
 
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
-import { useEffect, useState } from "react";
 import { useHostedAuthConfig } from "@/components/HostedProviders";
 import { Icon } from "@/components/Icon";
-import { type HostedProvisioningState, loadHostedProvisioningState } from "@/lib/hosted-state";
-
-const SAMPLE_TRACE_SESSION_ID =
-  "0x6ceaab0fe2961043d490326960dfd192e43c25ed655772d42c04c265ad3ec080";
 
 const SURFACES: { href: string; icon: string; title: string; blurb: string }[] = [
   {
-    href: "/dashboard",
-    icon: "overview",
-    title: "Overview",
-    blurb: "Hosted account hub and route index",
-  },
-  {
-    href: `/verify/${SAMPLE_TRACE_SESSION_ID}`,
-    icon: "shield",
-    title: "Public verifier",
-    blurb: "No-login Merkle proof for a real testnet trace",
-  },
-  { href: "/share", icon: "share", title: "Share", blurb: "Capabilities + share links" },
-  {
-    href: "/onboarding",
+    href: "/cli-login",
     icon: "key",
-    title: "Onboarding",
-    blurb: "Provision hosted account state",
+    title: "CLI pairing",
+    blurb: "Pair a terminal with a MemWal delegate key",
   },
   {
     href: "/login",
@@ -47,15 +29,6 @@ function shortAddress(address: string): string {
 export default function HostedDashboardRoot() {
   const account = useCurrentAccount();
   const authConfig = useHostedAuthConfig();
-  const [provisioningState, setProvisioningState] = useState<HostedProvisioningState | null>(null);
-
-  useEffect(() => {
-    if (!account?.address) {
-      setProvisioningState(null);
-      return;
-    }
-    setProvisioningState(loadHostedProvisioningState(account.address, authConfig.defaultNetwork));
-  }, [account?.address, authConfig.defaultNetwork]);
 
   return (
     <main className="container" style={{ maxWidth: 920, padding: "56px 24px" }}>
@@ -66,7 +39,7 @@ export default function HostedDashboardRoot() {
         </span>
       </div>
       <p className="muted" style={{ marginBottom: 24 }}>
-        Your verifiable memory + trace surfaces.
+        Your decentralized memory account.
       </p>
 
       {!account ? (
@@ -83,34 +56,27 @@ export default function HostedDashboardRoot() {
         >
           <Icon name="lock" size={18} />
           <span className="muted" style={{ flex: 1 }}>
-            Connect an account to act on your own namespaces and delegate keys. Browsing and public
-            verification work without an account.
+            Connect an account to manage your MemWal delegate keys.
           </span>
           <ConnectButton className="btn btn-primary" connectText="Connect" />
         </div>
       ) : (
-        <div className="verify-mini ok" style={{ marginBottom: 24 }}>
-          <span className="vm-ic">
+        <div className="status-pill ok" style={{ marginBottom: 24 }}>
+          <span className="sp-ic">
             <Icon name="check" size={16} />
           </span>
           <span>
-            Connected account <span className="mono">{shortAddress(account.address)}</span>.{" "}
-            {provisioningState
-              ? `Hosted namespace ${shortAddress(provisioningState.namespaceId)} is provisioned on ${provisioningState.network}.`
-              : "Hosted provisioning is still pending; finish onboarding before minting capabilities."}
+            Connected account <span className="mono">{shortAddress(account.address)}</span>.
           </span>
         </div>
       )}
 
       {!authConfig.enokiConfigured ? (
-        <div className="verify-mini" style={{ marginBottom: 24 }}>
-          <span className="vm-ic">
+        <div className="status-pill" style={{ marginBottom: 24 }}>
+          <span className="sp-ic">
             <Icon name="info" size={16} />
           </span>
-          <span>
-            Google sign-in is not enabled yet. Wallet connect and public verification remain
-            available.
-          </span>
+          <span>Google sign-in is not enabled yet. Wallet connect remains available.</span>
         </div>
       ) : null}
 

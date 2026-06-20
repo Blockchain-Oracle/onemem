@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 import {
-  bufferToolCall,
+  captureEnabled,
   postWorker,
   preview,
   readHookInput,
-  readSessionState,
   sessionIdFromInput,
   toolOutputFromInput,
-  traceCaptureEnabled,
   writeCodexOutput,
 } from "./onemem-lib.mjs";
 
@@ -18,7 +16,7 @@ async function main() {
   const sessionId = sessionIdFromInput(input);
   const toolName = input.tool_name;
   if (!sessionId || !toolName) return;
-  if (!traceCaptureEnabled("codex")) return;
+  if (!captureEnabled("codex")) return;
 
   await postWorker("/api/sessions/observations", {
     sessionId,
@@ -27,17 +25,6 @@ async function main() {
     toolNamespace: "codex",
     inputPreview: preview(input.tool_input),
     outputPreview: preview(toolOutputFromInput(input)),
-  });
-
-  if (!readSessionState(sessionId)) return;
-
-  bufferToolCall(sessionId, {
-    toolUseId: input.tool_use_id ?? null,
-    toolName,
-    toolNamespace: "codex",
-    toolInput: input.tool_input ?? null,
-    toolResponse: toolOutputFromInput(input),
-    toolError: input.tool_error ?? null,
   });
 }
 

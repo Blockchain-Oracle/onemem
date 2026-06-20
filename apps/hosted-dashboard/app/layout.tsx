@@ -7,7 +7,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "OneMem",
-  description: "Verifiable AI agent memory + action traces — verify any session on-chain.",
+  description:
+    "Decentralized AI agent memory — encrypted on Walrus with Seal via MemWal, owned by you.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -1,11 +1,11 @@
-"""onemem-livekit — record LiveKit voice-agent sessions as verifiable on-chain
-OneMem traces.
+"""onemem-livekit — decentralized memory for LiveKit voice agents (on MemWal).
 
-    from livekit.agents import AgentSession
-    from onemem_livekit import OneMemTracer
+    from onemem_livekit import create_onemem_memory
 
-    session = AgentSession(...)
-    OneMemTracer(agent_id="voice-bot").attach(session)  # auto-flushes on close
+    mem = create_onemem_memory(namespace="voice-bot")
+    context = mem.recall_context(user_turn)   # search -> inject
+    # ... run the agent with `context` ...
+    mem.capture(exchange)                      # store the exchange
 
 Spec: docs/05-our-architecture/04-frameworks/livekit-voice-provider.md
 """
@@ -13,7 +13,6 @@ Spec: docs/05-our-architecture/04-frameworks/livekit-voice-provider.md
 from __future__ import annotations
 
 from .memory import create_onemem_memory
-from .tracer import OneMemTracer
 
 __version__ = "0.1.1"
-__all__ = ["OneMemTracer", "create_onemem_memory"]
+__all__ = ["create_onemem_memory"]

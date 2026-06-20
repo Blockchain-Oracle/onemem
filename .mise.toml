@@ -1,5 +1,8 @@
 [tools]
-node = "20.18.0"
+# Node 24: stable, unflagged `node:sqlite` (the local worker + memory index use
+# it). Node 20.18 lacks node:sqlite (ERR_UNKNOWN_BUILTIN_MODULE), so it never
+# actually ran the worker/index at runtime.
+node = "24"
 pnpm = "10.33.0"
 python = "3.12"
 uv = "latest"
