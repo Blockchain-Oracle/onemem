@@ -61,8 +61,10 @@ Update the checkboxes as work lands. Pause for Abu at major phase transitions.
 - [x] dashboard tsc + 11 tests + next build green; Chrome DevTools browser-verified — cards render, ZERO console errors (no hydration error), mobile 390px responsive
 - [ ] (polish, deferred w/ reason) browser-favicon spin (in-feed badge spinner shipped); Sui-gas-RPC cost meter (honest blob-count meter shipped); remove unused deps (radix/react-query/swr/tailwind) — cleanup, no functional impact
 
-### 3E — Phase 3 verification + completion audit + PR
-- [ ] full green; completion audit (no silent cuts); stacked PR on `reset/phase-0-foundation`. (Ultra review due after Phase 4.)
+### 3E — Phase 3 verification + completion audit + PR ✅ (PR #3)
+- [x] full repo green: typecheck 12/12, tests 13/13, structure 168/0, build 10/10, lint clean; Python ruff/pyright/pytest(46) green
+- [x] completion audit in the PR body (delivered vs planned, deferrals named); stacked PR #3 on `reset/phase-0-foundation`
+- [ ] Abu spot-check: a true in-editor Claude Code / Codex live session (hooks were driven programmatically with real payloads + real Codex backend + real MemWal testnet). Ultra review due after Phase 4.
 
 ### Deferred from the pre-Phase-3 fix pass (review findings, intentionally NOT fixed yet)
 These were triaged during the pre-Phase-3 ultra-review fix pass and deferred on purpose; revisit during Phase 3 SDK/dashboard work:
