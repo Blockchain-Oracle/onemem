@@ -9,6 +9,7 @@ import { type ObserverBackend, runObserverOnce } from "./observer.js";
 import { selectObserverBackend } from "./observer-backends.js";
 import { createWorkerServer, type WorkerServer } from "./server.js";
 import { WorkerStore } from "./store.js";
+import { runSummaryOnce } from "./summarizer.js";
 
 export * from "./observer.js";
 export {
@@ -19,6 +20,7 @@ export {
 export type { WorkerServer, WorkerServerOptions } from "./server.js";
 export { createWorkerServer } from "./server.js";
 export * from "./store.js";
+export * from "./summarizer.js";
 
 export interface WorkerLogger {
   info(message: string): void;
@@ -85,10 +87,16 @@ function startObserverLoop(
         broadcast: server.broadcast,
         batchSize,
       });
-      schedule(result === null ? intervalMs : 0); // greedy drain, else idle
+      if (result !== null) {
+        schedule(0); // drained an event batch; check for more immediately
+        return;
+      }
+      // No pending events — summarize a closed session that still needs one.
+      const summary = await runSummaryOnce({ store, backend, broadcast: server.broadcast });
+      schedule(summary ? 0 : intervalMs);
     } catch (err) {
       logger.warn(`[observer] ${err instanceof Error ? err.message : String(err)}`);
-      schedule(intervalMs * 5); // back off on error; the batch stays pending
+      schedule(intervalMs * 5); // back off on error; work stays pending/un-summarized
     }
   }
 

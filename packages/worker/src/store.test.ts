@@ -138,6 +138,22 @@ describe("WorkerStore — session summaries", () => {
     expect(latest?.nextSteps).toBe("Wire the loop");
     store.close();
   });
+
+  it("finds a closed session with observations but no summary", () => {
+    const store = new WorkerStore(":memory:");
+    store.initSession({ id: "open1", runtime: "claude-code", startedAt: 1 });
+    store.addObservation({ sessionId: "open1", type: "feature", title: "T", narrative: "N" });
+    expect(store.findSessionNeedingSummary()).toBeNull(); // still open
+
+    store.initSession({ id: "done1", runtime: "claude-code", startedAt: 2 });
+    store.addObservation({ sessionId: "done1", type: "bugfix", title: "T2", narrative: "N2" });
+    store.endSession("done1", 3);
+    expect(store.findSessionNeedingSummary()).toBe("done1");
+
+    store.addSummary({ sessionId: "done1", request: "r" });
+    expect(store.findSessionNeedingSummary()).toBeNull(); // summarized now
+    store.close();
+  });
 });
 
 describe("WorkerStore — user prompts", () => {

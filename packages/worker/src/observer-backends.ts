@@ -10,7 +10,7 @@ import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { OBSERVATION_SCHEMA, type ObserverBackend } from "./observer.js";
+import type { ObserverBackend } from "./observer.js";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 
@@ -69,13 +69,10 @@ export class CodexBackend implements ObserverBackend {
     return commandExists("codex");
   }
 
-  async compress(prompt: string): Promise<string> {
+  async compress(prompt: string, schema?: Record<string, unknown>): Promise<string> {
     const dir = await mkdtemp(join(tmpdir(), "onemem-observer-"));
     try {
-      const schemaPath = join(dir, "schema.json");
       const outPath = join(dir, "out.json");
-      await writeFile(schemaPath, JSON.stringify(OBSERVATION_SCHEMA), "utf8");
-
       const args = [
         "exec",
         "--skip-git-repo-check",
@@ -83,11 +80,14 @@ export class CodexBackend implements ObserverBackend {
         "read-only",
         "--ephemeral",
         "--ignore-user-config",
-        "--output-schema",
-        schemaPath,
         "-o",
         outPath,
       ];
+      if (schema) {
+        const schemaPath = join(dir, "schema.json");
+        await writeFile(schemaPath, JSON.stringify(schema), "utf8");
+        args.push("--output-schema", schemaPath); // forces exact structured JSON
+      }
       if (this.model) args.push("-m", this.model);
       args.push("-"); // read the prompt from stdin
 
@@ -118,7 +118,8 @@ export class KeyBackend implements ObserverBackend {
     return Boolean(this.apiKey);
   }
 
-  async compress(prompt: string): Promise<string> {
+  // schema is advisory here — JSON mode + the prompt's schema text guide the model.
+  async compress(prompt: string, _schema?: Record<string, unknown>): Promise<string> {
     const res = await fetch(`${this.baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${this.apiKey}` },

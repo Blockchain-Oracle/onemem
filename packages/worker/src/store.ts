@@ -657,6 +657,20 @@ export class WorkerStore {
     return row ? rowToSummary(row) : null;
   }
 
+  /** A closed session that has observations but no summary yet (drives the summarizer). */
+  findSessionNeedingSummary(): string | null {
+    const row = this.db
+      .prepare(
+        `SELECT s.id FROM sessions s
+         WHERE s.status = 'closed'
+           AND EXISTS (SELECT 1 FROM observations o WHERE o.session_id = s.id)
+           AND NOT EXISTS (SELECT 1 FROM summaries su WHERE su.session_id = s.id)
+         ORDER BY s.ended_at ASC, s.id ASC LIMIT 1`,
+      )
+      .get() as { id: string } | undefined;
+    return row ? row.id : null;
+  }
+
   addPrompt(input: AddPromptInput): Prompt {
     const createdAt = input.createdAt ?? Date.now();
     const next = this.db

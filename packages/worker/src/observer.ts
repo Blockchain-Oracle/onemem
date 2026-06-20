@@ -91,8 +91,8 @@ export interface ParsedObservation {
 export interface ObserverBackend {
   readonly name: string;
   available(): Promise<boolean>;
-  /** Compress the prompt → a JSON string matching OBSERVATION_SCHEMA (or empty/idle). */
-  compress(prompt: string): Promise<string>;
+  /** Compress the prompt → a JSON string matching `schema` (or empty/idle output). */
+  compress(prompt: string, schema?: Record<string, unknown>): Promise<string>;
 }
 
 export interface ObserverDeps {
@@ -156,7 +156,7 @@ function stripFence(raw: string): string {
   return fenced?.[1] ?? raw;
 }
 
-function extractJson(raw: string): unknown {
+export function extractJson(raw: string): unknown {
   const candidate = stripFence(raw).trim();
   if (!candidate) return null;
   try {
@@ -264,7 +264,10 @@ export async function runObserverOnce(deps: ObserverDeps): Promise<ObserverRunRe
 
   const prompt = buildObserverPrompt(batch.events);
   // Let backend errors propagate — the batch stays pending so it can be retried.
-  const raw = await backend.compress(prompt);
+  const raw = await backend.compress(
+    prompt,
+    OBSERVATION_SCHEMA as unknown as Record<string, unknown>,
+  );
   const parsed = parseObserverOutput(raw);
 
   const observations: Observation[] = [];
