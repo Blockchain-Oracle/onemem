@@ -61,7 +61,10 @@ Update the checkboxes as work lands. Pause for Abu at major phase transitions.
 - [x] dashboard tsc + 11 tests + next build green; Chrome DevTools browser-verified — cards render, ZERO console errors (no hydration error), mobile 390px responsive
 - [x] (Abu trust feedback, commit a1391c1) per-memory **Walrus explorer links** (walruscan.com/<network>/blob/<id>) + **honest 3-state badge** (◆ Walrus ↗ stored / ⋯ saving to Walrus / none) + **feed search**; worker resolves the REAL blob id via detached rememberAndWait + `/health` `durable` flag. Browser-verified.
 - [ ] (polish, deferred w/ reason) browser-favicon spin (in-feed badge spinner shipped); Sui-gas-RPC cost meter (honest blob-count meter shipped); remove unused deps (radix/react-query/swr/tailwind) — cleanup, no functional impact
+- [x] (Abu feedback, commit fcf14d1) topbar **project selector** replacing the dead "no namespace OWNER"; end-to-end honesty audit (Overview/Integrations/Settings all REAL — browser-verified, 0 console errors); trust-model copy fix
+- [x] **3F durable upload reconciler** (commit 75a12b8) — explorer links now resolve RELIABLY: `write()`→jobId persisted in SQLite → 15s reconcile loop polls `getRememberStatus` → backfills real Walrus blob id (survives slow uploads + restarts). Real e2e on the live relayer (blob QaQ_2HYR… resolved). Addresses the "stuck saving / no link" gap.
 - [ ] hosted dashboard (port 4050) is a stale placeholder — intentionally untouched now; address in Phase 6 (deploy)
+- [ ] NOTE for Abu: rebuild + restart your live worker (`pnpm --filter @onemem/worker build`) + dashboard so the new durable/explorer/reconciler code runs (the old running worker predates it)
 
 ### 3E — Phase 3 verification + completion audit + PR ✅ (PR #3)
 - [x] full repo green: typecheck 12/12, tests 13/13, structure 168/0, build 10/10, lint clean; Python ruff/pyright/pytest(46) green
