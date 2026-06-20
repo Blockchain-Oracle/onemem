@@ -20,16 +20,27 @@ export interface DurableHit {
   readonly blobId: string;
 }
 
+/** State of a durable (Walrus) write job, polled from the relayer. */
+export type DurableJobState = "pending" | "done" | "failed";
+
+export interface DurableJobStatus {
+  readonly state: DurableJobState;
+  /** The real Walrus blob id — present only when state === "done". */
+  readonly blobId?: string;
+}
+
 /** A pluggable durable store so the worker loop is testable with a fake. */
 export interface DurableStore {
   available(): boolean;
   /**
-   * Store text under a namespace and resolve to the REAL Walrus blob id once the
-   * relayer (TEE) finishes uploading. Callers fire this detached (the upload
-   * takes 1-3 min) and backfill the blob id so the dashboard can deep-link to
-   * the Walrus explorer for that memory.
+   * Enqueue a durable write; returns the relayer job id in ~1s (the TEE finishes
+   * the Walrus upload over the next 1-3 min). The reconciler polls `status` and
+   * backfills the real blob id once the job is done — so an explorer link only
+   * ever appears for a blob that genuinely exists.
    */
-  writeAndWait(text: string, namespace: string): Promise<string>;
+  write(text: string, namespace: string): Promise<string>;
+  /** Poll a write job's status (drives the reconciler). */
+  status(jobId: string): Promise<DurableJobStatus>;
   /** Semantic recall within a namespace. */
   recall(query: string, namespace: string, limit: number): Promise<DurableHit[]>;
 }
@@ -84,11 +95,11 @@ export function resolveDurableConfig(
 // Minimal structural type for the MemWal main client (lazy-imported to avoid
 // loading @mysten/seal + @mysten/sui unless durable storage is actually used).
 interface MemWalClient {
-  rememberAndWait(
-    text: string,
-    namespace?: string,
-    opts?: { timeoutMs?: number },
-  ): Promise<{ blob_id: string; owner: string; namespace: string }>;
+  remember(text: string, namespace?: string): Promise<{ job_id: string; status: string }>;
+  getRememberStatus(jobId: string): Promise<{
+    status: "pending" | "running" | "uploaded" | "done" | "failed" | "not_found";
+    blob_id?: string;
+  }>;
   recall(params: { query: string; limit?: number; namespace?: string }): Promise<{
     results: { blob_id: string; text: string; distance: number }[];
     total: number;
@@ -116,13 +127,20 @@ export class MemWalDurableStore implements DurableStore {
     return this.client;
   }
 
-  async writeAndWait(text: string, namespace: string): Promise<string> {
-    // Resolves once the relayer TEE has embedded + Seal-encrypted + uploaded to
-    // Walrus, returning the real blob id (for the explorer deep-link).
-    const result = await (await this.memwal()).rememberAndWait(text, namespace, {
-      timeoutMs: 240_000,
-    });
-    return result.blob_id;
+  async write(text: string, namespace: string): Promise<string> {
+    // Returns a job id in ~1s; the TEE finishes the Walrus upload in the
+    // background. The reconciler resolves the real blob id via status().
+    const accepted = await (await this.memwal()).remember(text, namespace);
+    return accepted.job_id;
+  }
+
+  async status(jobId: string): Promise<DurableJobStatus> {
+    const s = await (await this.memwal()).getRememberStatus(jobId);
+    if ((s.status === "done" || s.status === "uploaded") && s.blob_id) {
+      return { state: "done", blobId: s.blob_id };
+    }
+    if (s.status === "failed" || s.status === "not_found") return { state: "failed" };
+    return { state: "pending" };
   }
 
   async recall(query: string, namespace: string, limit: number): Promise<DurableHit[]> {

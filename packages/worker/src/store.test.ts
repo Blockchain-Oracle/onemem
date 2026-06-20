@@ -201,3 +201,35 @@ describe("WorkerStore — sessions", () => {
     store.close();
   });
 });
+
+describe("WorkerStore — durable job tracking (reconciler)", () => {
+  it("tracks a pending durable job and clears it once the Walrus blob lands", () => {
+    const store = new WorkerStore(":memory:");
+    store.initSession({ id: "s", runtime: "claude-code" });
+    const o = store.addObservation({ sessionId: "s", type: "feature", title: "T", narrative: "n" });
+
+    expect(store.findPendingDurable(10)).toHaveLength(0); // no job yet
+    store.setObservationJob(o.id, "job-1");
+    expect(store.findPendingDurable(10)).toEqual([
+      { kind: "observation", id: o.id, jobId: "job-1" },
+    ]);
+
+    store.setObservationBlob(o.id, "blobX"); // blob lands → no longer pending
+    expect(store.findPendingDurable(10)).toHaveLength(0);
+    expect(store.getObservation(o.id)?.blobId).toBe("blobX");
+    store.close();
+  });
+
+  it("tracks pending summaries and drops a job on failure (null clears it)", () => {
+    const store = new WorkerStore(":memory:");
+    store.initSession({ id: "s", runtime: "claude-code" });
+    const sum = store.addSummary({ sessionId: "s", request: "r" });
+    store.setSummaryJob(sum.id, "job-2");
+    expect(store.findPendingDurable(10)).toEqual([{ kind: "summary", id: sum.id, jobId: "job-2" }]);
+
+    store.setSummaryJob(sum.id, null); // failed → drop from pending, no blob claimed
+    expect(store.findPendingDurable(10)).toHaveLength(0);
+    expect(store.getSummary(sum.id)?.blobId).toBeNull();
+    store.close();
+  });
+});

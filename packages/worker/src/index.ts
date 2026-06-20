@@ -15,6 +15,7 @@ import {
 } from "./durable.js";
 import { type ObserverBackend, type ObserverRunResult, runObserverOnce } from "./observer.js";
 import { selectObserverBackend } from "./observer-backends.js";
+import { runReconcileOnce } from "./reconciler.js";
 import { createWorkerServer, type WorkerServer } from "./server.js";
 import type { Summary, WorkerStore as WorkerStoreType } from "./store.js";
 import { WorkerStore } from "./store.js";
@@ -27,6 +28,7 @@ export {
   KeyBackend,
   selectObserverBackend,
 } from "./observer-backends.js";
+export * from "./reconciler.js";
 export type { WorkerServer, WorkerServerOptions } from "./server.js";
 export { createWorkerServer } from "./server.js";
 export * from "./store.js";
@@ -54,6 +56,7 @@ export interface StartWorkerOptions {
   readonly durableStore?: DurableStore | null;
   readonly observerIntervalMs?: number;
   readonly observerBatchSize?: number;
+  readonly reconcilerIntervalMs?: number;
 }
 
 export interface RunningWorker {
@@ -72,15 +75,15 @@ const defaultLogger: WorkerLogger = {
 };
 
 /**
- * Durably store each fresh observation on MemWal and backfill the REAL Walrus
- * blob id (for the explorer deep-link). Detached/best-effort: the Walrus upload
- * takes 1-3 min, so we never block the observer loop on it.
+ * Enqueue each fresh observation for durable MemWal storage and record the job
+ * id. Detached/best-effort (remember() returns in ~1s); the reconciler later
+ * backfills the REAL Walrus blob id from the job id — so a slow upload or a
+ * restart can't lose the link.
  */
 function persistObservationsDurably(
   result: ObserverRunResult,
   store: WorkerStoreType,
   durable: DurableStore,
-  server: WorkerServer,
   logger: WorkerLogger,
 ): void {
   const session = store.getSession(result.sessionId);
@@ -88,11 +91,8 @@ function persistObservationsDurably(
   for (const obs of result.observations) {
     if (obs.blobId) continue;
     void durable
-      .writeAndWait(observationText(obs), namespace)
-      .then((blobId) => {
-        store.setObservationBlob(obs.id, blobId);
-        server.broadcast("observation_stored", { id: obs.id, blobId });
-      })
+      .write(observationText(obs), namespace)
+      .then((jobId) => store.setObservationJob(obs.id, jobId))
       .catch((err) =>
         logger.warn(
           `[durable] observation ${obs.id}: ${err instanceof Error ? err.message : String(err)}`,
@@ -101,28 +101,57 @@ function persistObservationsDurably(
   }
 }
 
-/** Durably store a fresh summary on MemWal and backfill its Walrus blob id. Detached. */
+/** Enqueue a fresh summary for durable storage and record its job id. Detached. */
 function persistSummaryDurably(
   summary: Summary,
   store: WorkerStoreType,
   durable: DurableStore,
-  server: WorkerServer,
   logger: WorkerLogger,
 ): void {
   if (summary.blobId) return;
   const session = store.getSession(summary.sessionId);
   const namespace = projectNamespace(session?.project);
   void durable
-    .writeAndWait(summaryText(summary), namespace)
-    .then((blobId) => {
-      store.setSummaryBlob(summary.id, blobId);
-      server.broadcast("summary_stored", { id: summary.id, blobId });
-    })
+    .write(summaryText(summary), namespace)
+    .then((jobId) => store.setSummaryJob(summary.id, jobId))
     .catch((err) =>
       logger.warn(
         `[durable] summary ${summary.id}: ${err instanceof Error ? err.message : String(err)}`,
       ),
     );
+}
+
+/**
+ * The reconciler loop: poll in-flight durable jobs and backfill the real Walrus
+ * blob id once each lands (broadcasting observation_stored/summary_stored). This
+ * is what makes the explorer link reliably appear; it survives restarts because
+ * the job id is persisted in SQLite.
+ */
+function startReconcileLoop(
+  store: WorkerStore,
+  server: WorkerServer,
+  durable: DurableStore,
+  logger: WorkerLogger,
+  intervalMs: number,
+): () => void {
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  async function tick(): Promise<void> {
+    if (stopped) return;
+    try {
+      await runReconcileOnce({ store, durable, broadcast: server.broadcast });
+    } catch (err) {
+      logger.warn(`[reconciler] ${err instanceof Error ? err.message : String(err)}`);
+    }
+    if (!stopped) timer = setTimeout(() => void tick(), intervalMs);
+  }
+
+  timer = setTimeout(() => void tick(), intervalMs);
+  return () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
+  };
 }
 
 /**
@@ -159,16 +188,15 @@ function startObserverLoop(
         batchSize,
       });
       if (result !== null) {
-        // Fire-and-forget: backfills real Walrus blob ids without blocking the loop.
-        if (durable?.available())
-          persistObservationsDurably(result, store, durable, server, logger);
+        // Fire-and-forget: enqueue durable writes without blocking the loop.
+        if (durable?.available()) persistObservationsDurably(result, store, durable, logger);
         schedule(0); // drained an event batch; check for more immediately
         return;
       }
       // No pending events — summarize a closed session that still needs one.
       const summary = await runSummaryOnce({ store, backend, broadcast: server.broadcast });
       if (summary && durable?.available()) {
-        persistSummaryDurably(summary, store, durable, server, logger);
+        persistSummaryDurably(summary, store, durable, logger);
       }
       schedule(summary ? 0 : intervalMs);
     } catch (err) {
@@ -224,6 +252,18 @@ export async function startWorker(opts: StartWorkerOptions = {}): Promise<Runnin
     logger.warn("[worker] no observer backend available — raw capture only (no compression)");
   }
 
+  // Reconciler: backfills real Walrus blob ids for in-flight durable writes.
+  let stopReconciler: (() => void) | null = null;
+  if (durable?.available()) {
+    stopReconciler = startReconcileLoop(
+      store,
+      server,
+      durable,
+      logger,
+      opts.reconcilerIntervalMs ?? 15_000,
+    );
+  }
+
   return {
     host,
     port,
@@ -233,6 +273,7 @@ export async function startWorker(opts: StartWorkerOptions = {}): Promise<Runnin
     durable: durable ?? null,
     async stop() {
       stopObserver?.();
+      stopReconciler?.();
       await server.close();
       store.close();
     },

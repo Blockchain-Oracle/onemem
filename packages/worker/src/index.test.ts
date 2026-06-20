@@ -25,7 +25,8 @@ const fakeBackend: ObserverBackend = {
 
 const fakeDurable: DurableStore = {
   available: () => true,
-  writeAndWait: async () => "blobFake123",
+  write: async () => "job-1",
+  status: async () => ({ state: "done", blobId: "blobFake123" }),
   recall: async () => [{ text: "Past work: built the observer", distance: 0.2, blobId: "b1" }],
 };
 
@@ -120,6 +121,7 @@ describe("startWorker", () => {
         observerBackend: fakeBackend,
         durableStore: fakeDurable,
         observerIntervalMs: 20,
+        reconcilerIntervalMs: 20,
       });
       const base = `http://${worker.host}:${worker.port}`;
       await fetch(`${base}/api/sessions/init`, {

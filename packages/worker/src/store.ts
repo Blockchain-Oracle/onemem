@@ -261,9 +261,11 @@ CREATE TABLE IF NOT EXISTS observations (
   files_modified TEXT NOT NULL DEFAULT '[]',
   content_hash TEXT NOT NULL UNIQUE,
   blob_id TEXT,
+  job_id TEXT,
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_obs_session ON observations(session_id, seq);
+CREATE INDEX IF NOT EXISTS idx_obs_pending ON observations(job_id, blob_id);
 CREATE TABLE IF NOT EXISTS summaries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   session_id TEXT NOT NULL,
@@ -275,9 +277,11 @@ CREATE TABLE IF NOT EXISTS summaries (
   notes TEXT,
   content_hash TEXT NOT NULL UNIQUE,
   blob_id TEXT,
+  job_id TEXT,
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_sum_session ON summaries(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_sum_pending ON summaries(job_id, blob_id);
 CREATE TABLE IF NOT EXISTS prompts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   session_id TEXT NOT NULL,
@@ -556,7 +560,14 @@ export class WorkerStore {
   }
 
   setObservationBlob(id: number, blobId: string): void {
-    this.db.prepare("UPDATE observations SET blob_id = ? WHERE id = ?").run(blobId, id);
+    this.db
+      .prepare("UPDATE observations SET blob_id = ?, job_id = NULL WHERE id = ?")
+      .run(blobId, id);
+  }
+
+  /** Set (or clear, with null) the in-flight durable job id for an observation. */
+  setObservationJob(id: number, jobId: string | null): void {
+    this.db.prepare("UPDATE observations SET job_id = ? WHERE id = ?").run(jobId, id);
   }
 
   getObservation(id: number): Observation | null {
@@ -632,7 +643,28 @@ export class WorkerStore {
   }
 
   setSummaryBlob(id: number, blobId: string): void {
-    this.db.prepare("UPDATE summaries SET blob_id = ? WHERE id = ?").run(blobId, id);
+    this.db.prepare("UPDATE summaries SET blob_id = ?, job_id = NULL WHERE id = ?").run(blobId, id);
+  }
+
+  /** Set (or clear, with null) the in-flight durable job id for a summary. */
+  setSummaryJob(id: number, jobId: string | null): void {
+    this.db.prepare("UPDATE summaries SET job_id = ? WHERE id = ?").run(jobId, id);
+  }
+
+  /**
+   * Observations + summaries with a durable job in flight (job_id set, blob_id
+   * not yet resolved) — the reconciler polls these and backfills the blob id.
+   */
+  findPendingDurable(limit = 50): { kind: "observation" | "summary"; id: number; jobId: string }[] {
+    const rows = this.db
+      .prepare(
+        `SELECT 'observation' AS kind, id, job_id FROM observations WHERE job_id IS NOT NULL AND blob_id IS NULL
+         UNION ALL
+         SELECT 'summary' AS kind, id, job_id FROM summaries WHERE job_id IS NOT NULL AND blob_id IS NULL
+         LIMIT ?`,
+      )
+      .all(limit) as unknown as { kind: "observation" | "summary"; id: number; job_id: string }[];
+    return rows.map((r) => ({ kind: r.kind, id: r.id, jobId: r.job_id }));
   }
 
   getSummary(id: number): Summary | null {
