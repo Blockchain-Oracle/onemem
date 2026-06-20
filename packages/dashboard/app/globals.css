@@ -5,7 +5,7 @@
 @import "../styles/cdr-cards.css";
 @import "../styles/onemem.css";
 @import "../styles/dash.css";
-@import "../styles/trace.css";
+@import "../styles/mem.css";
 
 /* A late-injected reset (`body{background:#fff;color:#000}`) ships in the bundle
    and would otherwise pin the page to light. Re-assert the themed surface so

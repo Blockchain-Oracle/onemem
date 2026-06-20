@@ -1,0 +1,252 @@
+/* OneMem memory feed — readable, alive card stack (Product A local dashboard).
+   Uses cdr-kit tokens from cdr-tokens.css; no hardcoded brand hex. */
+
+.mem-feed {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 4px 64px;
+}
+
+.mem-feed-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+.mem-feed-head h2 {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 650;
+  color: var(--ink);
+  margin: 0;
+}
+.mem-feed-sub {
+  color: var(--ink-2);
+  font-size: 13px;
+  margin: 4px 0 0;
+  max-width: 52ch;
+}
+.mem-feed-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.mem-select {
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--card);
+  border: 1px solid var(--primary-line);
+  border-radius: var(--r-sm);
+  padding: 4px 8px;
+}
+
+.mem-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  border-top: 1px solid var(--paper-3);
+  border-bottom: 1px solid var(--paper-3);
+  padding: 8px 2px;
+  margin-bottom: 16px;
+}
+
+.mem-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mem-card {
+  background: var(--card);
+  border: 1px solid var(--paper-3);
+  border-left: 3px solid var(--ink-3);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-1);
+  padding: 14px 16px;
+  animation: om-row-in 0.25s var(--ease, ease) both;
+}
+.mem-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.mem-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-2);
+}
+.mem-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-3);
+  font-size: 11px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.mem-stored {
+  color: var(--signal);
+  font-weight: 600;
+}
+.mem-title {
+  font-family: var(--display);
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 2px 0;
+  line-height: 1.35;
+}
+.mem-subtitle {
+  color: var(--ink-2);
+  font-size: 13px;
+  margin: 2px 0 8px;
+}
+.mem-narrative {
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 6px 0 0;
+}
+.mem-facts {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.mem-facts li {
+  margin: 2px 0;
+}
+
+.mem-toggle {
+  display: inline-flex;
+  gap: 2px;
+  margin: 8px 0 2px;
+  background: var(--paper-2);
+  border-radius: var(--r-sm);
+  padding: 2px;
+}
+.mem-toggle button {
+  font: inherit;
+  font-size: 11px;
+  color: var(--ink-3);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.mem-toggle button.on {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--sh-1);
+}
+
+.mem-card-foot {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--paper-3);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mem-files {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-3);
+}
+.mem-files code {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--paper-2);
+  color: var(--ink-2);
+}
+.mem-files code.modified {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+.mem-concepts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.mem-concepts span {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--ink-3);
+  border: 1px solid var(--paper-3);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+/* Per-type left accent */
+.mem-card.t-bugfix { border-left-color: var(--danger); }
+.mem-card.t-feature { border-left-color: var(--primary); }
+.mem-card.t-refactor { border-left-color: var(--chain); }
+.mem-card.t-discovery { border-left-color: var(--chain); }
+.mem-card.t-decision { border-left-color: var(--warn); }
+.mem-card.t-security { border-left-color: var(--danger); }
+.mem-card.mem-summary { border-left-color: var(--signal); }
+.mem-card.mem-prompt { border-left-color: var(--ink-3); background: var(--paper-2); }
+.mem-type.t-bugfix { color: var(--danger); }
+.mem-type.t-feature { color: var(--primary); }
+.mem-type.t-decision { color: var(--warn); }
+.mem-type.t-summary { color: var(--signal); }
+
+.mem-summary-sections {
+  margin: 4px 0 0;
+}
+.mem-summary-sections > div {
+  margin: 6px 0;
+}
+.mem-summary-sections dt {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+}
+.mem-summary-sections dd {
+  margin: 1px 0 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mem-prompt-text {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.mem-empty {
+  margin-top: 24px;
+}
+
+@media (max-width: 560px) {
+  .mem-feed-head {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mem-meta {
+    justify-content: flex-start;
+  }
+}
