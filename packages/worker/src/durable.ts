@@ -23,8 +23,13 @@ export interface DurableHit {
 /** A pluggable durable store so the worker loop is testable with a fake. */
 export interface DurableStore {
   available(): boolean;
-  /** Store text under a namespace; returns a durable reference (job_id). */
-  write(text: string, namespace: string): Promise<string>;
+  /**
+   * Store text under a namespace and resolve to the REAL Walrus blob id once the
+   * relayer (TEE) finishes uploading. Callers fire this detached (the upload
+   * takes 1-3 min) and backfill the blob id so the dashboard can deep-link to
+   * the Walrus explorer for that memory.
+   */
+  writeAndWait(text: string, namespace: string): Promise<string>;
   /** Semantic recall within a namespace. */
   recall(query: string, namespace: string, limit: number): Promise<DurableHit[]>;
 }
@@ -79,7 +84,11 @@ export function resolveDurableConfig(
 // Minimal structural type for the MemWal main client (lazy-imported to avoid
 // loading @mysten/seal + @mysten/sui unless durable storage is actually used).
 interface MemWalClient {
-  remember(text: string, namespace?: string): Promise<{ job_id: string; status: string }>;
+  rememberAndWait(
+    text: string,
+    namespace?: string,
+    opts?: { timeoutMs?: number },
+  ): Promise<{ blob_id: string; owner: string; namespace: string }>;
   recall(params: { query: string; limit?: number; namespace?: string }): Promise<{
     results: { blob_id: string; text: string; distance: number }[];
     total: number;
@@ -107,9 +116,13 @@ export class MemWalDurableStore implements DurableStore {
     return this.client;
   }
 
-  async write(text: string, namespace: string): Promise<string> {
-    const accepted = await (await this.memwal()).remember(text, namespace);
-    return accepted.job_id;
+  async writeAndWait(text: string, namespace: string): Promise<string> {
+    // Resolves once the relayer TEE has embedded + Seal-encrypted + uploaded to
+    // Walrus, returning the real blob id (for the explorer deep-link).
+    const result = await (await this.memwal()).rememberAndWait(text, namespace, {
+      timeoutMs: 240_000,
+    });
+    return result.blob_id;
   }
 
   async recall(query: string, namespace: string, limit: number): Promise<DurableHit[]> {

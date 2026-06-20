@@ -71,50 +71,58 @@ const defaultLogger: WorkerLogger = {
   warn: (m) => process.stderr.write(`${m}\n`),
 };
 
-/** Write each fresh observation durably to MemWal and backfill its blob ref. Best-effort. */
-async function persistObservationsDurably(
+/**
+ * Durably store each fresh observation on MemWal and backfill the REAL Walrus
+ * blob id (for the explorer deep-link). Detached/best-effort: the Walrus upload
+ * takes 1-3 min, so we never block the observer loop on it.
+ */
+function persistObservationsDurably(
   result: ObserverRunResult,
   store: WorkerStoreType,
   durable: DurableStore,
   server: WorkerServer,
   logger: WorkerLogger,
-): Promise<void> {
+): void {
   const session = store.getSession(result.sessionId);
   const namespace = projectNamespace(session?.project);
   for (const obs of result.observations) {
     if (obs.blobId) continue;
-    try {
-      const ref = await durable.write(observationText(obs), namespace);
-      store.setObservationBlob(obs.id, ref);
-      server.broadcast("observation_stored", { id: obs.id, blobId: ref });
-    } catch (err) {
-      logger.warn(
-        `[durable] observation ${obs.id}: ${err instanceof Error ? err.message : String(err)}`,
+    void durable
+      .writeAndWait(observationText(obs), namespace)
+      .then((blobId) => {
+        store.setObservationBlob(obs.id, blobId);
+        server.broadcast("observation_stored", { id: obs.id, blobId });
+      })
+      .catch((err) =>
+        logger.warn(
+          `[durable] observation ${obs.id}: ${err instanceof Error ? err.message : String(err)}`,
+        ),
       );
-    }
   }
 }
 
-/** Write a fresh summary durably to MemWal and backfill its blob ref. Best-effort. */
-async function persistSummaryDurably(
+/** Durably store a fresh summary on MemWal and backfill its Walrus blob id. Detached. */
+function persistSummaryDurably(
   summary: Summary,
   store: WorkerStoreType,
   durable: DurableStore,
   server: WorkerServer,
   logger: WorkerLogger,
-): Promise<void> {
+): void {
   if (summary.blobId) return;
   const session = store.getSession(summary.sessionId);
   const namespace = projectNamespace(session?.project);
-  try {
-    const ref = await durable.write(summaryText(summary), namespace);
-    store.setSummaryBlob(summary.id, ref);
-    server.broadcast("summary_stored", { id: summary.id, blobId: ref });
-  } catch (err) {
-    logger.warn(
-      `[durable] summary ${summary.id}: ${err instanceof Error ? err.message : String(err)}`,
+  void durable
+    .writeAndWait(summaryText(summary), namespace)
+    .then((blobId) => {
+      store.setSummaryBlob(summary.id, blobId);
+      server.broadcast("summary_stored", { id: summary.id, blobId });
+    })
+    .catch((err) =>
+      logger.warn(
+        `[durable] summary ${summary.id}: ${err instanceof Error ? err.message : String(err)}`,
+      ),
     );
-  }
 }
 
 /**
@@ -151,16 +159,16 @@ function startObserverLoop(
         batchSize,
       });
       if (result !== null) {
-        if (durable?.available()) {
-          await persistObservationsDurably(result, store, durable, server, logger);
-        }
+        // Fire-and-forget: backfills real Walrus blob ids without blocking the loop.
+        if (durable?.available())
+          persistObservationsDurably(result, store, durable, server, logger);
         schedule(0); // drained an event batch; check for more immediately
         return;
       }
       // No pending events — summarize a closed session that still needs one.
       const summary = await runSummaryOnce({ store, backend, broadcast: server.broadcast });
       if (summary && durable?.available()) {
-        await persistSummaryDurably(summary, store, durable, server, logger);
+        persistSummaryDurably(summary, store, durable, server, logger);
       }
       schedule(summary ? 0 : intervalMs);
     } catch (err) {
@@ -187,6 +195,7 @@ export async function startWorker(opts: StartWorkerOptions = {}): Promise<Runnin
     store,
     host: opts.host,
     port: opts.port,
+    durable: durable?.available() ?? false,
     recall: durable
       ? (query, project, limit) => durable.recall(query, projectNamespace(project), limit)
       : undefined,

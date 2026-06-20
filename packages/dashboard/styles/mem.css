@@ -42,6 +42,21 @@
   border-radius: var(--r-sm);
   padding: 4px 8px;
 }
+.mem-search {
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--paper-3);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  width: 190px;
+  max-width: 40vw;
+}
+.mem-search:focus {
+  outline: none;
+  border-color: var(--primary-line);
+}
 
 .mem-stats {
   display: flex;
@@ -100,6 +115,16 @@
 .mem-stored {
   color: var(--signal);
   font-weight: 600;
+}
+a.mem-stored {
+  text-decoration: none;
+}
+a.mem-stored:hover {
+  text-decoration: underline;
+}
+.mem-saving {
+  color: var(--ink-3);
+  font-style: italic;
 }
 .mem-title {
   font-family: var(--display);

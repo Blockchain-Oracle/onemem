@@ -51,6 +51,12 @@ export function plural(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`;
 }
 
+/** Walruscan explorer deep-link for a stored memory's Walrus blob. */
+export function walrusExplorerUrl(blobId: string): string {
+  const network = process.env.NEXT_PUBLIC_WALRUS_NETWORK ?? "testnet";
+  return `https://walruscan.com/${network}/blob/${blobId}`;
+}
+
 export function projectName(path: string | null | undefined): string {
   if (!path) return "unknown project";
   const clean = path.replace(/\/+$/, "");

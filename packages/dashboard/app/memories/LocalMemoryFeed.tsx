@@ -10,7 +10,14 @@ import type {
   LocalSummary,
   ProcessingStatus,
 } from "@/lib/local-worker";
-import { formatTime, plural, projectName, runtimeLabel, typeMeta } from "@/lib/memory-view";
+import {
+  formatTime,
+  plural,
+  projectName,
+  runtimeLabel,
+  typeMeta,
+  walrusExplorerUrl,
+} from "@/lib/memory-view";
 
 type WorkerState = "connecting" | "connected" | "offline";
 
@@ -29,6 +36,8 @@ export function LocalMemoryFeed() {
     queueDepth: 0,
   });
   const [projectFilter, setProjectFilter] = useState("all");
+  const [query, setQuery] = useState("");
+  const [durableActive, setDurableActive] = useState(false);
   const [state, setState] = useState<WorkerState>("connecting");
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +67,13 @@ export function LocalMemoryFeed() {
         setState("offline");
         setError(err instanceof Error ? err.message : String(err));
       });
+
+    fetch("/api/worker/health", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((h) => {
+        if (!cancelled) setDurableActive(Boolean(h?.durable));
+      })
+      .catch(() => {});
 
     const events = new EventSource("/api/worker/stream");
     const on = <T,>(name: string, fn: (data: T) => void) =>
@@ -152,10 +168,41 @@ export function LocalMemoryFeed() {
         data: d,
       })),
     ];
+    const q = query.trim().toLowerCase();
+    const matches = (i: Item): boolean => {
+      if (!q) return true;
+      if (i.kind === "observation") {
+        const o = i.data;
+        return [
+          o.title,
+          o.subtitle,
+          o.narrative,
+          o.type,
+          ...o.facts,
+          ...o.concepts,
+          ...o.filesModified,
+          ...o.filesRead,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q);
+      }
+      if (i.kind === "summary") {
+        const s = i.data;
+        return [s.request, s.investigated, s.learned, s.completed, s.nextSteps, s.notes]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q);
+      }
+      return i.data.text.toLowerCase().includes(q);
+    };
     return items
       .filter((i) => projectFilter === "all" || projectOf(i.sessionId) === projectFilter)
+      .filter(matches)
       .sort((a, b) => b.createdAt - a.createdAt);
-  }, [observations, summaries, prompts, projectFilter, projectOf]);
+  }, [observations, summaries, prompts, projectFilter, projectOf, query]);
 
   const storedCount =
     observations.filter((o) => o.blobId).length + summaries.filter((s) => s.blobId).length;
@@ -170,6 +217,14 @@ export function LocalMemoryFeed() {
           </p>
         </div>
         <div className="mem-feed-actions">
+          <input
+            className="mem-search"
+            type="search"
+            placeholder="Search memory…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search memory"
+          />
           {projects.length > 1 && (
             <select
               aria-label="Filter memory by project"
@@ -215,9 +270,15 @@ export function LocalMemoryFeed() {
                 obs={item.data}
                 runtime={sessionsById.get(item.sessionId)?.runtime ?? "worker"}
                 project={projectOf(item.sessionId)}
+                durableActive={durableActive}
               />
             ) : item.kind === "summary" ? (
-              <SummaryCard key={item.key} summary={item.data} project={projectOf(item.sessionId)} />
+              <SummaryCard
+                key={item.key}
+                summary={item.data}
+                project={projectOf(item.sessionId)}
+                durableActive={durableActive}
+              />
             ) : (
               <PromptCard key={item.key} prompt={item.data} />
             ),
@@ -228,14 +289,41 @@ export function LocalMemoryFeed() {
   );
 }
 
+/** Honest durable-storage state: real explorer link, in-flight upload, or nothing. */
+function WalrusBadge({ blobId, durableActive }: { blobId: string | null; durableActive: boolean }) {
+  if (blobId) {
+    return (
+      <a
+        className="mem-stored"
+        href={walrusExplorerUrl(blobId)}
+        target="_blank"
+        rel="noreferrer"
+        title="View this memory on the Walrus explorer"
+      >
+        ◆ Walrus ↗
+      </a>
+    );
+  }
+  if (durableActive) {
+    return (
+      <span className="mem-saving" title="Uploading to Walrus…">
+        ⋯ saving to Walrus
+      </span>
+    );
+  }
+  return null;
+}
+
 function ObservationCard({
   obs,
   runtime,
   project,
+  durableActive,
 }: {
   obs: LocalObservation;
   runtime: string;
   project: string;
+  durableActive: boolean;
 }) {
   const meta = typeMeta(obs.type);
   const [showFacts, setShowFacts] = useState(false);
@@ -254,11 +342,7 @@ function ObservationCard({
         <span className="mem-meta mono">
           <RuntimeLogo id={runtime} name={runtimeLabel(runtime)} icon="memory" size={14} />
           {runtimeLabel(runtime)} · {project} · {formatTime(obs.createdAt)}
-          {obs.blobId && (
-            <span className="mem-stored" title={`Stored on Walrus (${obs.blobId})`}>
-              ◆ Walrus
-            </span>
-          )}
+          <WalrusBadge blobId={obs.blobId} durableActive={durableActive} />
         </span>
       </div>
       <h3 className="mem-title">{obs.title}</h3>
@@ -317,7 +401,15 @@ function ObservationCard({
   );
 }
 
-function SummaryCard({ summary, project }: { summary: LocalSummary; project: string }) {
+function SummaryCard({
+  summary,
+  project,
+  durableActive,
+}: {
+  summary: LocalSummary;
+  project: string;
+  durableActive: boolean;
+}) {
   const sections: Array<[string, string | null]> = [
     ["Request", summary.request],
     ["Investigated", summary.investigated],
@@ -333,7 +425,7 @@ function SummaryCard({ summary, project }: { summary: LocalSummary; project: str
         </span>
         <span className="mem-meta mono">
           {project} · {formatTime(summary.createdAt)}
-          {summary.blobId && <span className="mem-stored">◆ Walrus</span>}
+          <WalrusBadge blobId={summary.blobId} durableActive={durableActive} />
         </span>
       </div>
       <dl className="mem-summary-sections">

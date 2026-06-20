@@ -14,6 +14,8 @@ export interface WorkerServerOptions {
   readonly store: WorkerStore;
   readonly host?: string;
   readonly port?: number;
+  /** Whether durable MemWal storage is active (so the UI can show honest upload state). */
+  readonly durable?: boolean;
   /** Semantic recall from the durable store (MemWal); wired by index.ts. */
   readonly recall?: (
     query: string,
@@ -69,6 +71,7 @@ export function createWorkerServer(opts: WorkerServerOptions): WorkerServer {
           ok: true,
           sseClients: sseClients.size,
           pendingEvents: store.pendingEventCount(),
+          durable: opts.durable ?? false,
         });
       }
 

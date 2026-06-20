@@ -25,7 +25,7 @@ const fakeBackend: ObserverBackend = {
 
 const fakeDurable: DurableStore = {
   available: () => true,
-  write: async () => "job_fake_123",
+  writeAndWait: async () => "blobFake123",
   recall: async () => [{ text: "Past work: built the observer", distance: 0.2, blobId: "b1" }],
 };
 
@@ -137,9 +137,9 @@ describe("startWorker", () => {
           (await (await fetch(`${base}/api/observations?session=s`)).json()) as {
             observations: { blobId: string | null }[];
           },
-        (v) => v.observations.length >= 1 && v.observations[0]?.blobId === "job_fake_123",
+        (v) => v.observations.length >= 1 && v.observations[0]?.blobId === "blobFake123",
       );
-      expect(read.observations[0]?.blobId).toBe("job_fake_123");
+      expect(read.observations[0]?.blobId).toBe("blobFake123");
 
       // recall is served from the durable store, scoped to the project namespace
       const recall = (await (
