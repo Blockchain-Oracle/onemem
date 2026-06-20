@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { RuntimeLogo } from "@/components/RuntimeLogo";
@@ -35,7 +36,8 @@ export function LocalMemoryFeed() {
     isProcessing: false,
     queueDepth: 0,
   });
-  const [projectFilter, setProjectFilter] = useState("all");
+  const searchParams = useSearchParams();
+  const projectFilter = searchParams.get("project") ?? "all";
   const [query, setQuery] = useState("");
   const [durableActive, setDurableActive] = useState(false);
   const [state, setState] = useState<WorkerState>("connecting");
@@ -125,14 +127,6 @@ export function LocalMemoryFeed() {
       sessionsById.get(sessionId)?.project ?? projectName(sessionsById.get(sessionId)?.projectPath),
     [sessionsById],
   );
-
-  const projects = useMemo(() => {
-    const names = new Set<string>();
-    for (const s of sessions) names.add(s.project ?? projectName(s.projectPath));
-    return [...names]
-      .filter((n) => n && n !== "unknown project")
-      .sort((a, b) => a.localeCompare(b));
-  }, [sessions]);
 
   const feed = useMemo(() => {
     type Item =
@@ -225,21 +219,6 @@ export function LocalMemoryFeed() {
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search memory"
           />
-          {projects.length > 1 && (
-            <select
-              aria-label="Filter memory by project"
-              className="mem-select"
-              value={projectFilter}
-              onChange={(e) => setProjectFilter(e.target.value)}
-            >
-              <option value="all">All projects</option>
-              {projects.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          )}
           <span className={`badge ${state === "connected" ? "badge-live" : "badge-grey"}`}>
             {processing.isProcessing && <Icon name="memory" size={14} className="om-spin" />}
             <span className="dot" />

@@ -10,11 +10,6 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.svg", type: "image/svg+xml" }],
 };
 
-function activeNamespaceLabel(): string {
-  const id = process.env.ONEMEM_NAMESPACE_ID;
-  return id ? `${id.slice(0, 8)}…` : "no namespace";
-}
-
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -22,9 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ThemeScript />
       </head>
       <body>
-        <AppShell namespace={activeNamespaceLabel()} namespaceRole="OWNER">
-          {children}
-        </AppShell>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

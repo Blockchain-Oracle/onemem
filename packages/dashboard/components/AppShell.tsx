@@ -1,10 +1,52 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { type ReactNode, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { type ReactNode, Suspense, useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import { cycleTheme } from "./ThemeScript";
+
+/** Topbar project/repo selector — the real version of the old "no namespace" button.
+ *  Pulls live projects from the local worker's sessions and filters the feed via ?project. */
+function ProjectSelector() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const selected = params.get("project") ?? "all";
+  const [projects, setProjects] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/worker/sessions", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: { sessions?: { project?: string | null; projectPath?: string | null }[] }) => {
+        const names = new Set<string>();
+        for (const s of d.sessions ?? []) {
+          const p = s.project ?? s.projectPath?.split(/[\\/]/).filter(Boolean).pop() ?? null;
+          if (p) names.add(p);
+        }
+        setProjects([...names].sort((a, b) => a.localeCompare(b)));
+      })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <select
+      className="ns-select"
+      aria-label="Filter memory by project"
+      value={selected}
+      onChange={(e) => {
+        const v = e.target.value;
+        router.push(v === "all" ? "/memories" : `/memories?project=${encodeURIComponent(v)}`);
+      }}
+    >
+      <option value="all">All projects</option>
+      {projects.map((p) => (
+        <option key={p} value={p}>
+          {p}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 export interface Crumb {
   label: string;
@@ -33,14 +75,10 @@ function BrandMark() {
 export function AppShell({
   children,
   crumbs = [],
-  namespace = "default",
-  namespaceRole = "USER",
   wide = false,
 }: {
   children: ReactNode;
   crumbs?: Crumb[];
-  namespace?: string;
-  namespaceRole?: string;
   wide?: boolean;
 }) {
   const pathname = usePathname();
@@ -126,11 +164,9 @@ export function AppShell({
             ))}
           </div>
           <div className="spacer" />
-          <button type="button" className="ns-select">
-            <span className="ns-name">{namespace}</span>
-            <span className="ns-role">{namespaceRole}</span>
-            <Icon name="chevDown" size={14} />
-          </button>
+          <Suspense fallback={null}>
+            <ProjectSelector />
+          </Suspense>
           <button
             type="button"
             className="btn-icon"
